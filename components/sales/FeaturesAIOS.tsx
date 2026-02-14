@@ -10,6 +10,17 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { createPortal } from "react-dom";
+
+// Helper Portal component for Lightbox decoupling
+function FeaturePortal({ children }: { children: React.ReactNode }) {
+    const [mounted, setMounted] = React.useState(false);
+    React.useEffect(() => {
+        setMounted(true);
+        return () => setMounted(false);
+    }, []);
+    return mounted ? createPortal(children, document.body) : null;
+}
 
 const BENTO_FEATURES = [
     {
@@ -103,8 +114,20 @@ const secondaryFeatures = [
 ];
 
 export default function FeaturesAIOS() {
-    const [hovered, setHovered] = useState<string | null>(null);
-    const [selectedFeature, setSelectedFeature] = useState<any>(null);
+    const [hovered, setHovered] = React.useState<string | null>(null);
+    const [selectedFeature, setSelectedFeature] = React.useState<any>(null);
+
+    // Lock body scroll when a feature is selected to prevent viewport shifts
+    React.useEffect(() => {
+        if (selectedFeature) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "unset";
+        }
+        return () => {
+            document.body.style.overflow = "unset";
+        };
+    }, [selectedFeature]);
 
     return (
         <section className="py-24 md:py-48 bg-black relative overflow-hidden noise-overlay" id="aios-features">
@@ -145,16 +168,20 @@ export default function FeaturesAIOS() {
 
                 {/* THE BENTO GRID - HIGH DENSITY */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    {BENTO_FEATURES.map((item) => (
-                        <BentoCard
-                            key={item.id}
-                            item={item}
-                            isHovered={hovered === item.id}
-                            onHover={() => setHovered(item.id)}
-                            onLeave={() => setHovered(null)}
-                            onClick={() => setSelectedFeature(item)}
-                        />
-                    ))}
+                    {BENTO_FEATURES.map((item) => {
+                        const uniqueId = `bento-${item.id}`;
+                        return (
+                            <BentoCard
+                                key={uniqueId}
+                                item={item}
+                                uniqueId={uniqueId}
+                                isHovered={hovered === item.id}
+                                onHover={() => setHovered(item.id)}
+                                onLeave={() => setHovered(null)}
+                                onClick={() => setSelectedFeature({ ...item, uniqueId })}
+                            />
+                        );
+                    })}
                 </div>
 
                 {/* THE SUB-FEATURES GRID - 16 MODULES (REPLICATING ORIGINAL HIGH COUNT) */}
@@ -167,111 +194,117 @@ export default function FeaturesAIOS() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {secondaryFeatures.concat(secondaryFeatures).map((item, i) => (
-                            <FeatureSmallCard
-                                key={i}
-                                item={item}
-                                index={i}
-                                onClick={() => setSelectedFeature(item)}
-                            />
-                        ))}
+                        {[...secondaryFeatures, ...secondaryFeatures].map((item, i) => {
+                            const uniqueId = `small-feat-${i}`;
+                            return (
+                                <FeatureSmallCard
+                                    key={uniqueId}
+                                    item={item}
+                                    uniqueId={uniqueId}
+                                    index={i}
+                                    onClick={() => setSelectedFeature({ ...item, uniqueId })}
+                                />
+                            );
+                        })}
                     </div>
                 </div>
             </div>
 
-            {/* LIGHTBOX MODAL - THE "REPORT" UI */}
+            {/* LIGHTBOX MODAL - THE "REPORT" UI (Portaled for stability) */}
             <AnimatePresence>
                 {selectedFeature && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 md:p-12">
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setSelectedFeature(null)}
-                            className="absolute inset-0 bg-black/95 backdrop-blur-3xl cursor-zoom-out"
-                        />
+                    <FeaturePortal>
+                        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6 md:p-12">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setSelectedFeature(null)}
+                                className="absolute inset-0 bg-black/95 backdrop-blur-3xl cursor-zoom-out"
+                            />
 
-                        <motion.div
-                            layoutId={selectedFeature.id ? `bento-${selectedFeature.id}` : `feature-small-${selectedFeature.label}`}
-                            className="relative w-full max-w-5xl bg-[#050505] border border-white/10 rounded-[48px] overflow-hidden shadow-[0_60px_120px_rgba(0,0,0,1)] flex flex-col md:flex-row z-10"
-                        >
-                            <div className="w-full md:w-[45%] aspect-square flex items-center justify-center relative p-16 md:p-24 overflow-hidden border-r border-white/5">
-                                {/* Subtle Grid Background in Modal */}
-                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:32px_32px]" />
-                                {(() => {
-                                    const FeatureIcon = selectedFeature.icon;
-                                    return <FeatureIcon size={160} strokeWidth={0.5} style={{ color: selectedFeature.color }} className="relative z-10 drop-shadow-[0_0_40px_rgba(255,255,255,0.1)]" />;
-                                })()}
-                                <div className="absolute bottom-12 left-12 right-12 font-mono text-[9px] text-zinc-800 uppercase tracking-[0.5em] text-center">
-                                    Hardware_ID: 0x{Math.floor(Math.random() * 10000000).toString(16)} // TYPE: SOVEREIGN
-                                </div>
-                            </div>
-
-                            <div className="flex-1 p-10 md:p-20 space-y-12 relative overflow-y-auto max-h-[90vh]">
-                                <button onClick={() => setSelectedFeature(null)} className="absolute top-10 right-10 text-zinc-700 hover:text-white transition-colors">
-                                    <X size={28} />
-                                </button>
-
-                                <div className="space-y-4">
-                                    <div className="inline-flex items-center gap-2 text-[11px] font-mono font-black uppercase tracking-[0.5em]" style={{ color: selectedFeature.color }}>
-                                        <Activity size={12} className="animate-pulse" />
-                                        Subsystem_Report_3.02
+                            <motion.div
+                                layoutId={selectedFeature.uniqueId}
+                                className="relative w-full max-w-5xl bg-[#050505] border border-white/10 rounded-[48px] overflow-hidden shadow-[0_60px_120px_rgba(0,0,0,1)] flex flex-col md:flex-row z-10"
+                            >
+                                <div className="w-full md:w-[45%] aspect-square flex items-center justify-center relative p-16 md:p-24 overflow-hidden border-r border-white/5">
+                                    {/* Subtle Grid Background in Modal */}
+                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:32px_32px]" />
+                                    {(() => {
+                                        const FeatureIcon = selectedFeature.icon;
+                                        return <FeatureIcon size={160} strokeWidth={0.5} style={{ color: selectedFeature.color }} className="relative z-10 drop-shadow-[0_0_40px_rgba(255,255,255,0.1)]" />;
+                                    })()}
+                                    <div className="absolute bottom-12 left-12 right-12 font-mono text-[9px] text-zinc-800 uppercase tracking-[0.5em] text-center">
+                                        Hardware_ID: 0x{Math.floor(Math.random() * 10000000).toString(16)} // TYPE: SOVEREIGN
                                     </div>
-                                    <h2 className="text-4xl md:text-6xl font-sans font-black text-white uppercase tracking-tighter leading-none">{selectedFeature.title || selectedFeature.label}</h2>
-                                    {selectedFeature.headline && <p className="text-2xl text-zinc-500 font-light tracking-tight">{selectedFeature.headline}</p>}
                                 </div>
 
-                                <div className="space-y-12">
+                                <div className="flex-1 p-10 md:p-20 space-y-12 relative overflow-y-auto max-h-[90vh]">
+                                    <button onClick={() => setSelectedFeature(null)} className="absolute top-10 right-10 text-zinc-700 hover:text-white transition-colors">
+                                        <X size={28} />
+                                    </button>
+
                                     <div className="space-y-4">
-                                        <div className="text-[10px] font-mono font-black text-zinc-600 uppercase tracking-[0.6em]">System_Guts</div>
-                                        <div className="p-8 rounded-[32px] bg-white/[0.02] border border-white/5 relative overflow-hidden group">
-                                            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                                                {(() => {
-                                                    const FeatureIcon = selectedFeature.icon;
-                                                    return <FeatureIcon size={80} />;
-                                                })()}
+                                        <div className="inline-flex items-center gap-2 text-[11px] font-mono font-black uppercase tracking-[0.5em]" style={{ color: selectedFeature.color }}>
+                                            <Activity size={12} className="animate-pulse" />
+                                            Subsystem_Report_3.02
+                                        </div>
+                                        <h2 className="text-4xl md:text-6xl font-sans font-black text-white uppercase tracking-tighter leading-none">{selectedFeature.title || selectedFeature.label}</h2>
+                                        {selectedFeature.headline && <p className="text-2xl text-zinc-500 font-light tracking-tight">{selectedFeature.headline}</p>}
+                                    </div>
+
+                                    <div className="space-y-12">
+                                        <div className="space-y-4">
+                                            <div className="text-[10px] font-mono font-black text-zinc-600 uppercase tracking-[0.6em]">System_Guts</div>
+                                            <div className="p-8 rounded-[32px] bg-white/[0.02] border border-white/5 relative overflow-hidden group">
+                                                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                                    {(() => {
+                                                        const FeatureIcon = selectedFeature.icon;
+                                                        return <FeatureIcon size={80} />;
+                                                    })()}
+                                                </div>
+                                                <p className="text-zinc-300 text-xl leading-relaxed italic font-light relative z-10">&quot;{selectedFeature.payload}&quot;</p>
                                             </div>
-                                            <p className="text-zinc-300 text-xl leading-relaxed italic font-light relative z-10">&quot;{selectedFeature.payload}&quot;</p>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <div className="text-[10px] font-mono font-black text-[#00F0FF] uppercase tracking-[0.6em]">The_Edge</div>
+                                            <div className="p-8 rounded-[32px] bg-[#00F0FF]/5 border border-[#00F0FF]/10">
+                                                <p className="text-zinc-100 text-xl leading-relaxed font-normal">{selectedFeature.edge}</p>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div className="space-y-4">
-                                        <div className="text-[10px] font-mono font-black text-[#00F0FF] uppercase tracking-[0.6em]">The_Edge</div>
-                                        <div className="p-8 rounded-[32px] bg-[#00F0FF]/5 border border-[#00F0FF]/10">
-                                            <p className="text-zinc-100 text-xl leading-relaxed font-normal">{selectedFeature.edge}</p>
+                                    <div className="pt-8 border-t border-white/5 flex justify-between items-center bg-black/50 sticky bottom-0">
+                                        <div className="flex gap-8">
+                                            <div className="space-y-1">
+                                                <div className="text-[9px] font-mono text-zinc-700 uppercase tracking-widest">Clearance</div>
+                                                <div className="text-[11px] font-mono text-white">SOVEREIGN_L5</div>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <div className="text-[9px] font-mono text-zinc-700 uppercase tracking-widest">Origin</div>
+                                                <div className="text-[11px] font-mono text-white">ORAYA_CORE_v4</div>
+                                            </div>
                                         </div>
+                                        <button onClick={() => setSelectedFeature(null)} className="px-8 py-3 bg-white text-black font-mono font-black text-xs uppercase tracking-widest hover:bg-[#F0B429] transition-colors rounded-xl">Terminate_Module</button>
                                     </div>
                                 </div>
-
-                                <div className="pt-8 border-t border-white/5 flex justify-between items-center bg-black/50 sticky bottom-0">
-                                    <div className="flex gap-8">
-                                        <div className="space-y-1">
-                                            <div className="text-[9px] font-mono text-zinc-700 uppercase tracking-widest">Clearance</div>
-                                            <div className="text-[11px] font-mono text-white">SOVEREIGN_L5</div>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <div className="text-[9px] font-mono text-zinc-700 uppercase tracking-widest">Origin</div>
-                                            <div className="text-[11px] font-mono text-white">ORAYA_CORE_v4</div>
-                                        </div>
-                                    </div>
-                                    <button onClick={() => setSelectedFeature(null)} className="px-8 py-3 bg-white text-black font-mono font-black text-xs uppercase tracking-widest hover:bg-[#F0B429] transition-colors rounded-xl">Terminate_Module</button>
-                                </div>
-                            </div>
-                        </motion.div>
-                    </div>
+                            </motion.div>
+                        </div>
+                    </FeaturePortal>
                 )}
             </AnimatePresence>
         </section>
     );
 }
 
-function BentoCard({ item, isHovered, onHover, onLeave, onClick }: any) {
+function BentoCard({ item, uniqueId, isHovered, onHover, onLeave, onClick }: any) {
     const isLarge = item.size === "large";
     const isWide = item.size === "wide";
 
     return (
         <motion.div
-            layoutId={`bento-${item.id}`}
+            layoutId={uniqueId}
             onMouseEnter={onHover}
             onMouseLeave={onLeave}
             onClick={onClick}
@@ -334,11 +367,11 @@ function BentoCard({ item, isHovered, onHover, onLeave, onClick }: any) {
     );
 }
 
-function FeatureSmallCard({ item, index, onClick }: { item: any, index: number, onClick: () => void }) {
+function FeatureSmallCard({ item, uniqueId, index, onClick }: { item: any, uniqueId: string, index: number, onClick: () => void }) {
     const Icon = item.icon;
     return (
         <motion.div
-            layoutId={`feature-small-${item.label}`}
+            layoutId={uniqueId}
             initial={{ opacity: 0, scale: 0.98 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}

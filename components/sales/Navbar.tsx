@@ -44,14 +44,12 @@ export default function SalesNavbar() {
             >
                 <div className="max-w-[1400px] mx-auto px-6 flex items-center justify-between">
                     {/* Logo Section */}
-                    <Link href="/" className="flex items-center gap-6 group relative">
+                    <Link href="/" className="flex items-center group relative">
                         <div className="relative">
-                            <Image
+                            <img
                                 src="/logos/oraya-light.png"
                                 alt="Oraya"
-                                width={120}
-                                height={35}
-                                className="h-8 w-auto object-contain transition-all duration-700 group-hover:scale-105 brightness-150"
+                                className="h-10 md:h-12 w-auto object-contain transition-all duration-700 group-hover:scale-105 brightness-0 invert"
                             />
                             <div className="absolute -top-1 -right-1 w-2 h-2 bg-[#00F0FF] rounded-full border border-black animate-pulse shadow-[0_0_15px_#00F0FF]" />
                         </div>
