@@ -19,8 +19,8 @@ export async function GET(request: NextRequest) {
     const supabase = createServiceRoleClient();
 
     try {
-        const { data: admins, error } = await supabase
-            .from("platform_admins")
+        const { data: admins, error } = await (supabase
+            .from("platform_admins") as any)
             .select("id, email, name, role, created_at, last_login_at")
             .order("created_at", { ascending: true });
 
@@ -80,8 +80,8 @@ export async function POST(request: NextRequest) {
         const adminRole = validRoles.includes(role) ? role : "admin";
 
         // Check if email already exists
-        const { data: existing } = await supabase
-            .from("platform_admins")
+        const { data: existing } = await (supabase
+            .from("platform_admins") as any)
             .select("id")
             .eq("email", email.toLowerCase().trim())
             .single();
@@ -99,8 +99,8 @@ export async function POST(request: NextRequest) {
             .update(password + salt)
             .digest("hex");
 
-        const { data: newAdmin, error } = await supabase
-            .from("platform_admins")
+        const { data: newAdmin, error } = await (supabase
+            .from("platform_admins") as any)
             .insert({
                 email: email.toLowerCase().trim(),
                 name: name.trim(),
@@ -160,8 +160,8 @@ export async function DELETE(request: NextRequest) {
         }
 
         // Count remaining admins
-        const { count } = await supabase
-            .from("platform_admins")
+        const { count } = await (supabase
+            .from("platform_admins") as any)
             .select("id", { count: "exact", head: true });
 
         if (count !== null && count <= 1) {
@@ -171,8 +171,8 @@ export async function DELETE(request: NextRequest) {
             );
         }
 
-        const { error } = await supabase
-            .from("platform_admins")
+        const { error } = await (supabase
+            .from("platform_admins") as any)
             .delete()
             .eq("id", id);
 

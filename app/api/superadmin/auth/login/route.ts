@@ -18,8 +18,8 @@ export async function POST(request: NextRequest) {
         const supabase = createServiceRoleClient();
 
         // Get admin by email from platform_admins
-        const { data: admin, error: adminError } = await supabase
-            .from("platform_admins")
+        const { data: admin, error: adminError } = await (supabase
+            .from("platform_admins") as any)
             .select("*")
             .eq("email", email.toLowerCase())
             .eq("is_active", true)
@@ -54,8 +54,8 @@ export async function POST(request: NextRequest) {
 
         if (!passwordValid) {
             // Increment failed attempts
-            await supabase
-                .from("platform_admins")
+            await (supabase
+                .from("platform_admins") as any)
                 .update({
                     failed_login_attempts: (admin.failed_login_attempts || 0) + 1,
                     locked_until:
@@ -80,8 +80,8 @@ export async function POST(request: NextRequest) {
         });
 
         // Update last login and reset failed attempts
-        await supabase
-            .from("platform_admins")
+        await (supabase
+            .from("platform_admins") as any)
             .update({
                 last_login_at: new Date().toISOString(),
                 failed_login_attempts: 0,
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
             .eq("id", admin.id);
 
         // Log the login
-        await supabase.from("admin_audit_logs").insert({
+        await (supabase.from("admin_audit_logs") as any).insert({
             admin_id: admin.id,
             admin_email: admin.email,
             action: "auth.login",

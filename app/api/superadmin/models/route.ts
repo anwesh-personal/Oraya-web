@@ -79,8 +79,8 @@ export async function POST(request: NextRequest) {
 
     try {
         // Fetch current pricing from database
-        const { data: pricing, error } = await supabase
-            .from("ai_provider_pricing")
+        const { data: pricing, error } = await (supabase
+            .from("ai_provider_pricing") as any)
             .select("*")
             .eq("is_active", true);
 

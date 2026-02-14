@@ -16,8 +16,8 @@ export async function GET(request: NextRequest) {
     const provider = searchParams.get("provider");
 
     try {
-        let query = supabase
-            .from("managed_ai_keys")
+        let query = (supabase
+            .from("managed_ai_keys") as any)
             .select("*")
             .order("provider", { ascending: true })
             .order("priority", { ascending: false });
@@ -33,16 +33,16 @@ export async function GET(request: NextRequest) {
         // Get aggregate stats
         const stats = {
             total: keys?.length || 0,
-            healthy: keys?.filter(k => k.is_healthy && k.is_active).length || 0,
-            unhealthy: keys?.filter(k => !k.is_healthy && k.is_active).length || 0,
-            inactive: keys?.filter(k => !k.is_active).length || 0,
-            dailySpend: keys?.reduce((sum, k) => sum + (k.current_daily_spend_usd || 0), 0) || 0,
-            monthlySpend: keys?.reduce((sum, k) => sum + (k.current_monthly_spend_usd || 0), 0) || 0,
+            healthy: keys?.filter((k: any) => k.is_healthy && k.is_active).length || 0,
+            unhealthy: keys?.filter((k: any) => !k.is_healthy && k.is_active).length || 0,
+            inactive: keys?.filter((k: any) => !k.is_active).length || 0,
+            dailySpend: keys?.reduce((sum: number, k: any) => sum + (k.current_daily_spend_usd || 0), 0) || 0,
+            monthlySpend: keys?.reduce((sum: number, k: any) => sum + (k.current_monthly_spend_usd || 0), 0) || 0,
             byProvider: {} as Record<string, number>,
         };
 
         // Count by provider
-        keys?.forEach(key => {
+        keys?.forEach((key: any) => {
             stats.byProvider[key.provider] = (stats.byProvider[key.provider] || 0) + 1;
         });
 
@@ -102,8 +102,8 @@ export async function POST(request: NextRequest) {
         }
 
         // Insert the new key
-        const { data, error } = await supabase
-            .from("managed_ai_keys")
+        const { data, error } = await (supabase
+            .from("managed_ai_keys") as any)
             .insert({
                 provider,
                 key_name,
@@ -165,8 +165,8 @@ export async function PATCH(request: NextRequest) {
         delete updates.current_monthly_spend_usd;
         delete updates.error_count;
 
-        const { data, error } = await supabase
-            .from("managed_ai_keys")
+        const { data, error } = await (supabase
+            .from("managed_ai_keys") as any)
             .update(updates)
             .eq("id", id)
             .select()
@@ -200,8 +200,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     try {
-        const { error } = await supabase
-            .from("managed_ai_keys")
+        const { error } = await (supabase
+            .from("managed_ai_keys") as any)
             .delete()
             .eq("id", id);
 

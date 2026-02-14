@@ -21,8 +21,8 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get("category");
 
     try {
-        let query = supabase
-            .from("platform_settings")
+        let query = (supabase
+            .from("platform_settings") as any)
             .select("key, value, category, description, is_sensitive, updated_at")
             .order("key", { ascending: true });
 
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
         if (error) throw error;
 
         // Mask sensitive values — show only last 4 chars
-        const masked = (settings || []).map((s) => {
+        const masked = (settings || []).map((s: any) => {
             if (s.is_sensitive && s.value) {
                 const raw = typeof s.value === "string" ? s.value.replace(/^"|"$/g, "") : String(s.value);
                 if (raw.length > 8) {
@@ -110,8 +110,8 @@ export async function PUT(request: NextRequest) {
                 ? JSON.stringify(setting.value)
                 : JSON.stringify(setting.value);
 
-            const { error } = await supabase
-                .from("platform_settings")
+            const { error } = await (supabase
+                .from("platform_settings") as any)
                 .upsert(
                     {
                         key: setting.key,
