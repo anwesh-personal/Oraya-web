@@ -21,8 +21,8 @@ export async function GET(request: Request) {
 
         if (!hasScope(auth, "read")) return scopeError("read");
 
-        const { data: keys } = await auth.supabase
-            .from("api_keys")
+        const { data: keys } = await (auth.supabase
+            .from("api_keys") as any)
             .select(
                 "id, key_name, api_key_prefix, scopes, is_active, last_used_at, total_requests, expires_at, created_at"
             )
@@ -88,8 +88,8 @@ export async function POST(request: Request) {
         }
 
         // Check key name uniqueness for this user
-        const { data: existing } = await auth.supabase
-            .from("api_keys")
+        const { data: existing } = await (auth.supabase
+            .from("api_keys") as any)
             .select("id")
             .eq("user_id", auth.user_id)
             .eq("key_name", key_name)
@@ -103,8 +103,8 @@ export async function POST(request: Request) {
         }
 
         // Create the key — the DB trigger auto-generates the actual key value
-        const { data: newKey, error: createError } = await auth.supabase
-            .from("api_keys")
+        const { data: newKey, error: createError } = await (auth.supabase
+            .from("api_keys") as any)
             .insert({
                 user_id: auth.user_id,
                 key_name,
@@ -159,8 +159,8 @@ export async function DELETE(request: Request) {
         }
 
         // Soft-delete: deactivate rather than delete
-        const { error: updateError } = await auth.supabase
-            .from("api_keys")
+        const { error: updateError } = await (auth.supabase
+            .from("api_keys") as any)
             .update({ is_active: false })
             .eq("id", keyId)
             .eq("user_id", auth.user_id);

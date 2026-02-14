@@ -28,8 +28,8 @@ export async function GET() {
         }
 
         // Fetch user license with plan details
-        const { data: license, error: licenseError } = await supabase
-            .from("user_licenses")
+        const { data: license, error: licenseError } = await (supabase
+            .from("user_licenses") as any)
             .select("*")
             .eq("user_id", user.id)
             .eq("status", "active")
@@ -65,15 +65,15 @@ export async function GET() {
         }
 
         // Fetch plan details
-        const { data: plan } = await supabase
-            .from("plans")
+        const { data: plan } = await (supabase
+            .from("plans") as any)
             .select("name, description, max_agents, max_devices, max_ai_calls_per_month, max_token_usage_per_month, features")
             .eq("id", license.plan_id)
             .single() as { data: Tables<"plans"> | null };
 
         // Fetch device activations
-        const { data: devices } = await supabase
-            .from("license_activations")
+        const { data: devices } = await (supabase
+            .from("license_activations") as any)
             .select(`
                 id,
                 device_id,

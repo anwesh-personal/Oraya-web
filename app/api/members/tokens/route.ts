@@ -28,8 +28,8 @@ export async function GET() {
         }
 
         // Fetch token wallet
-        const { data: wallet, error: walletError } = await supabase
-            .from("token_wallets")
+        const { data: wallet, error: walletError } = await (supabase
+            .from("token_wallets") as any)
             .select("*")
             .eq("user_id", user.id)
             .maybeSingle() as { data: Tables<"token_wallets"> | null; error: any };
@@ -61,24 +61,24 @@ export async function GET() {
         }
 
         // Fetch purchase history (last 20)
-        const { data: purchases } = await supabase
-            .from("token_purchases")
+        const { data: purchases } = await (supabase
+            .from("token_purchases") as any)
             .select("*")
             .eq("user_id", user.id)
             .order("purchased_at", { ascending: false })
             .limit(20) as { data: Tables<"token_purchases">[] | null };
 
         // Fetch recent usage (last 50 entries)
-        const { data: recentUsage } = await supabase
-            .from("token_usage_logs")
+        const { data: recentUsage } = await (supabase
+            .from("token_usage_logs") as any)
             .select("*")
             .eq("user_id", user.id)
             .order("used_at", { ascending: false })
             .limit(50) as { data: Tables<"token_usage_logs">[] | null };
 
         // Fetch available token packages
-        const { data: packages } = await supabase
-            .from("token_packages")
+        const { data: packages } = await (supabase
+            .from("token_packages") as any)
             .select("*")
             .eq("is_active", true)
             .order("display_order", { ascending: true }) as { data: Tables<"token_packages">[] | null };

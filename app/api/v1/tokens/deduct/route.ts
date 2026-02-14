@@ -54,8 +54,8 @@ export async function POST(request: Request) {
         }
 
         // 3. Get wallet
-        const { data: wallet, error: walletError } = await auth.supabase
-            .from("token_wallets")
+        const { data: wallet, error: walletError } = await (auth.supabase
+            .from("token_wallets") as any)
             .select("id, token_balance, is_frozen")
             .eq("user_id", auth.user_id)
             .single();
@@ -93,8 +93,8 @@ export async function POST(request: Request) {
         }
 
         // 6. Insert usage log (trigger handles deduction + balance snapshot)
-        const { data: usageLog, error: usageError } = await auth.supabase
-            .from("token_usage_logs")
+        const { data: usageLog, error: usageError } = await (auth.supabase
+            .from("token_usage_logs") as any)
             .insert({
                 user_id: auth.user_id,
                 wallet_id: wallet.id,

@@ -22,8 +22,8 @@ export async function GET(request: Request) {
 
         if (!hasScope(auth, "read")) return scopeError("read");
 
-        const { data: wallet, error: walletError } = await auth.supabase
-            .from("token_wallets")
+        const { data: wallet, error: walletError } = await (auth.supabase
+            .from("token_wallets") as any)
             .select("*")
             .eq("user_id", auth.user_id)
             .single();

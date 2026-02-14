@@ -28,8 +28,8 @@ export async function GET(request: Request) {
 
         // If job_id specified, return that job's details + findings
         if (jobId) {
-            const { data: job, error: jobError } = await auth.supabase
-                .from("research_jobs")
+            const { data: job, error: jobError } = await (auth.supabase
+                .from("research_jobs") as any)
                 .select("*")
                 .eq("id", jobId)
                 .eq("user_id", auth.user_id)
@@ -43,8 +43,8 @@ export async function GET(request: Request) {
             }
 
             // Get findings
-            let findingsQuery = auth.supabase
-                .from("research_findings")
+            let findingsQuery = (auth.supabase
+                .from("research_findings") as any)
                 .select("*")
                 .eq("job_id", jobId)
                 .order("discovered_at", { ascending: false })
@@ -58,8 +58,8 @@ export async function GET(request: Request) {
 
             // Get actual total count (not capped by limit)
             let totalCount = findings?.length || 0;
-            const { count } = await auth.supabase
-                .from("research_findings")
+            const { count } = await (auth.supabase
+                .from("research_findings") as any)
                 .select("id", { count: "exact", head: true })
                 .eq("job_id", jobId);
             if (count !== null) totalCount = count;
@@ -73,8 +73,8 @@ export async function GET(request: Request) {
         }
 
         // List all jobs
-        let jobsQuery = auth.supabase
-            .from("research_jobs")
+        let jobsQuery = (auth.supabase
+            .from("research_jobs") as any)
             .select("*")
             .eq("user_id", auth.user_id)
             .order("created_at", { ascending: false })
@@ -90,8 +90,8 @@ export async function GET(request: Request) {
         let newFindings: unknown[] = [];
         if (since && jobs && jobs.length > 0) {
             const jobIds = jobs.map((j: Record<string, unknown>) => j.id);
-            const { data: findings } = await auth.supabase
-                .from("research_findings")
+            const { data: findings } = await (auth.supabase
+                .from("research_findings") as any)
                 .select("*")
                 .in("job_id", jobIds)
                 .gt("discovered_at", since)
@@ -138,8 +138,8 @@ export async function POST(request: Request) {
                     );
                 }
 
-                const { data: job, error: createError } = await auth.supabase
-                    .from("research_jobs")
+                const { data: job, error: createError } = await (auth.supabase
+                    .from("research_jobs") as any)
                     .insert({
                         user_id: auth.user_id,
                         name,
@@ -170,8 +170,8 @@ export async function POST(request: Request) {
                     return NextResponse.json({ error: "job_id required" }, { status: 400 });
                 }
 
-                await auth.supabase
-                    .from("research_jobs")
+                await (auth.supabase
+                    .from("research_jobs") as any)
                     .update({ status: "paused" })
                     .eq("id", job_id)
                     .eq("user_id", auth.user_id);
@@ -185,8 +185,8 @@ export async function POST(request: Request) {
                     return NextResponse.json({ error: "job_id required" }, { status: 400 });
                 }
 
-                await auth.supabase
-                    .from("research_jobs")
+                await (auth.supabase
+                    .from("research_jobs") as any)
                     .update({ status: "running" })
                     .eq("id", job_id)
                     .eq("user_id", auth.user_id);
@@ -200,8 +200,8 @@ export async function POST(request: Request) {
                     return NextResponse.json({ error: "job_id required" }, { status: 400 });
                 }
 
-                await auth.supabase
-                    .from("research_jobs")
+                await (auth.supabase
+                    .from("research_jobs") as any)
                     .delete()
                     .eq("id", job_id)
                     .eq("user_id", auth.user_id);
@@ -220,8 +220,8 @@ export async function POST(request: Request) {
                     );
                 }
 
-                const { data: finding, error: findingError } = await auth.supabase
-                    .from("research_findings")
+                const { data: finding, error: findingError } = await (auth.supabase
+                    .from("research_findings") as any)
                     .insert({
                         job_id,
                         title,

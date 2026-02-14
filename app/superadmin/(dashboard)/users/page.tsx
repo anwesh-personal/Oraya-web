@@ -5,8 +5,8 @@ import { Plus, Download, Filter } from "lucide-react";
 async function getUsers() {
     const supabase = createServiceRoleClient();
 
-    const { data: licenses, error } = await supabase
-        .from("user_licenses")
+    const { data: licenses, error } = await (supabase
+        .from("user_licenses") as any)
         .select("*")
         .order("created_at", { ascending: false })
         .limit(50);

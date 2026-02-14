@@ -18,12 +18,12 @@ async function getStats() {
         { data: recentLogs },
         { data: healthChecks },
     ] = await Promise.all([
-        supabase.from("user_licenses").select("*", { count: "exact", head: true }),
-        supabase.from("user_licenses").select("*", { count: "exact", head: true }).eq("status", "active"),
-        supabase.from("managed_ai_keys").select("*", { count: "exact", head: true }),
-        supabase.from("user_licenses").select("*", { count: "exact", head: true }),
-        supabase.from("admin_audit_logs").select("*").order("created_at", { ascending: false }).limit(10),
-        supabase.from("system_health_checks").select("*").order("checked_at", { ascending: false }).limit(5),
+        (supabase.from("user_licenses") as any).select("*", { count: "exact", head: true }),
+        (supabase.from("user_licenses") as any).select("*", { count: "exact", head: true }).eq("status", "active"),
+        (supabase.from("managed_ai_keys") as any).select("*", { count: "exact", head: true }),
+        (supabase.from("user_licenses") as any).select("*", { count: "exact", head: true }),
+        (supabase.from("admin_audit_logs") as any).select("*").order("created_at", { ascending: false }).limit(10),
+        (supabase.from("system_health_checks") as any).select("*").order("checked_at", { ascending: false }).limit(5),
     ]);
 
     return {

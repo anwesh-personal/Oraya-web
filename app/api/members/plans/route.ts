@@ -12,8 +12,8 @@ export async function GET() {
     try {
         const supabase = await createServerSupabaseClient();
 
-        const { data: plans, error } = await supabase
-            .from("plans")
+        const { data: plans, error } = await (supabase
+            .from("plans") as any)
             .select(`
                 id,
                 name,

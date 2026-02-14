@@ -50,8 +50,8 @@ export async function POST(request: Request) {
         }
 
         // Find activation for this device
-        const { data: activation } = await auth.supabase
-            .from("license_activations")
+        const { data: activation } = await (auth.supabase
+            .from("license_activations") as any)
             .select("id, license_id, heartbeat_interval")
             .eq("device_id", deviceId)
             .eq("is_active", true)
@@ -68,8 +68,8 @@ export async function POST(request: Request) {
         }
 
         // Update heartbeat
-        await auth.supabase
-            .from("license_activations")
+        await (auth.supabase
+            .from("license_activations") as any)
             .update({
                 last_seen_at: new Date().toISOString(),
                 app_version: telemetry.app_version || undefined,
@@ -82,8 +82,8 @@ export async function POST(request: Request) {
         const messages: string[] = [];
 
         // Check wallet balance
-        const { data: wallet } = await auth.supabase
-            .from("token_wallets")
+        const { data: wallet } = await (auth.supabase
+            .from("token_wallets") as any)
             .select("token_balance, low_balance_threshold, is_frozen")
             .eq("user_id", auth.user_id)
             .single();
@@ -95,8 +95,8 @@ export async function POST(request: Request) {
         }
 
         // Check license status
-        const { data: license } = await auth.supabase
-            .from("user_licenses")
+        const { data: license } = await (auth.supabase
+            .from("user_licenses") as any)
             .select("status, is_trial, trial_ends_at, usage_limit_reached")
             .eq("id", activation.license_id)
             .single();
