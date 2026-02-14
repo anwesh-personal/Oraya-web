@@ -182,6 +182,62 @@ export interface Database {
                     updated_at?: string;
                 };
             };
+            user_profiles: {
+                Row: {
+                    id: string;
+                    email: string | null;
+                    full_name: string | null;
+                    display_name: string | null;
+                    avatar_url: string | null;
+                    organization: string | null;
+                    role: string | null;
+                    bio: string | null;
+                    timezone: string | null;
+                    locale: string | null;
+                    referral_code: string | null;
+                    referred_by: string | null;
+                    is_active: boolean;
+                    last_login_at: string | null;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id: string;
+                    email?: string | null;
+                    full_name?: string | null;
+                    display_name?: string | null;
+                    avatar_url?: string | null;
+                    organization?: string | null;
+                    role?: string | null;
+                    bio?: string | null;
+                    timezone?: string | null;
+                    locale?: string | null;
+                    referral_code?: string | null;
+                    referred_by?: string | null;
+                    is_active?: boolean;
+                    last_login_at?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    email?: string | null;
+                    full_name?: string | null;
+                    display_name?: string | null;
+                    avatar_url?: string | null;
+                    organization?: string | null;
+                    role?: string | null;
+                    bio?: string | null;
+                    timezone?: string | null;
+                    locale?: string | null;
+                    referral_code?: string | null;
+                    referred_by?: string | null;
+                    is_active?: boolean;
+                    last_login_at?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+            };
             // ================================================
             // PLANS & LICENSING (from 004_plans_and_licensing.sql)
             // ================================================
@@ -530,5 +586,6 @@ export type AuditLog = Tables<"admin_audit_logs">;
 export type FeatureFlag = Tables<"feature_flags">;
 export type Plan = Tables<"plans">;
 export type UserLicense = Tables<"user_licenses">;
+export type UserProfile = Tables<"user_profiles">;
 export type ManagedAIKey = Tables<"managed_ai_keys">;
 export type AIUsageLog = Tables<"ai_usage_logs">;

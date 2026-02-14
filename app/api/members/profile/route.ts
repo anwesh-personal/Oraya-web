@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { Tables, Updatable } from "@/lib/database.types";
 
 export const dynamic = "force-dynamic";
 
@@ -30,26 +31,9 @@ export async function GET() {
         // Fetch profile from user_profiles table
         const { data: profile, error: profileError } = await supabase
             .from("user_profiles")
-            .select(`
-                id,
-                email,
-                full_name,
-                display_name,
-                avatar_url,
-                organization,
-                role,
-                bio,
-                timezone,
-                locale,
-                referral_code,
-                referred_by,
-                is_active,
-                last_login_at,
-                created_at,
-                updated_at
-            `)
+            .select("*")
             .eq("id", user.id)
-            .single();
+            .single() as { data: Tables<"user_profiles"> | null; error: any };
 
         if (profileError) {
             console.error("Profile fetch error:", profileError);
@@ -98,10 +82,10 @@ export async function PATCH(request: Request) {
             "locale",
         ];
 
-        const updates: Record<string, unknown> = {};
+        const updates: Updatable<"user_profiles"> = {};
         for (const field of allowedFields) {
             if (field in body) {
-                updates[field] = body[field];
+                (updates as any)[field] = body[field];
             }
         }
 
@@ -117,7 +101,7 @@ export async function PATCH(request: Request) {
             .update(updates)
             .eq("id", user.id)
             .select()
-            .single();
+            .single() as { data: Tables<"user_profiles"> | null; error: any };
 
         if (updateError) {
             console.error("Profile update error:", updateError);
