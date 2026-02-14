@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ora AI OS - Vision & Architecture</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #141420;
+            --bg-tertiary: #1e1e2e;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0b0;
+            --accent: #00d4ff;
+            --accent-glow: rgba(0, 212, 255, 0.3);
+            --success: #00ff88;
+            --warning: #ffaa00;
+            --danger: #ff4444;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f5f5f7;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #e8e8ed;
+            --text-primary: #1d1d1f;
+            --text-secondary: #6e6e73;
+            --accent: #007aff;
+            --accent-glow: rgba(0, 122, 255, 0.2);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animated gradient background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, var(--accent-glow) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 255, 136, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        @keyframes gradientShift {
+
+            0%,
+            100% {
+                opacity: 0.3;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        header {
+            position: sticky;
+            top: 0;
+            background: var(--bg-secondary);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+
+            0%,
+            100% {
+                filter: drop-shadow(0 0 10px var(--accent-glow));
+            }
+
+            50% {
+                filter: drop-shadow(0 0 20px var(--accent-glow));
+            }
+        }
+
+        .theme-toggle {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--accent);
+            color: var(--text-primary);
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent);
+            color: var(--bg-primary);
+            box-shadow: 0 0 20px var(--accent-glow);
+            transform: translateY(-2px);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 4rem 0;
+            animation: fadeInUp 1s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--accent), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            margin-bottom: 3rem;
+        }
+
+        /* Section */
+        .section {
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            padding: 3rem;
+            margin: 2rem 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: var(--transition);
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .icon {
+            font-size: 2rem;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 3rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, var(--accent), var(--success));
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 3rem;
+            padding-left: 2rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -3rem;
+            top: 0;
+            width: 20px;
+            height: 20px;
+            background: var(--accent);
+            border-radius: 50%;
+            border: 4px solid var(--bg-primary);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .timeline-item.completed::before {
+            background: var(--success);
+        }
+
+        .timeline-item.future::before {
+            background: var(--text-secondary);
+        }
+
+        .phase-header {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .phase-duration {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .card {
+            background: var(--bg-tertiary);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 2px solid transparent;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .card:hover {
+            border-color: var(--accent);
+            transform: translateY(-8px);
+            box-shadow: 0 10px 40px var(--accent-glow);
+        }
+
+        .card h3 {
+            color: var(--accent);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .card-content {
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .card-status {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+
+        .status-done {
+            background: rgba(0, 255, 136, 0.2);
+            color: var(--success);
+        }
+
+        .status-progress {
+            background: rgba(255, 170, 0, 0.2);
+            color: var(--warning);
+        }
+
+        .status-planned {
+            background: rgba(160, 160, 176, 0.2);
+            color: var(--text-secondary);
+        }
+
+        /* Architecture Diagram */
+        .architecture {
+            background: var(--bg-tertiary);
+            border-radius: 16px;
+            padding: 3rem;
+            margin: 2rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .arch-layer {
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            transition: var(--transition);
+        }
+
+        .arch-layer:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+
+        .arch-layer h4 {
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        .arch-components {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .component {
+            background: var(--bg-tertiary);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .component:hover {
+            background: var(--accent);
+            color: var(--bg-primary);
+            transform: scale(1.1);
+        }
+
+        /* Cost Breakdown */
+        .cost-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+        }
+
+        .cost-table th,
+        .cost-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .cost-table th {
+            background: var(--bg-tertiary);
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .cost-table tr:hover {
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .price {
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        /* CTA Button */
+        .cta-button {
+            background: linear-gradient(135deg, var(--accent), var(--success));
+            color: white;
+            padding: 1.5rem 3rem;
+            border-radius: 50px;
+            border: none;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-block;
+            margin: 2rem 0;
+            text-decoration: none;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 40px var(--accent-glow);
+        }
+
+        /* Expandable Details */
+        .expandable {
+            margin: 1rem 0;
+        }
+
+        .expandable-header {
+            background: var(--bg-tertiary);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .expandable-header:hover {
+            background: var(--accent);
+            color: var(--bg-primary);
+        }
+
+        .expandable-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            padding: 0 1.5rem;
+        }
+
+        .expandable.open .expandable-content {
+            max-height: 1000px;
+            padding: 1.5rem;
+        }
+
+        .arrow {
+            transition: transform 0.3s ease;
+        }
+
+        .expandable.open .arrow {
+            transform: rotate(180deg);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .section {
+                padding: 1.5rem;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo">🌌 ORA AI OS</div>
+        <button class="theme-toggle" onclick="toggleTheme()">
+            <span id="theme-icon">🌙</span>
+            <span id="theme-text">Dark Mode</span>
+        </button>
+    </header>
+
+    <div class="container">
+        <!-- Hero -->
+        <div class="hero">
+            <h1>The Ubiquitous AI Companion</h1>
+            <p class="subtitle">
+                Transform Ora from a desktop app into an AI Operating System that follows you everywhere
+            </p>
+        </div>
+
+        <!-- Vision Section -->
+        <div class="section">
+            <h2><span class="icon">🎯</span> The Vision</h2>
+            <p style="font-size: 1.2rem; line-height: 2; color: var(--text-secondary);">
+                Imagine Ora as a <strong style="color: var(--accent);">layer between you and every digital
+                    tool</strong>.
+                She's not just an app—she's your <strong style="color: var(--success);">ubiquitous AI companion</strong>
+                with persistent memory, dream-state processing, and context that follows you from Slack to Cursor to
+                your browser.
+            </p>
+        </div>
+
+        <!-- Current State vs Future -->
+        <div class="cards-grid">
+            <div class="card">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🏠</div>
+                <h3>Current State</h3>
+                <div class="card-content">
+                    <ul style="list-style: none; padding: 0;">
+                        <li>✅ Desktop app (Tauri)</li>
+                        <li>✅ Memory & KB system</li>
+                        <li>✅ Voice interface</li>
+                        <li>✅ Dream State processing</li>
+                        <li>❌ Browser integration</li>
+                        <li>❌ IDE plugins</li>
+                        <li>❌ Mobile app</li>
+                        <li>❌ Cross-device sync</li>
+                    </ul>
+                </div>
+                <span class="card-status status-done">Built & Working</span>
+            </div>
+
+            <div class="card">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🚀</div>
+                <h3>Future State</h3>
+                <div class="card-content">
+                    <ul style="list-style: none; padding: 0;">
+                        <li>✨ Browser extension (Chrome, Firefox)</li>
+                        <li>✨ IDE plugins (VSCode, Cursor)</li>
+                        <li>✨ Mobile apps (iOS, Android)</li>
+                        <li>✨ Central backend (Railway/VPS)</li>
+                        <li>✨ Real-time sync</li>
+                        <li>✨ Global hotkey (Cmd+Space)</li>
+                        <li>✨ Unified memory graph</li>
+                        <li>✨ Cross-app orchestration</li>
+                    </ul>
+                </div>
+                <span class="card-status status-planned">Vision 2026</span>
+            </div>
+        </div>
+
+        <!-- Architecture -->
+        <div class="section">
+            <h2><span class="icon">🏗️</span> Architecture</h2>
+            <div class="architecture">
+                <div class="arch-layer">
+                    <h4>👤 User Layer</h4>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        Where you interact with Ora across all platforms
+                    </p>
+                    <div class="arch-components">
+                        <span class="component">Desktop App</span>
+                        <span class="component">Browser Extension</span>
+                        <span class="component">IDE Plugin</span>
+                        <span class="component">Mobile App</span>
+                        <span class="component">Terminal CLI</span>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin: 2rem 0; font-size: 2rem; color: var(--accent);">
+                    ↕️
+                </div>
+
+                <div class="arch-layer">
+                    <h4>🧠 Ora Core Layer (AI OS)</h4>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        Unified intelligence and memory
+                    </p>
+                    <div class="arch-components">
+                        <span class="component">Dream State</span>
+                        <span class="component">Resonance Engine</span>
+                        <span class="component">Learning Loop</span>
+                        <span class="component">Knowledge Graph</span>
+                        <span class="component">Voice System</span>
+                        <span class="component">Tool Orchestrator</span>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin: 2rem 0; font-size: 2rem; color: var(--accent);">
+                    ↕️
+                </div>
+
+                <div class="arch-layer">
+                    <h4>🗄️ Backend Services</h4>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        Central server and data storage
+                    </p>
+                    <div class="arch-components">
+                        <span class="component">Rust API Server</span>
+                        <span class="component">PostgreSQL</span>
+                        <span class="component">Redis (Sync)</span>
+                        <span class="component">S3 (Files)</span>
+                        <span class="component">WebSocket Server</span>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin: 2rem 0; font-size: 2rem; color: var(--accent);">
+                    ↕️
+                </div>
+
+                <div class="arch-layer">
+                    <h4>🔌 External Integrations</h4>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        Apps and services Ora connects to
+                    </p>
+                    <div class="arch-components">
+                        <span class="component">Slack</span>
+                        <span class="component">Gmail</span>
+                        <span class="component">Cursor</span>
+                        <span class="component">GitHub</span>
+                        <span class="component">Notion</span>
+                        <span class="component">Calendar</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Implementation Timeline -->
+        <div class="section">
+            <h2><span class="icon">📅</span> Implementation Timeline</h2>
+            <div class="timeline">
+                <div class="timeline-item completed">
+                    <div class="phase-header">Phase 0: Foundation</div>
+                    <div class="phase-duration">✅ Completed</div>
+                    <div class="card-content">
+                        <strong>What's Done:</strong>
+                        <ul>
+                            <li>Desktop app with Tauri</li>
+                            <li>Memory & knowledge base</li>
+                            <li>Voice interface (STT/TTS)</li>
+                            <li>Dream State & Learning Loop</li>
+                            <li>Tool system</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="phase-header">Phase 1: Backend Extraction</div>
+                    <div class="phase-duration">⏱️ 1-2 weeks | Start: Now</div>
+                    <div class="expandable">
+                        <div class="expandable-header" onclick="toggleExpand(this)">
+                            <span>View Details</span>
+                            <span class="arrow">▼</span>
+                        </div>
+                        <div class="expandable-content">
+                            <h4 style="color: var(--accent); margin: 1rem 0;">Tasks:</h4>
+                            <ul style="line-height: 2;">
+                                <li>✅ Extract Rust backend as standalone API server</li>
+                                <li>✅ Create REST + WebSocket endpoints</li>
+                                <li>✅ Migrate SQLite → PostgreSQL</li>
+                                <li>✅ Implement JWT authentication</li>
+                                <li>✅ Deploy to Railway (staging)</li>
+                            </ul>
+                            <h4 style="color: var(--accent); margin: 1rem 0;">Deliverables:</h4>
+                            <ul style="line-height: 2;">
+                                <li>🚀 API docs (Swagger/OpenAPI)</li>
+                                <li>🔐 Auth system (login/register)</li>
+                                <li>📡 Real-time sync via WebSocket</li>
+                                <li>☁️ Railway deployment pipeline</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item future">
+                    <div class="phase-header">Phase 2: Browser Extension</div>
+                    <div class="phase-duration">⏱️ 2-4 weeks | After Phase 1</div>
+                    <div class="expandable">
+                        <div class="expandable-header" onclick="toggleExpand(this)">
+                            <span>View Details</span>
+                            <span class="arrow">▼</span>
+                        </div>
+                        <div class="expandable-content">
+                            <h4 style="color: var(--accent); margin: 1rem 0;">Features:</h4>
+                            <ul style="line-height: 2;">
+                                <li>🎯 Sidebar UI (similar to desktop)</li>
+                                <li>🎤 Voice commands in browser</li>
+                                <li>💾 Context injection (capture page content)</li>
+                                <li>🔗 Connect to Railway backend</li>
+                                <li>⚡ Real-time memory sync</li>
+                            </ul>
+                            <h4 style="color: var(--accent); margin: 1rem 0;">Target Apps:</h4>
+                            <ul style="line-height: 2;">
+                                <li>📧 Gmail/Outlook</li>
+                                <li>💬 Slack web</li>
+                                <li>🐦 Twitter/X</li>
+                                <li>📝 Notion</li>
+                                <li>💻 GitHub</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item future">
+                    <div class="phase-header">Phase 3: IDE Plugins</div>
+                    <div class="phase-duration">⏱️ 4-8 weeks | After Phase 2</div>
+                    <div class="expandable">
+                        <div class="expandable-header" onclick="toggleExpand(this)">
+                            <span>View Details</span>
+                            <span class="arrow">▼</span>
+                        </div>
+                        <div class="expandable-content">
+                            <h4 style="color: var(--accent); margin: 1rem 0;">Platforms:</h4>
+                            <ul style="line-height: 2;">
+                                <li>💚 VSCode extension (priority 1)</li>
+                                <li>🎯 Cursor plugin (if API available)</li>
+                                <li>🧪 JetBrains plugins (later)</li>
+                            </ul>
+                            <h4 style="color: var(--accent); margin: 1rem 0;">Features:</h4>
+                            <ul style="line-height: 2;">
+                                <li>🧠 Code context → Ora memory</li>
+                                <li>🎤 Voice commands in IDE</li>
+                                <li>🤖 AI code review via Ora</li>
+                                <li>📝 Auto-documentation</li>
+                                <li>🔍 Context-aware search</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item future">
+                    <div class="phase-header">Phase 4: Mobile Apps</div>
+                    <div class="phase-duration">⏱️ 8-12 weeks | After Phase 3</div>
+                    <div class="expandable">
+                        <div class="expandable-header" onclick="toggleExpand(this)">
+                            <span>View Details</span>
+                            <span class="arrow">▼</span>
+                        </div>
+                        <div class="expandable-content">
+                            <h4 style="color: var(--accent); margin: 1rem 0;">Platforms:</h4>
+                            <ul style="line-height: 2;">
+                                <li>📱 iOS (Swift/SwiftUI)</li>
+                                <li>🤖 Android (Kotlin/Compose)</li>
+                                <li>🔄 Shared backend with desktop</li>
+                            </ul>
+                            <h4 style="color: var(--accent); margin: 1rem 0;">Features:</h4>
+                            <ul style="line-height: 2;">
+                                <li>🎤 Voice-first interface</li>
+                                <li>📲 Push notifications</li>
+                                <li>🔄 Full memory sync</li>
+                                <li>📍 Location context</li>
+                                <li>📸 Camera integration</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tech Stack -->
+        <div class="section">
+            <h2><span class="icon">🛠️</span> Tech Stack</h2>
+            <div class="cards-grid">
+                <div class="card">
+                    <h3>🦀 Backend</h3>
+                    <div class="card-content">
+                        <ul style="line-height: 2;">
+                            <li><strong>Rust</strong> - API server (Actix/Axum)</li>
+                            <li><strong>PostgreSQL</strong> - Main database</li>
+                            <li><strong>Redis</strong> - Real-time sync</li>
+                            <li><strong>WebSocket</strong> - Live connections</li>
+                            <li><strong>S3</strong> - File storage</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>🌐 Browser Extension</h3>
+                    <div class="card-content">
+                        <ul style="line-height: 2;">
+                            <li><strong>React</strong> - UI framework</li>
+                            <li><strong>TypeScript</strong> - Type safety</li>
+                            <li><strong>WebExtension API</strong> - Cross-browser</li>
+                            <li><strong>Tailwind CSS</strong> - Styling</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>💻 IDE Plugins</h3>
+                    <div class="card-content">
+                        <ul style="line-height: 2;">
+                            <li><strong>TypeScript</strong> - VSCode extension</li>
+                            <li><strong>VSCode API</strong> - Integration</li>
+                            <li><strong>Language Server Protocol</strong> - Code analysis</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📱 Mobile</h3>
+                    <div class="card-content">
+                        <ul style="line-height: 2;">
+                            <li><strong>Swift/SwiftUI</strong> - iOS</li>
+                            <li><strong>Kotlin/Compose</strong> - Android</li>
+                            <li><strong>gRPC</strong> - Mobile-optimized API</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cost Breakdown -->
+        <div class="section">
+            <h2><span class="icon">💰</span> Cost Breakdown</h2>
+
+            <h3 style="color: var(--accent); margin: 2rem 0 1rem 0;">Option 1: Railway (Recommended for Start)</h3>
+            <table class="cost-table">
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Usage</th>
+                        <th>Cost/Month</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Rust API Server</td>
+                        <td>512MB RAM, 1 CPU</td>
+                        <td class="price">$5-10</td>
+                    </tr>
+                    <tr>
+                        <td>PostgreSQL</td>
+                        <td>1GB storage, backups</td>
+                        <td class="price">$5</td>
+                    </tr>
+                    <tr>
+                        <td>Redis</td>
+                        <td>256MB RAM</td>
+                        <td class="price">$5</td>
+                    </tr>
+                    <tr>
+                        <td>Bandwidth</td>
+                        <td>~10GB/month</td>
+                        <td class="price">$0</td>
+                    </tr>
+                    <tr style="font-weight: bold; background: rgba(0, 255, 136, 0.1);">
+                        <td colspan="2">Total (Testing Phase)</td>
+                        <td class="price">$15-20/month</td>
+                    </tr>
+                    <tr style="font-weight: bold; background: rgba(0, 212, 255, 0.1);">
+                        <td colspan="2">Total (Production)</td>
+                        <td class="price">$30-50/month</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 style="color: var(--accent); margin: 2rem 0 1rem 0;">Option 2: VPS (When Proven)</h3>
+            <table class="cost-table">
+                <thead>
+                    <tr>
+                        <th>Provider</th>
+                        <th>Specs</th>
+                        <th>Cost/Month</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Hetzner</strong> ⭐ Best Value</td>
+                        <td>16GB RAM, 4 CPU, 160GB SSD</td>
+                        <td class="price">€40 (~$43)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>DigitalOcean</strong></td>
+                        <td>16GB RAM, 4 CPU, 100GB SSD</td>
+                        <td class="price">$60</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Linode/Akamai</strong></td>
+                        <td>16GB RAM, 4 CPU, 160GB SSD</td>
+                        <td class="price">$60</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div
+                style="background: rgba(0, 212, 255, 0.1); padding: 1.5rem; border-radius: 12px; margin: 2rem 0; border-left: 4px solid var(--accent);">
+                <h4 style="color: var(--accent); margin-bottom: 0.5rem;">💡 Recommendation</h4>
+                <p style="color: var(--text-secondary);">
+                    Start with Railway for $15-20/month. Test the concept, build the extensions, validate with users.
+                    If successful and costs exceed $80/month, migrate to Hetzner VPS for fixed $43/month.
+                </p>
+            </div>
+        </div>
+
+        <!-- Deployment Strategy -->
+        <div class="section">
+            <h2><span class="icon">🚀</span> Deployment Strategy</h2>
+
+            <div class="expandable">
+                <div class="expandable-header" onclick="toggleExpand(this)">
+                    <span><strong>Step 1: Railway Setup</strong></span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <ol style="line-height: 2.5; color: var(--text-secondary);">
+                        <li>Create Dockerfile for Rust backend</li>
+                        <li>Push code to GitHub</li>
+                        <li>Connect Railway to GitHub repo</li>
+                        <li>Add PostgreSQL + Redis services</li>
+                        <li>Configure environment variables</li>
+                        <li>Deploy & test</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="expandable">
+                <div class="expandable-header" onclick="toggleExpand(this)">
+                    <span><strong>Step 2: Database Migration</strong></span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <ol style="line-height: 2.5; color: var(--text-secondary);">
+                        <li>Create PostgreSQL schema from SQLite</li>
+                        <li>Write migration scripts</li>
+                        <li>Migrate existing data (if any)</li>
+                        <li>Update Rust code for PostgreSQL</li>
+                        <li>Test all queries</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="expandable">
+                <div class="expandable-header" onclick="toggleExpand(this)">
+                    <span><strong>Step 3: API Authentication</strong></span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <ol style="line-height: 2.5; color: var(--text-secondary);">
+                        <li>Implement JWT token system</li>
+                        <li>Create login/register endpoints</li>
+                        <li>Add middleware for protected routes</li>
+                        <li>Test with Postman/Insomnia</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="expandable">
+                <div class="expandable-header" onclick="toggleExpand(this)">
+                    <span><strong>Step 4: Client Updates</strong></span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <ol style="line-height: 2.5; color: var(--text-secondary);">
+                        <li>Update desktop app to use Railway API</li>
+                        <li>Add authentication flow</li>
+                        <li>Implement WebSocket sync</li>
+                        <li>Test cross-device sync</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- Next Steps -->
+        <div class="section" style="text-align: center;">
+            <h2><span class="icon">🎯</span> Next Steps</h2>
+            <p style="font-size: 1.2rem; color: var(--text-secondary); margin: 2rem 0;">
+                Ready to start building the AI OS? Here's what to do first:
+            </p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin: 2rem 0;">
+                <a href="#" class="cta-button" style="background: var(--accent);">
+                    📋 Create Implementation Plan
+                </a>
+                <a href="#" class="cta-button" style="background: var(--success);">
+                    🚀 Setup Railway Account
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme Toggle
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? null : 'light';
+
+            html.setAttribute('data-theme', newTheme || 'dark');
+
+            const icon = document.getElementById('theme-icon');
+            const text = document.getElementById('theme-text');
+
+            if (newTheme === 'light') {
+                icon.textContent = '☀️';
+                text.textContent = 'Light Mode';
+            } else {
+                icon.textContent = '🌙';
+                text.textContent = 'Dark Mode';
+            }
+
+            localStorage.setItem('theme', newTheme || 'dark');
+        }
+
+        // Load saved theme
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                toggleTheme();
+            }
+        });
+
+        // Expandable Sections
+        function toggleExpand(header) {
+            const expandable = header.parentElement;
+            expandable.classList.toggle('open');
+        }
+
+        // Add scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.section, .card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+
+</html>

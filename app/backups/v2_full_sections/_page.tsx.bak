@@ -1,0 +1,84 @@
+
+import SalesNavbar from "@/components/sales/Navbar";
+import SalesHero from "@/components/sales/Hero";
+import ProblemSection from "@/components/sales/Problem";
+import NeuralBackground from "@/components/sales/NeuralBackground";
+import SpotlightCursor from "@/components/sales/SpotlightCursor";
+import SocialProof from "@/components/sales/SocialProof";
+import TerminalDemo from "@/components/sales/TerminalDemo";
+import ComparisonSection from "@/components/sales/ComparisonSection";
+import FAQSection from "@/components/sales/FAQSection";
+import FinalCTA from "@/components/sales/FinalCTA";
+import TransformationSection from "@/components/sales/Transformation";
+import PricingSection from "@/components/sales/Pricing";
+import Footer from "@/components/sales/Footer";
+import Manifesto from "@/components/sales/Manifesto";
+import FeatureGrid from "@/components/sales/FeatureGrid";
+import SectionDivider from "@/components/sales/SectionDivider";
+
+export default function LandingPage() {
+    return (
+        <main className="min-h-screen bg-black text-white selection:bg-[#00F0FF] selection:text-black overflow-x-hidden relative">
+            {/* Global Effects */}
+            <SalesNavbar />
+            <NeuralBackground />
+            <SpotlightCursor />
+
+            {/* ─── 1. THE HOOK ──────────────────────────
+                "What is Oraya?" → Instant clarity
+            ─────────────────────────────────────────── */}
+            <SalesHero />
+            <SocialProof />
+
+            {/* ─── 2. THE PAIN ──────────────────────────
+                "Why do I need this?" → Feel the problem
+            ─────────────────────────────────────────── */}
+            <SectionDivider variant="glow" label="The Problem" accent="#FF0044" />
+            <ProblemSection />
+
+            {/* ─── 3. THE SHIFT ─────────────────────────
+                "How does my life change?" → Before/After
+            ─────────────────────────────────────────── */}
+            <TransformationSection />
+
+            {/* ─── 4. THE PROOF ─────────────────────────
+                "What can it actually do?" → Capabilities
+            ─────────────────────────────────────────── */}
+            <SectionDivider variant="glow" label="Capabilities" accent="#00F0FF" />
+            <FeatureGrid />
+
+            {/* ─── 5. THE DEMO ──────────────────────────
+                "Show me it working" → Live terminal
+            ─────────────────────────────────────────── */}
+            <SectionDivider variant="line" />
+            <TerminalDemo />
+
+            {/* ─── 6. THE EDGE ──────────────────────────
+                "How is it better than X?" → Comparison
+            ─────────────────────────────────────────── */}
+            <SectionDivider variant="glow" label="Why Oraya" accent="#FFBB00" />
+            <ComparisonSection />
+
+            {/* ─── 7. THE ORIGIN ────────────────────────
+                "Who built this and why?" → Trust
+            ─────────────────────────────────────────── */}
+            <SectionDivider variant="fade" label="Origin" accent="#ffffff" />
+            <Manifesto />
+
+            {/* ─── 8. THE OFFER ─────────────────────────
+                "What does it cost?" → Pricing
+            ─────────────────────────────────────────── */}
+            <SectionDivider variant="glow" label="Pricing" accent="#00F0FF" />
+            <PricingSection />
+            <FAQSection />
+
+            {/* ─── 9. THE CLOSE ─────────────────────────
+                "I'm in" → Download now
+            ─────────────────────────────────────────── */}
+            <FinalCTA />
+
+            {/* Footer */}
+            <Footer />
+        </main>
+    );
+}
