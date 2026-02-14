@@ -34,31 +34,31 @@ export default function AmplifySection() {
                             </div>
 
                             <h2 className="text-5xl md:text-7xl font-display font-black leading-[0.9] tracking-tighter">
-                                Cognitive <br />
+                                Intelligence <br />
                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">
-                                    Dissonance.
+                                    Disconnected.
                                 </span>
                             </h2>
 
                             <p className="text-xl md:text-2xl text-gray-400 font-light leading-relaxed">
-                                You lose <span className="text-white font-bold">20 minutes</span> of flow every time you context-switch. Your current tools are designed for simple tasks, not for building empires.
+                                You lose <span className="text-white font-bold">20 minutes</span> of flow every time you switch contexts. Your best ideas are dying in scattered tabs.
                             </p>
                         </div>
 
                         <div className="space-y-6">
                             <PainPoint
                                 title="The Context Tax"
-                                desc="LLM wrappers forget your architecture the second you open a new tab. We fixed that with Neural Persistence."
+                                desc="40% of your day is lost just finding the right file or conversation."
                                 delay={0.2}
                             />
                             <PainPoint
-                                title="Broadcast Exposure"
-                                desc="Current tools broadcast your proprietary logic to cloud observers on rented land."
+                                title="Siloed Knowledge"
+                                desc="Your code doesn't know about your docs. Your docs don't know about Jira."
                                 delay={0.4}
                             />
                             <PainPoint
-                                title="Fragmented Intelligence"
-                                desc="Your code logic is isolated from your deployment telemetry. Oraya unifies the entire stack."
+                                title="Security Leaks"
+                                desc="Copy-pasting sensitive keys into web LLMs is a compliance nightmare."
                                 delay={0.6}
                             />
                         </div>

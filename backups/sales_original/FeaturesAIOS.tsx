@@ -26,87 +26,87 @@ const BENTO_FEATURES = [
     {
         id: "indexing",
         size: "large",
-        title: "Neural Recall",
+        title: "Neural Indexing",
         headline: "Total Knowledge Recall.",
         desc: "Oraya builds a living semantic graph across your entire stack. It never forgets context.",
         icon: Database,
         color: "#00F0FF",
         visual: "/assets/screenshots/ss2.png",
         stats: "12.4M Nodes",
-        telemetry: ["2M+ Tokens", "Sub-2ms Lookup", "Neural Persistence"],
-        payload: "Advanced vector-embedding engine using local Rust-based models for semantic graph construction.",
+        telemetry: ["8.2 GB Graph Size", "Sub-2ms Lookup", "78% Persistence"],
+        payload: "Advanced vector-embedding engine using local Ollama/Llama-based models for semantic graph construction.",
         edge: "Everything you've ever typed, coded, or researched is indexed locally. You don't search for code; you recall it with zero latency."
     },
     {
         id: "execution",
         size: "medium",
-        title: "Native Kernel",
-        headline: "Direct Hardware Hooks.",
-        desc: "Bypass the proxy layer. Direct terminal and filesystem dominance.",
+        title: "Self-Healing",
+        headline: "Autonomous Loops.",
+        desc: "25-turn execution cycles with native terminal control.",
         icon: Workflow,
         color: "#FF00AA",
         stats: "Sub-12ms",
-        telemetry: ["0.2ms RPC", "Direct Syscall", "L5 Dominion"],
-        payload: "Native execution kernel with state-aware recovery protocols and environment sensing.",
+        telemetry: ["25-Turn Max", "Auto-Retry active", "Fail-Safe L3"],
+        payload: "Native Rust execution kernel with auto-retry and state-aware recovery protocols.",
         edge: "Oraya doesn't just fail and stop. It analyzes the error, modifies the code, and re-executes until the mission is successful."
     },
     {
         id: "privacy",
         size: "medium",
-        title: "Hardware Shield",
-        headline: "Biological Isolation.",
-        desc: "100% on-device weights. Your data stays in RAM.",
+        title: "Sovereign Shield",
+        headline: "Hardware Privacy.",
+        desc: "100% on-device weights. Biological isolation.",
         icon: Shield,
         color: "#10B981",
         stats: "E2EE",
-        telemetry: ["Zero Cloud I/O", "HSM Isolation", "AES-256 GCM"],
+        telemetry: ["Zero Cloud I/O", "HSM Isolation", "E2EE Rotating"],
         payload: "Secure enclave weight distribution with zero cloud-outbound traffic for logic processing.",
         edge: "Your IP is your edge. Oraya ensures it never touches a cloud server, preventing training leakage and corporate espionage."
     },
     {
         id: "dominion",
         size: "wide",
-        title: "Sovereign Swarm",
-        headline: "God Mode for Architects.",
-        desc: "Spawn specialists like Ora, Ova, and Mara to execute parallel refactors.",
+        title: "Kernel Dominion",
+        headline: "God Mode for Your Machine.",
+        desc: "Bypass the browser. Direct hooks into your terminal, filesystem, and GPU.",
         icon: Terminal,
         color: "#F0B429",
         visual: "/assets/screenshots/ss6.png",
-        telemetry: ["5+ Parallel Agents", "Shared Context Relay", "Root Tunnel"],
-        payload: "Multi-agent orchestration layer managing ephemeral sub-agents based on task complexity.",
-        edge: "Stop being a coder and start being a commander. Trigger a 5-agent parallel refactor while you focus on the $18M vision."
+        telemetry: ["Direct Syscall", "GPU Metal/CUDA", "Root Tunnel"],
+        payload: "Direct system-level integration bypasses browser sandboxes for high-performance compute access.",
+        edge: "Stop being limited by Chrome. Oraya talks directly to your hardware for sub-millisecond response times and full OS control."
     }
 ];
 
 const secondaryFeatures = [
     {
         icon: Users,
-        label: "L5 Task Orchestration",
-        desc: "Complex delegation of power across specialized sub-systems.",
+        label: "Multi-Agent System",
+        desc: "Spawn and command specialized agents for parallel execution.",
         color: "#FF00AA",
         payload: "Orchestration layer managing ephemeral sub-agents based on task complexity analysis.",
         edge: "You stop being a coder and start being a commander. Trigger a 5-agent parallel refactor while you watch."
     },
     {
         icon: MessageSquare,
-        label: "Neuro-Link Relay",
-        desc: "Command your agents via secure satellite relay while off the grid.",
+        label: "Telegram Neuro-Link",
+        desc: "Command your agents via Telegram while you're off the grid.",
         color: "#00F0FF",
-        payload: "Secure bi-directional relay between Oraya Core and the encrypted bot API.",
+        payload: "Secure bi-directional relay between Oraya Core and the Telegram Bot API.",
         edge: "Your AI shouldn't have a leash. Command builds, check status, and get proactive alerts from your phone. Anytime. Anywhere."
     },
     {
         icon: Database,
-        label: "Ghost Persistence",
-        desc: "Dual-layer encrypted storage for absolute 24/7 sovereignty.",
+        label: "Hybrid Privacy Core",
+        desc: "Local SQLite + Supabase Postgres for absolute 24/7 sovereignty.",
         color: "#10B981",
-        payload: "Dual-layer storage with E2EE. Local for privacy, secure relay for 24/7 autonomous persistence.",
+        payload: "Dual-layer storage with E2EE. Local for privacy, Supabase for 24/7 autonomous persistence.",
         edge: "The privacy of a ghost, the power of a cluster. Research runs 24/7 on the cloud, but your IP stays on your disk."
     },
     {
         icon: Workflow,
-        label: "Self-Healing Kernel",
-        desc: "Background loops that fix technical debt while you sleep.",
+        label: "Proactive Autonomy",
+        desc: "Autonomous 'bakchodiyaan'—he fixes things before you ask.",
         color: "#F0B429",
         payload: "System event-hooks and cron-loops for background context optimization and self-healing.",
         edge: "Most AIs wait for you. Oraya doesn't. He researches your new dependencies and has a plan ready before you wake up."
@@ -156,10 +156,10 @@ export default function FeaturesAIOS() {
 
                         <div className="max-w-md space-y-4">
                             <p className="text-zinc-500 font-light text-lg uppercase tracking-tighter">
-                                Unlike &quot;AI Tools&quot; that live in a tab, Oraya is a <span className="text-white">Resident Intelligence</span> that owns the machine.
+                                Unlike "AI Tools" that live in a tab, Oraya is a <span className="text-white">Resident Intelligence</span> that owns the machine.
                             </p>
                             <div className="flex gap-4 font-mono text-[9px] text-[#00F0FF]/40 uppercase tracking-[0.2em]">
-                                <span>$ grep -r &quot;sovereignty&quot; /core</span>
+                                <span>$ grep -r "sovereignty" /core</span>
                                 <span className="animate-pulse">_</span>
                             </div>
                         </div>

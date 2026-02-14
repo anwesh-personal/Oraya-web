@@ -29,53 +29,54 @@ const stats = [
     {
         value: 10000,
         suffix: "+",
-        label: "Sovereign Nodes",
+        label: "Active Developers",
         icon: Users,
         color: "#00F0FF",
-        detail: "Deployed across high-intensity engineering fleets",
+        detail: "Using Oraya daily across 40+ countries",
     },
     {
         value: 2,
         suffix: "M+",
-        label: "Neural Context",
+        label: "Token Context",
         icon: Database,
         color: "#FF00AA",
-        detail: "Zero context amnesia—every project history is locked",
+        detail: "War Room mode — zero context amnesia",
     },
     {
-        value: 12,
+        value: 50,
         prefix: "<",
         suffix: "ms",
-        label: "Execution Latency",
+        label: "Context Rehydration",
         icon: Zap,
         color: "#F0B429",
-        detail: "Biological reflexes via direct kernel hooks",
+        detail: "Full mental state restored instantly",
     },
     {
         value: 99.99,
         suffix: "%",
-        label: "Local Reliability",
+        label: "Uptime Guaranteed",
         icon: Clock,
         color: "#10B981",
-        detail: "Local-first means zero dependency on cloud availability",
+        detail: "Local-first means no server downtime",
         isDecimal: true,
+    },
+    {
+        value: 40,
+        prefix: "-",
+        suffix: "%",
+        label: "API Cost Savings",
+        icon: TrendingDown,
+        color: "#8B5CF6",
+        detail: "Semantic caching reduces redundant calls",
     },
     {
         value: 0,
         suffix: "",
         displayValue: "ZERO",
-        label: "Telemetry Leaks",
+        label: "Data Sent to Cloud",
         icon: CloudOff,
         color: "#00F0FF",
-        detail: "Fortress security—your data literally stays in RAM",
-    },
-    {
-        value: 84,
-        suffix: "%",
-        label: "Entropy Reduction",
-        icon: TrendingDown,
-        color: "#8B5CF6",
-        detail: "Neural defrag turning chaos into deployable logic",
+        detail: "Fort Knox security — everything stays local",
     },
 ];
 
@@ -102,10 +103,10 @@ export default function StatsCounter() {
                 >
                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full font-mono text-xs font-bold uppercase tracking-widest text-gray-400">
                         <Cpu size={12} />
-                        Engineering_Metrics
+                        System Metrics
                     </div>
                     <h2 className="text-5xl md:text-7xl font-display font-black text-white tracking-tighter leading-none">
-                        Physical Truths.
+                        Numbers Don&apos;t Lie.
                     </h2>
                 </motion.div>
 

@@ -82,7 +82,7 @@ export default function PricingSection() {
                         <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'var(--gradient-accent)' }}>Pricing.</span>
                     </h2>
                     <p className="text-xl text-[var(--surface-500)] font-light max-w-2xl mx-auto">
-                        High-performance engineering shouldn&apos;t have hidden taxes.
+                        Start free. Scale when you&apos;re ready. No surprises.
                     </p>
                 </div>
 

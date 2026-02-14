@@ -30,12 +30,12 @@ export default function AgentEcosystem() {
                         </motion.div>
 
                         <h2 className="text-6xl md:text-[8rem] font-sans font-black text-white tracking-tighter leading-[0.8] uppercase">
-                            Multiply <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white/50 to-white/10">Your Genius.</span>
+                            Spawn. Command. <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white/50 to-white/10">Dominate.</span>
                         </h2>
 
                         <p className="text-zinc-500 font-light text-xl md:text-2xl max-w-4xl uppercase tracking-tighter">
-                            You are the Architect. Oraya gives you a <span className="text-white italic">Sovereign Swarm</span>—a team of specialized agents that execute your vision while you focus on the $18M ideas.
+                            You&apos;re one developer doing the work of five. Oraya gives you a <span className="text-white italic">Sovereign Swarm</span> to execute the vision.
                         </p>
                     </div>
                 </div>

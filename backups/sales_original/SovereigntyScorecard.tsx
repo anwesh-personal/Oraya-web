@@ -10,52 +10,52 @@ const COMPARISON_DATA = [
     {
         feature: "Execution Model",
         detail: "Native kernel hooks vs sandboxed web-wrappers.",
-        oraya: "Native Rust Engine",
-        chatgpt: "Public Proxy",
-        cursor: "Electron Wrap",
+        oraya: "Native Kernel",
+        chatgpt: "Cloud Only",
+        cursor: "Process Wrap",
         claude: "Web Snapshot",
-        spec: "Direct syscall access via Rust backend bypassing the 200ms browser latency tax."
+        spec: "Direct syscall access via Rust backend. bypassing the 200ms browser latency tax."
     },
     {
         feature: "Auto-Control",
         detail: "Direct terminal and file system command.",
-        oraya: "L5 Dominion",
+        oraya: "OS Dominion",
         chatgpt: "None (Text)",
         cursor: "API Only",
         claude: "Sandboxed",
-        spec: "Autonomous loops with real-time environment sensing and hardware-level reflexes."
+        spec: "25-turn autonomous loops with real-time error recovery and environment sensing."
     },
     {
         feature: "Privacy Shield",
         detail: "Biological isolation of weights and logic.",
-        oraya: "100% Local Enclave",
-        chatgpt: "Data Extraction",
+        oraya: "100% Local",
+        chatgpt: "Extraction",
         cursor: "Telemetry",
-        claude: "Model Training",
+        claude: "Training",
         spec: "E2EE per-session key rotation. Your IP never leaves the physical RAM of your machine."
     },
     {
         feature: "Memory Horizon",
-        detail: "Neural shards vs sliding windows.",
-        oraya: "Infinite Recall",
-        chatgpt: "Goldfish Memory",
+        detail: "Infinite neural shards vs sliding windows.",
+        oraya: "Neural Persistence",
+        chatgpt: "Session",
         cursor: "Global Window",
         claude: "Limited",
         spec: "Local Vector database with 2M+ token cold-storage and 50ms rehydration."
     },
     {
         feature: "Agent Swarm",
-        detail: "Sovereign specialist deployment.",
-        oraya: "Sovereign Swarm",
+        detail: "Spawn sovereign specialist agents.",
+        oraya: "Specialists",
         chatgpt: "Single Thread",
-        cursor: "Static Bot",
+        cursor: "Static",
         claude: "Chat Bot",
         spec: "Parallel execution on 5+ specialized sub-agents with shared context relay."
     },
     {
         feature: "Latency",
         detail: "Sub-12ms native execution speed.",
-        oraya: "Biological Speed",
+        oraya: "Sub-12ms",
         chatgpt: "Global 3s+",
         cursor: "Local 500ms",
         claude: "Web 5s+",
@@ -132,7 +132,7 @@ export default function SovereigntyScorecard() {
                     </h2>
 
                     <p className="text-zinc-500 font-light text-xl md:text-2xl max-w-3xl mx-auto uppercase tracking-tighter">
-                        Why pay for an <span className="text-white font-normal italic">&quot;AI wrapper&quot;</span> when you can own the <span className="text-[#F0B429] font-bold">machine</span>?
+                        Why settle for a <span className="text-white font-normal italic">wrapper</span> when you can own the <span className="text-[#F0B429] font-bold">kernel</span>?
                     </p>
                 </div>
 

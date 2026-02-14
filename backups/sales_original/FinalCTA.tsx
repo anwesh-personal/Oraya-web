@@ -32,8 +32,8 @@ export default function FinalCTA() {
                         viewport={{ once: true }}
                         className="text-6xl md:text-[10rem] font-sans font-black text-white tracking-tighter leading-[0.8] uppercase"
                     >
-                        Reclaim <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00F0FF] via-[#FF00AA] to-[#F0B429]">Your Context.</span>
+                        Absolute <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00F0FF] via-[#FF00AA] to-[#F0B429]">Authority.</span>
                     </motion.h2>
 
                     <motion.p
@@ -43,7 +43,7 @@ export default function FinalCTA() {
                         transition={{ delay: 0.1 }}
                         className="text-xl md:text-3xl text-zinc-500 font-light leading-relaxed max-w-4xl mx-auto uppercase tracking-tighter"
                     >
-                        The era of rented intelligence is over. <br />
+                        Stop using wrappers. Stop giving your context away. <br />
                         Deploy the <span className="text-white italic">Sovereign Kernel</span> today.
                     </motion.p>
                 </div>

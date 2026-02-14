@@ -90,13 +90,13 @@ export default function TerminalDemo() {
                     </motion.div>
 
                     <h2 className="text-5xl md:text-8xl font-sans font-black text-white tracking-tighter leading-[0.9] uppercase">
-                        Precision <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white/50 to-white/20">Control.</span>
+                        Direct <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white/50 to-white/20">Domination.</span>
                     </h2>
 
                     <p className="text-lg md:text-xl text-zinc-500 font-sans font-light max-w-2xl mx-auto leading-relaxed tracking-tight">
-                        This is the first native kernel designed for artificial intelligence. <br className="hidden md:block" />
-                        No lag. No cloud middle-men. Just raw, unadulterated execution.
+                        No UI lag. No cloud middle-men. <br className="hidden md:block" />
+                        Command your infrastructure through the first native kernel for AI.
                     </p>
                 </div>
 
@@ -133,9 +133,9 @@ export default function TerminalDemo() {
                                         initial={{ opacity: 0, x: -5 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         className={`flex items-start gap-3 ${line.startsWith(">") ? "text-white font-black" :
-                                            line.includes("SUCCESS") || line.includes("BOOT") ? "text-[#00F0FF]" :
-                                                line.includes("CRITICAL") || line.includes("INTENT") ? "text-[#FF00AA]" :
-                                                    "text-zinc-600"
+                                                line.includes("SUCCESS") || line.includes("BOOT") ? "text-[#00F0FF]" :
+                                                    line.includes("CRITICAL") || line.includes("INTENT") ? "text-[#FF00AA]" :
+                                                        "text-zinc-600"
                                             }`}
                                     >
                                         <span className="opacity-20 flex-shrink-0">[{i.toString().padStart(2, '0')}]</span>

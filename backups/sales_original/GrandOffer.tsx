@@ -129,8 +129,8 @@ export default function GrandOffer() {
                     </div>
 
                     <h2 className="text-6xl md:text-9xl font-sans font-black text-white tracking-tighter leading-[0.85] uppercase">
-                        The Master <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-700">Inventory.</span>
+                        The Grand <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-700">Offering.</span>
                     </h2>
 
                     <p className="text-zinc-500 font-light text-2xl max-w-3xl uppercase tracking-tighter">

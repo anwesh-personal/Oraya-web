@@ -17,8 +17,8 @@ export default function Footer() {
                             </div>
                             <span className="font-display font-bold text-lg text-white">Oraya</span>
                         </Link>
-                        <p className="text-sm text-gray-600 leading-relaxed uppercase tracking-tighter">
-                            The Sovereign OS for the 1%. <br />Native. Local. Absolute.
+                        <p className="text-sm text-gray-600 leading-relaxed">
+                            The AI Operating System. <br />Local-first. Self-healing. Yours.
                         </p>
                     </div>
 

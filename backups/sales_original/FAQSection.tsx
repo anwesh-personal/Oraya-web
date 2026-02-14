@@ -7,36 +7,36 @@ import { ChevronDown } from "lucide-react";
 export default function FAQSection() {
     const faqs = [
         {
-            q: "Why is it so fast?",
-            a: "Because we bypassed the internet. Oraya is a native Rust binary that communicates directly with your hardware kernel. By removing the browser and the cloud proxy from the execution loop, we reduced latency from 3 seconds to sub-12 milliseconds. It's fast enough to be biological."
+            q: "Is Oraya really free?",
+            a: "Yes. The Personal tier is completely free, forever. No credit card. No trial period. You get the full neural core, local-first architecture, and Dream State processing at zero cost. We make money from Pro and Team tiers which add collaboration, priority support, and enterprise features."
         },
         {
-            q: "How is this different from 'AI Wrappers' like Cursor?",
-            a: "Standard AI tools are skins for cloud APIs. Oraya is a sovereign kernel. It doesn't just suggest text; it possesses the motor cortex of your operating system. It understands the connective tissue between your backend, frontend, and infra, and manages context across 2M+ tokens locally."
+            q: "How is this different from Cursor or Copilot?",
+            a: "Cursor is a code editor. Copilot is autocomplete. Oraya is an operating system. It doesn't just suggest code—it indexes your entire digital footprint (code, docs, Slack, Notion), manages context across 2M+ tokens, runs autonomous agents in the background, and self-heals your codebase while you sleep. It's a fundamentally different category."
         },
         {
-            q: "Who owns the data?",
-            a: "You do. Physically. Oraya is local-first by design. Your logic, keys, and architectural decisions stay on your machine, guarded by AES-256 GCM encryption. Your computer is a sovereign territory; we just provide the fortification."
+            q: "Does my data ever leave my machine?",
+            a: "Never. Oraya is local-first by design. Your API keys are encrypted with AES-256 GCM and stored in your OS keychain. Your codebase is indexed locally. When you use cloud models (like GPT-4), the request goes directly from your machine to the provider—we never proxy, log, or store anything."
         },
         {
-            q: "What is the 'Memory Palace'?",
-            a: "It's a high-density neural graph that indexes every keystroke, research doc, and logic commit. Instead of 'searching' for code, Oraya allows you to recall it instantly with zero context loss, even for projects you haven't touched in six months."
+            q: "What models does Oraya support?",
+            a: "All of them. GPT-4o, Claude 3.5 Sonnet, Gemini Pro, Mistral Large, Llama 3, and any OpenAI-compatible API. You can also run models locally using Metal (Mac) or CUDA (Linux/Windows) acceleration. Switch between providers with a single click."
         },
         {
-            q: "What models can I deploy?",
-            a: "Absolute flexibility. Switch between the world's most powerful cloud models (GPT-4o, Claude 3.5) or run open-weights (Llama 3, Mistral) locally with full GPU acceleration for air-gapped security."
+            q: "What is 'Dream State Processing'?",
+            a: "When your machine is idle (usually overnight), Oraya enters Dream State. It re-indexes your codebase, optimizes the knowledge graph, pre-fetches context for likely workflows, and retrains its local embeddings. When you wake up, it's smarter than you left it."
         },
         {
-            q: "What's the catch?",
-            a: "There isn't one. It's just better engineering. Oraya is designed for the 1% of architects who refuse to compromise their privacy, their context, or their speed for a cheap web wrapper."
+            q: "Can I use Oraya in air-gapped / classified environments?",
+            a: "Yes. Oraya can run entirely offline using local LLM runtimes (Llama 3, Mistral). Combined with Ghost Protocol (zero-trace mode), it's designed for defense, fintech, and healthcare environments where data sovereignty is non-negotiable."
         },
         {
-            q: "What is 'Ghost Protocol'?",
-            a: "The ultimate stealth mode. Activate it for sensitive projects to ensure zero-trace persistence. No logs, no history, ephemeral execution containers. Total digital invisibility."
+            q: "What platforms does Oraya support?",
+            a: "macOS (Apple Silicon & Intel), Windows 10+, and Linux (Ubuntu, Fedora, Arch). Built with Tauri for native-level performance and a tiny footprint (~15MB installer)."
         },
         {
-            q: "Can I use it in air-gapped environments?",
-            a: "Yes. Oraya can run 100% offline. It was built for environments where data sovereignty is non-negotiable—defense, high-stakes fintech, and proprietary R&D labs."
+            q: "How does team collaboration work?",
+            a: "Team members can share 'Brain Links'—encrypted snapshots of their context state. It's peer-to-peer, end-to-end encrypted, and doesn't require a central server. Think of it as AirDrop for developer context."
         },
     ];
 

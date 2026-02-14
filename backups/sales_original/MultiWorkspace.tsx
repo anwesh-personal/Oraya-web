@@ -118,7 +118,7 @@ export default function MultiWorkspace() {
                         </h2>
 
                         <p className="text-zinc-500 font-light text-xl md:text-2xl max-w-4xl uppercase tracking-tighter">
-                            I hated context-switching. Oraya understands the <span className="text-white italic">connective tissue</span> between your backend, your frontend, and your infrastructure. It’s one unified intelligence for your entire life&apos;s work.
+                            Oraya doesn't just see your folders—it understands the <span className="text-white italic">connective tissue</span> between your Backend, Frontend, and Cloud.
                         </p>
                     </div>
                 </div>
