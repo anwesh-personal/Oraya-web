@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { Tables } from "@/lib/database.types";
 
 export const dynamic = "force-dynamic";
 
@@ -29,32 +30,12 @@ export async function GET() {
         // Fetch user license with plan details
         const { data: license, error: licenseError } = await supabase
             .from("user_licenses")
-            .select(`
-                id,
-                license_key,
-                plan_id,
-                status,
-                billing_cycle,
-                next_billing_date,
-                amount_paid,
-                is_trial,
-                trial_ends_at,
-                trial_converted,
-                current_period_start,
-                current_period_end,
-                ai_calls_used,
-                tokens_used,
-                conversations_created,
-                usage_limit_reached,
-                created_at,
-                activated_at,
-                expires_at
-            `)
+            .select("*")
             .eq("user_id", user.id)
             .eq("status", "active")
             .order("created_at", { ascending: false })
             .limit(1)
-            .maybeSingle();
+            .maybeSingle() as { data: Tables<"user_licenses"> | null; error: any };
 
         if (licenseError) {
             console.error("License fetch error:", licenseError);
