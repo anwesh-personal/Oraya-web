@@ -29,11 +29,11 @@ export async function GET() {
         }
 
         // Fetch profile from user_profiles table
-        const { data: profile, error: profileError } = await supabase
-            .from("user_profiles")
+        const { data: profile, error: profileError } = await (supabase
+            .from("user_profiles") as any)
             .select("*")
             .eq("id", user.id)
-            .single() as { data: Tables<"user_profiles"> | null; error: any };
+            .single();
 
         if (profileError) {
             console.error("Profile fetch error:", profileError);
@@ -96,12 +96,12 @@ export async function PATCH(request: Request) {
             );
         }
 
-        const { data: profile, error: updateError } = await supabase
-            .from("user_profiles")
+        const { data: profile, error: updateError } = await (supabase
+            .from("user_profiles") as any)
             .update(updates)
             .eq("id", user.id)
             .select()
-            .single() as { data: Tables<"user_profiles"> | null; error: any };
+            .single();
 
         if (updateError) {
             console.error("Profile update error:", updateError);
