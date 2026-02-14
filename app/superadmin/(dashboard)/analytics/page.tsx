@@ -12,14 +12,14 @@ async function getAnalyticsData() {
         { data: revenueData },
         { data: usageData },
     ] = await Promise.all([
-        supabase.from("user_profiles").select("*", { count: "exact", head: true }),
-        supabase.from("user_licenses").select("*", { count: "exact", head: true }).eq("status", "active"),
-        supabase.from("payment_transactions").select("amount").eq("status", "succeeded"),
-        supabase.from("ai_usage_logs").select("total_tokens").limit(1000),
+        (supabase.from("user_profiles") as any).select("*", { count: "exact", head: true }),
+        (supabase.from("user_licenses") as any).select("*", { count: "exact", head: true }).eq("status", "active"),
+        (supabase.from("payment_transactions") as any).select("amount").eq("status", "succeeded"),
+        (supabase.from("ai_usage_logs") as any).select("total_tokens").limit(1000),
     ]);
 
-    const totalRevenue = revenueData?.reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
-    const totalTokens = usageData?.reduce((sum, u) => sum + (u.total_tokens || 0), 0) || 0;
+    const totalRevenue = revenueData?.reduce((sum: number, t: any) => sum + (t.amount || 0), 0) || 0;
+    const totalTokens = usageData?.reduce((sum: number, u: any) => sum + (u.total_tokens || 0), 0) || 0;
 
     return {
         stats: {
