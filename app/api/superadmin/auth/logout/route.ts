@@ -9,7 +9,7 @@ export async function POST() {
         if (session) {
             // Log the logout
             const supabase = createServiceRoleClient();
-            await supabase.from("admin_audit_logs").insert({
+            await (supabase.from("admin_audit_logs") as any).insert({
                 admin_id: session.adminId,
                 admin_email: session.email,
                 action: "auth.logout",
