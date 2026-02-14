@@ -49,8 +49,8 @@ export async function POST(request: Request) {
         }
 
         // 2. Get license + plan details
-        const { data: license, error: licenseError } = await supabase
-            .from("user_licenses")
+        const { data: license, error: licenseError } = await (supabase
+            .from("user_licenses") as any)
             .select(`
                 id,
                 plan_id,
@@ -101,8 +101,8 @@ export async function POST(request: Request) {
             const trialEnd = new Date(license.trial_ends_at);
             if (trialEnd < new Date()) {
                 // Expire the trial
-                await supabase
-                    .from("user_licenses")
+                await (supabase
+                    .from("user_licenses") as any)
                     .update({ status: "expired" })
                     .eq("id", license_id);
 
@@ -139,8 +139,8 @@ export async function POST(request: Request) {
         const maxDevices = (plan?.max_devices as number) || 1;
 
         // Check existing activation for this device
-        const { data: existingActivation } = await supabase
-            .from("license_activations")
+        const { data: existingActivation } = await (supabase
+            .from("license_activations") as any)
             .select("id, is_active, last_seen_at")
             .eq("license_id", license_id)
             .eq("device_id", device_id)
@@ -148,8 +148,8 @@ export async function POST(request: Request) {
 
         if (existingActivation) {
             // Device already registered — update heartbeat
-            await supabase
-                .from("license_activations")
+            await (supabase
+                .from("license_activations") as any)
                 .update({
                     is_active: true,
                     last_seen_at: new Date().toISOString(),
@@ -161,8 +161,8 @@ export async function POST(request: Request) {
                 .eq("id", existingActivation.id);
         } else {
             // New device — check device limit
-            const { count: activeDeviceCount } = await supabase
-                .from("license_activations")
+            const { count: activeDeviceCount } = await (supabase
+                .from("license_activations") as any)
                 .select("id", { count: "exact", head: true })
                 .eq("license_id", license_id)
                 .eq("is_active", true);
@@ -180,7 +180,7 @@ export async function POST(request: Request) {
             }
 
             // Register the device
-            await supabase.from("license_activations").insert({
+            await (supabase.from("license_activations") as any).insert({
                 license_id: license_id,
                 device_id: device_id,
                 device_name: deviceInfo.device_name,
@@ -195,8 +195,8 @@ export async function POST(request: Request) {
         }
 
         // 7. Get token balance
-        const { data: wallet } = await supabase
-            .from("token_wallets")
+        const { data: wallet } = await (supabase
+            .from("token_wallets") as any)
             .select("token_balance, is_frozen")
             .eq("user_id", user_id)
             .single();
