@@ -48,8 +48,8 @@ export async function POST(request: Request) {
         }
 
         // 3. Validate token package exists
-        const { data: tokenPackage, error: pkgError } = await supabase
-            .from("token_packages")
+        const { data: tokenPackage, error: pkgError } = await (supabase
+            .from("token_packages") as any)
             .select("*")
             .eq("id", package_id)
             .eq("is_active", true)
@@ -63,8 +63,8 @@ export async function POST(request: Request) {
         }
 
         // 4. Check wallet isn't frozen
-        const { data: wallet } = await supabase
-            .from("token_wallets")
+        const { data: wallet } = await (supabase
+            .from("token_wallets") as any)
             .select("id, is_frozen")
             .eq("user_id", user.id)
             .single() as { data: Pick<Tables<"token_wallets">, "id" | "is_frozen"> | null };
@@ -116,8 +116,8 @@ export async function POST(request: Request) {
         }
 
         // 7. Create pending purchase record
-        const { data: purchase, error: purchaseError } = await supabase
-            .from("token_purchases")
+        const { data: purchase, error: purchaseError } = await (supabase
+            .from("token_purchases") as any)
             .insert({
                 user_id: user.id,
                 wallet_id: wallet?.id || "",
@@ -132,7 +132,7 @@ export async function POST(request: Request) {
             .select("id")
             .single() as { data: Pick<Tables<"token_purchases">, "id"> | null; error: any };
 
-        if (purchaseError) {
+        if (purchaseError || !purchase) {
             console.error("Failed to create purchase record:", purchaseError);
             return NextResponse.json(
                 { error: "Failed to initiate purchase" },

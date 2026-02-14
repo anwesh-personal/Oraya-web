@@ -78,7 +78,7 @@ export async function POST(request: Request) {
         );
 
         // 3. Log the event for audit trail
-        await supabase.from("billing_events").insert({
+        await (supabase.from("billing_events") as any).insert({
             event_type: event.type,
             event_source: "stripe",
             stripe_event_id: event.id,
@@ -123,8 +123,8 @@ export async function POST(request: Request) {
         }
 
         // 5. Mark event as processed
-        await supabase
-            .from("billing_events")
+        await (supabase
+            .from("billing_events") as any)
             .update({ is_processed: true, processed_at: new Date().toISOString() })
             .eq("stripe_event_id", event.id);
 
@@ -158,8 +158,8 @@ async function handleCheckoutCompleted(
         // Token purchase completed — mark the pending purchase as completed
         const purchaseId = metadata.purchase_id;
         if (purchaseId) {
-            await supabase
-                .from("token_purchases")
+            await (supabase
+                .from("token_purchases") as any)
                 .update({
                     payment_status: "completed",
                     payment_id: typeof session.payment_intent === "string"
@@ -172,7 +172,7 @@ async function handleCheckoutCompleted(
         }
 
         // Record the transaction
-        await supabase.from("payment_transactions").insert({
+        await (supabase.from("payment_transactions") as any).insert({
             user_id: userId,
             transaction_type: "token_purchase",
             description: `Token purchase: ${metadata.package_id}`,
@@ -205,8 +205,8 @@ async function handleSubscriptionUpdate(
 
     if (!userId) {
         // Try to find user by stripe customer ID
-        const { data: customer } = await supabase
-            .from("stripe_customers")
+        const { data: customer } = await (supabase
+            .from("stripe_customers") as any)
             .select("user_id")
             .eq("stripe_customer_id", subscription.customer as string)
             .single();
@@ -256,8 +256,8 @@ async function processSubscriptionUpdate(
         .split("T")[0];
 
     // Check for existing license
-    const { data: existingLicense } = await supabase
-        .from("user_licenses")
+    const { data: existingLicense } = await (supabase
+        .from("user_licenses") as any)
         .select("id")
         .eq("user_id", userId)
         .in("status", ["active", "payment_failed"])
@@ -265,8 +265,8 @@ async function processSubscriptionUpdate(
 
     if (existingLicense) {
         // Update existing license
-        await supabase
-            .from("user_licenses")
+        await (supabase
+            .from("user_licenses") as any)
             .update({
                 plan_id: planId,
                 status: status,
@@ -282,7 +282,7 @@ async function processSubscriptionUpdate(
             .eq("id", existingLicense.id);
     } else {
         // Create new license
-        await supabase.from("user_licenses").insert({
+        await (supabase.from("user_licenses") as any).insert({
             user_id: userId,
             plan_id: planId,
             status: status,
@@ -310,15 +310,15 @@ async function handleSubscriptionCancelled(
     subscription: Stripe.Subscription
 ) {
     // Find and cancel the license
-    const { data: license } = await supabase
-        .from("user_licenses")
+    const { data: license } = await (supabase
+        .from("user_licenses") as any)
         .select("id")
         .eq("stripe_subscription_id", subscription.id)
         .single();
 
     if (license) {
-        await supabase
-            .from("user_licenses")
+        await (supabase
+            .from("user_licenses") as any)
             .update({
                 status: "cancelled",
                 cancelled_at: new Date().toISOString(),
@@ -332,8 +332,8 @@ async function handleSubscriptionCancelled(
 
     if (userId) {
         // Check if they already have a free license
-        const { data: freeLicense } = await supabase
-            .from("user_licenses")
+        const { data: freeLicense } = await (supabase
+            .from("user_licenses") as any)
             .select("id")
             .eq("user_id", userId)
             .eq("plan_id", "free")
@@ -341,7 +341,7 @@ async function handleSubscriptionCancelled(
             .single();
 
         if (!freeLicense) {
-            await supabase.from("user_licenses").insert({
+            await (supabase.from("user_licenses") as any).insert({
                 user_id: userId,
                 plan_id: "free",
                 status: "active",
@@ -369,8 +369,8 @@ async function handleInvoicePaid(
         ? invoiceAny.payment_intent
         : invoiceAny.payment_intent?.id || null;
 
-    const { data: customer } = await supabase
-        .from("stripe_customers")
+    const { data: customer } = await (supabase
+        .from("stripe_customers") as any)
         .select("user_id")
         .eq("stripe_customer_id", invoice.customer as string)
         .single();
@@ -378,7 +378,7 @@ async function handleInvoicePaid(
     if (!customer) return;
 
     // Record invoice
-    await supabase.from("invoices").upsert(
+    await (supabase.from("invoices") as any).upsert(
         {
             user_id: customer.user_id,
             invoice_number: invoice.number || `INV-${Date.now()}`,
@@ -398,7 +398,7 @@ async function handleInvoicePaid(
     );
 
     // Record payment transaction
-    await supabase.from("payment_transactions").insert({
+    await (supabase.from("payment_transactions") as any).insert({
         user_id: customer.user_id,
         transaction_type: "subscription",
         description: `Invoice ${invoice.number}`,
@@ -412,8 +412,8 @@ async function handleInvoicePaid(
     });
 
     // Clear delinquent flag
-    await supabase
-        .from("stripe_customers")
+    await (supabase
+        .from("stripe_customers") as any)
         .update({ is_delinquent: false, delinquent_since: null })
         .eq("stripe_customer_id", invoice.customer as string);
 }
@@ -438,8 +438,8 @@ async function handleInvoicePaymentFailed(
         ? invoiceAny.subscription
         : invoiceAny.subscription?.id || null;
 
-    const { data: customer } = await supabase
-        .from("stripe_customers")
+    const { data: customer } = await (supabase
+        .from("stripe_customers") as any)
         .select("user_id")
         .eq("stripe_customer_id", invoice.customer as string)
         .single();
@@ -447,8 +447,8 @@ async function handleInvoicePaymentFailed(
     if (!customer) return;
 
     // Mark customer as delinquent
-    await supabase
-        .from("stripe_customers")
+    await (supabase
+        .from("stripe_customers") as any)
         .update({
             is_delinquent: true,
             delinquent_since: new Date().toISOString(),
@@ -457,14 +457,14 @@ async function handleInvoicePaymentFailed(
 
     // Update license status
     if (subscriptionId) {
-        await supabase
-            .from("user_licenses")
+        await (supabase
+            .from("user_licenses") as any)
             .update({ status: "payment_failed" })
             .eq("stripe_subscription_id", subscriptionId);
     }
 
     // Record failed transaction
-    await supabase.from("payment_transactions").insert({
+    await (supabase.from("payment_transactions") as any).insert({
         user_id: customer.user_id,
         transaction_type: "subscription",
         description: `Failed payment for invoice ${invoice.number}`,
@@ -489,8 +489,8 @@ async function handleChargeRefunded(
 ) {
     if (!charge.customer) return;
 
-    const { data: customer } = await supabase
-        .from("stripe_customers")
+    const { data: customer } = await (supabase
+        .from("stripe_customers") as any)
         .select("user_id")
         .eq("stripe_customer_id", charge.customer as string)
         .single();
@@ -498,14 +498,14 @@ async function handleChargeRefunded(
     if (!customer) return;
 
     // Find original transaction
-    const { data: transaction } = await supabase
-        .from("payment_transactions")
+    const { data: transaction } = await (supabase
+        .from("payment_transactions") as any)
         .select("id")
         .eq("stripe_charge_id", charge.id)
         .single();
 
     if (transaction) {
-        await supabase.from("refunds").insert({
+        await (supabase.from("refunds") as any).insert({
             user_id: customer.user_id,
             transaction_id: transaction.id,
             refund_amount: (charge.amount_refunded || 0) / 100,
@@ -526,8 +526,8 @@ async function handleTrialWillEnd(
     subscription: Stripe.Subscription
 ) {
     // Find user and update trial_ends_at metadata
-    const { data: customer } = await supabase
-        .from("stripe_customers")
+    const { data: customer } = await (supabase
+        .from("stripe_customers") as any)
         .select("user_id")
         .eq("stripe_customer_id", subscription.customer as string)
         .single();
@@ -535,8 +535,8 @@ async function handleTrialWillEnd(
     if (!customer) return;
 
     // Update license with trial end date
-    await supabase
-        .from("user_licenses")
+    await (supabase
+        .from("user_licenses") as any)
         .update({
             trial_ends_at: subscription.trial_end
                 ? new Date(subscription.trial_end * 1000).toISOString()
