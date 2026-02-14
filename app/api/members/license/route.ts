@@ -69,7 +69,7 @@ export async function GET() {
             .from("plans")
             .select("name, description, max_agents, max_devices, max_ai_calls_per_month, max_token_usage_per_month, features")
             .eq("id", license.plan_id)
-            .single();
+            .single() as { data: Tables<"plans"> | null };
 
         // Fetch device activations
         const { data: devices } = await supabase
