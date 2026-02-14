@@ -89,8 +89,8 @@ export async function POST(request: Request) {
         // 6. Find or create Stripe Customer
         let stripeCustomerId: string;
 
-        const { data: existingCustomer } = await supabase
-            .from("stripe_customers")
+        const { data: existingCustomer } = await (supabase
+            .from("stripe_customers") as any)
             .select("stripe_customer_id")
             .eq("user_id", user.id)
             .single() as { data: Pick<Tables<"stripe_customers">, "stripe_customer_id"> | null };
@@ -108,7 +108,7 @@ export async function POST(request: Request) {
 
             stripeCustomerId = customer.id;
 
-            await supabase.from("stripe_customers").insert({
+            await (supabase.from("stripe_customers") as any).insert({
                 user_id: user.id,
                 stripe_customer_id: customer.id,
                 email: user.email,
@@ -166,8 +166,8 @@ export async function POST(request: Request) {
         });
 
         // 9. Update purchase with Stripe payment ID
-        await supabase
-            .from("token_purchases")
+        await (supabase
+            .from("token_purchases") as any)
             .update({ payment_id: session.payment_intent as string })
             .eq("id", purchase.id);
 
