@@ -73,8 +73,8 @@ export async function POST(request: Request) {
         // 4. Find or create Stripe Customer
         let stripeCustomerId: string;
 
-        const { data: existingCustomer } = await supabase
-            .from("stripe_customers")
+        const { data: existingCustomer } = await (supabase
+            .from("stripe_customers") as any)
             .select("stripe_customer_id")
             .eq("user_id", user.id)
             .single();
@@ -83,8 +83,8 @@ export async function POST(request: Request) {
             stripeCustomerId = existingCustomer.stripe_customer_id;
         } else {
             // Fetch user profile for metadata
-            const { data: profile } = await supabase
-                .from("user_profiles")
+            const { data: profile } = await (supabase
+                .from("user_profiles") as any)
                 .select("full_name, display_name")
                 .eq("user_id", user.id)
                 .single();
@@ -102,7 +102,7 @@ export async function POST(request: Request) {
             stripeCustomerId = customer.id;
 
             // Persist in DB
-            await supabase.from("stripe_customers").insert({
+            await (supabase.from("stripe_customers") as any).insert({
                 user_id: user.id,
                 stripe_customer_id: customer.id,
                 email: user.email,
@@ -114,8 +114,8 @@ export async function POST(request: Request) {
         const urls = await getStripeRedirectUrls();
 
         // 5. Check if user already has an active subscription
-        const { data: existingLicense } = await supabase
-            .from("user_licenses")
+        const { data: existingLicense } = await (supabase
+            .from("user_licenses") as any)
             .select("id, stripe_subscription_id, status")
             .eq("user_id", user.id)
             .eq("status", "active")
