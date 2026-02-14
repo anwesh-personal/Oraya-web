@@ -5,8 +5,8 @@ import { Plus, Download, Building2, Users, DollarSign, TrendingUp } from "lucide
 async function getOrganizations() {
     const supabase = createServiceRoleClient();
 
-    const { data: organizations, error } = await supabase
-        .from("organizations")
+    const { data: organizations, error } = await (supabase
+        .from("organizations") as any)
         .select(`
       *,
       owner:user_profiles!owner_id(id, full_name, email, avatar_url),
@@ -30,12 +30,12 @@ async function getOrgStats() {
         { count: activeOrgs },
         { data: revenueData },
     ] = await Promise.all([
-        supabase.from("organizations").select("*", { count: "exact", head: true }),
-        supabase.from("organizations").select("*", { count: "exact", head: true }).eq("status", "active"),
-        supabase.from("user_licenses").select("amount_paid").eq("status", "active"),
+        (supabase.from("organizations") as any).select("*", { count: "exact", head: true }),
+        (supabase.from("organizations") as any).select("*", { count: "exact", head: true }).eq("status", "active"),
+        (supabase.from("user_licenses") as any).select("amount_paid").eq("status", "active"),
     ]);
 
-    const totalRevenue = revenueData?.reduce((sum, l) => sum + (l.amount_paid || 0), 0) || 0;
+    const totalRevenue = revenueData?.reduce((sum: number, l: any) => sum + (l.amount_paid || 0), 0) || 0;
 
     return {
         total: totalOrgs || 0,
