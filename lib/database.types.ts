@@ -474,6 +474,56 @@ export interface Database {
                     updated_at?: string;
                 };
             };
+            stripe_customers: {
+                Row: {
+                    id: string;
+                    user_id: string;
+                    stripe_customer_id: string;
+                    email: string | null;
+                    name: string | null;
+                    default_payment_method_id: string | null;
+                    payment_methods: Json;
+                    currency: string;
+                    tax_id: string | null;
+                    is_delinquent: boolean;
+                    delinquent_since: string | null;
+                    stripe_metadata: Json;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    user_id: string;
+                    stripe_customer_id: string;
+                    email?: string | null;
+                    name?: string | null;
+                    default_payment_method_id?: string | null;
+                    payment_methods?: Json;
+                    currency?: string;
+                    tax_id?: string | null;
+                    is_delinquent?: boolean;
+                    delinquent_since?: string | null;
+                    stripe_metadata?: Json;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    user_id?: string;
+                    stripe_customer_id?: string;
+                    email?: string | null;
+                    name?: string | null;
+                    default_payment_method_id?: string | null;
+                    payment_methods?: Json;
+                    currency?: string;
+                    tax_id?: string | null;
+                    is_delinquent?: boolean;
+                    delinquent_since?: string | null;
+                    stripe_metadata?: Json;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+            };
             // ================================================
             // PLANS & LICENSING (from 004_plans_and_licensing.sql)
             // ================================================
@@ -827,5 +877,6 @@ export type TokenWallet = Tables<"token_wallets">;
 export type TokenPurchase = Tables<"token_purchases">;
 export type TokenUsageLog = Tables<"token_usage_logs">;
 export type TokenPackage = Tables<"token_packages">;
+export type StripeCustomer = Tables<"stripe_customers">;
 export type ManagedAIKey = Tables<"managed_ai_keys">;
 export type AIUsageLog = Tables<"ai_usage_logs">;

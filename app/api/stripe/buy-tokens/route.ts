@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getStripeClient } from "@/lib/stripe/client";
 import { getTokenPackagePriceIds, getStripeRedirectUrls } from "@/lib/stripe/config";
+import { Tables } from "@/lib/database.types";
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
             .select("*")
             .eq("id", package_id)
             .eq("is_active", true)
-            .single();
+            .single() as { data: Tables<"token_packages"> | null; error: any };
 
         if (!tokenPackage || pkgError) {
             return NextResponse.json(
@@ -66,7 +67,7 @@ export async function POST(request: Request) {
             .from("token_wallets")
             .select("id, is_frozen")
             .eq("user_id", user.id)
-            .single();
+            .single() as { data: Pick<Tables<"token_wallets">, "id" | "is_frozen"> | null };
 
         if (wallet?.is_frozen) {
             return NextResponse.json(
@@ -92,7 +93,7 @@ export async function POST(request: Request) {
             .from("stripe_customers")
             .select("stripe_customer_id")
             .eq("user_id", user.id)
-            .single();
+            .single() as { data: Pick<Tables<"stripe_customers">, "stripe_customer_id"> | null };
 
         if (existingCustomer?.stripe_customer_id) {
             stripeCustomerId = existingCustomer.stripe_customer_id;
@@ -119,7 +120,7 @@ export async function POST(request: Request) {
             .from("token_purchases")
             .insert({
                 user_id: user.id,
-                wallet_id: wallet?.id,
+                wallet_id: wallet?.id || "",
                 tokens_purchased: tokenPackage.token_amount,
                 bonus_tokens: tokenPackage.token_amount * tokenPackage.bonus_percentage / 100,
                 amount_paid: tokenPackage.price,
@@ -129,7 +130,7 @@ export async function POST(request: Request) {
                 payment_status: "pending",
             })
             .select("id")
-            .single();
+            .single() as { data: Pick<Tables<"token_purchases">, "id"> | null; error: any };
 
         if (purchaseError) {
             console.error("Failed to create purchase record:", purchaseError);
