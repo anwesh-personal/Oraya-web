@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Outfit } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { ResponsiveProvider } from "@/components/sales/responsive/ResponsiveProvider";
 
 const inter = Inter({
     subsets: ["latin"],
@@ -56,7 +57,9 @@ export default function RootLayout({
             </head>
             <body className={`${inter.variable} ${outfit.variable} ${jetbrains.variable} font-sans antialiased`}>
                 <ThemeProvider>
-                    {children}
+                    <ResponsiveProvider>
+                        {children}
+                    </ResponsiveProvider>
                 </ThemeProvider>
             </body>
         </html>
