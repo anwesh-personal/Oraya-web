@@ -112,6 +112,78 @@ const VALUE_STACK = [
         cat: "execution",
         serial: "E-CHAIN-ML",
         spec: "Orchestration: 5-way parallel max."
+    },
+    {
+        title: "Neural Indexing",
+        icon: Scan,
+        desc: "Total Knowledge Recall. Oraya builds a living semantic graph across your entire stack.",
+        cat: "memory",
+        serial: "M-INDEX-V5",
+        spec: "Graph depth: L7 Synapse."
+    },
+    {
+        title: "DOM Dominion",
+        icon: Globe,
+        desc: "Zero Latency Execution. Control the browser and system directly via native kernel hooks.",
+        cat: "execution",
+        serial: "E-DOM-CTRL",
+        spec: "Response: <1ms system handoff."
+    },
+    {
+        title: "Vault Enclave",
+        icon: Shield,
+        desc: "Biological Isolation. Keys and code never leave your RAM, protected by hardware-level enclaves.",
+        cat: "security",
+        serial: "S-ENCLAVE-Z",
+        spec: "Isolation: Ring-0 secure."
+    },
+    {
+        title: "Local RAG Engine",
+        icon: Binary,
+        desc: "High-performance vector retrieval without cloud middle-men or external databases.",
+        cat: "memory",
+        serial: "M-RAG-9X",
+        spec: "Search: 1.2M docs in 4ms."
+    },
+    {
+        title: "VPS Relay Driver",
+        icon: Radio,
+        desc: "Keep research missions alive and sync context while you are physically offline.",
+        cat: "core",
+        serial: "K-RELAY-DRV",
+        spec: "Persistence: 24/7 background ops."
+    },
+    {
+        title: "Hardware Keys",
+        icon: Lock,
+        desc: "Bio-metric protected API storage integrated directly into the local hardware keychain.",
+        cat: "security",
+        serial: "S-KEY-BIO",
+        spec: "Auth: Native FaceID/TouchID."
+    },
+    {
+        title: "Synaptic Research",
+        icon: Book,
+        desc: "Auto-synced research notes across all workspaces, unified by a single intelligence stream.",
+        cat: "memory",
+        serial: "M-RESEARCH-SH",
+        spec: "Sync: Cross-Project Neural."
+    },
+    {
+        title: "Swarm Tactics",
+        icon: Boxes,
+        desc: "Spawn specialized agents for complex refactors, maintaining parallel state awareness.",
+        cat: "execution",
+        serial: "E-SWARM-TAC",
+        spec: "Nodes: Multi-agent concurrent."
+    },
+    {
+        title: "Parallel Task Brain",
+        icon: Binary,
+        desc: "Offload complex background computations to local GPU clusters while maintaining low-latency foreground responsiveness.",
+        cat: "execution",
+        serial: "E-PROC-SY",
+        spec: "Multi-threading: 0xFFFF context depth."
     }
 ];
 
@@ -133,7 +205,7 @@ export default function GrandOffer() {
                     </h2>
 
                     <p className="text-zinc-500 font-extralight text-2xl max-w-3xl uppercase leading-snug">
-                        20 specialized technical shards. <br />
+                        21 specialized technical shards. <br />
                         One <span className="text-white/60 italic font-normal">Sovereign Ecosystem</span>.
                     </p>
                 </div>
@@ -144,14 +216,6 @@ export default function GrandOffer() {
                         <InventoryCard key={i} item={item} index={i} />
                     ))}
 
-                    {/* Placeholder for 'More to come' */}
-                    <div className="p-16 rounded-[48px] border border-dashed border-white/[0.05] flex flex-col items-center justify-center gap-8 opacity-20 hover:opacity-100 transition-all duration-1000 group">
-                        <Binary size={64} strokeWidth={1} className="text-zinc-700 group-hover:text-primary transition-colors" />
-                        <div className="text-center space-y-3">
-                            <div className="text-[10px] font-mono text-zinc-600 uppercase tracking-[0.4em]">AWAITING_SYNC</div>
-                            <div className="text-white/40 font-black uppercase text-xl group-hover:text-white/60 transition-colors">8 More Subsystems</div>
-                        </div>
-                    </div>
                 </div>
 
                 {/* Final CTA Strip */}
@@ -185,9 +249,18 @@ function InventoryCard({ item, index }: { item: typeof VALUE_STACK[0], index: nu
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
+            whileHover={{
+                scale: 1.25,
+                zIndex: 50,
+                boxShadow: `0 0 50px -10px ${category?.color}30`,
+                borderColor: `${category?.color}40`
+            }}
             viewport={{ once: true }}
-            transition={{ delay: index * 0.05 }}
-            className="group relative p-8 rounded-[32px] bg-white/[0.01] border border-white/5 hover:bg-white/[0.02] hover:border-white/10 transition-all duration-500 overflow-hidden min-h-[400px] flex flex-col justify-between"
+            transition={{
+                delay: index * 0.05,
+                scale: { duration: 0.3, ease: "easeOut" }
+            }}
+            className="group relative p-8 rounded-[32px] bg-white/[0.01] border border-white/5 hover:bg-white/[0.02] transition-all duration-500 overflow-hidden min-h-[400px] flex flex-col justify-between"
         >
             {/* Blueprint Overlay (Bottom right) */}
             <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-20 transition-opacity">
@@ -212,7 +285,7 @@ function InventoryCard({ item, index }: { item: typeof VALUE_STACK[0], index: nu
                 </div>
                 <div className="space-y-4">
                     <h3 className="text-2xl font-bold text-white tracking-tight leading-snug group-hover:text-white transition-colors">{item.title}</h3>
-                    <p className="text-zinc-400 text-[15px] leading-relaxed group-hover:text-zinc-300 transition-colors font-light italic">&quot;{item.desc}&quot;</p>
+                    <p className="text-zinc-400 text-[15px] leading-relaxed group-hover:text-zinc-300 transition-colors font-light">&quot;{item.desc}&quot;</p>
                 </div>
             </div>
 

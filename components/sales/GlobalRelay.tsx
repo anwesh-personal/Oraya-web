@@ -3,7 +3,8 @@
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Radio, Zap, Shield, Activity, Globe, Cpu, Server, Network } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useInView } from "framer-motion";
 
 const nodes = [
     { city: "San Francisco", status: "Nominal", color: "#F0B429", top: "35%", left: "12%", latency: "12ms" },
@@ -18,9 +19,11 @@ const nodes = [
 
 export default function GlobalRelay() {
     const [hoveredNode, setHoveredNode] = useState<number | null>(null);
+    const containerRef = useRef(null);
+    const isInView = useInView(containerRef, { amount: 0.2 });
 
     return (
-        <section className="py-12 md:py-16 bg-black relative overflow-hidden noise-overlay">
+        <section ref={containerRef} className="py-12 md:py-16 bg-black relative overflow-hidden noise-overlay">
             {/* Deep Atmospheric Backdrop */}
             <div className="absolute inset-0 z-0 pointer-events-none">
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[100%] bg-[radial-gradient(circle_at_center,var(--primary-glow)_0%,transparent_60%)] opacity-5" />
@@ -45,7 +48,7 @@ export default function GlobalRelay() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.2 }}
-                        className="text-5xl md:text-8xl font-display font-black text-white tracking-tighter leading-[0.85] uppercase"
+                        className="text-5xl md:text-8xl font-display font-black text-white tracking-tight leading-[0.85] uppercase"
                     >
                         Global. <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-primary to-white/10">Infrastructure.</span>
@@ -93,11 +96,13 @@ export default function GlobalRelay() {
                                 style={{ top: node.top, left: node.left }}
                             >
                                 {/* Shockwave Ring */}
-                                <motion.div
-                                    animate={{ scale: [1, 4], opacity: [0.4, 0] }}
-                                    transition={{ duration: 3, repeat: Infinity, delay: i * 0.2 }}
-                                    className="absolute -inset-6 rounded-full border border-primary/30"
-                                />
+                                {isInView && (
+                                    <motion.div
+                                        animate={{ scale: [1, 4], opacity: [0.4, 0] }}
+                                        transition={{ duration: 3, repeat: Infinity, delay: i * 0.2 }}
+                                        className="absolute -inset-6 rounded-full border border-primary/30"
+                                    />
+                                )}
 
                                 {/* Core Dot */}
                                 <div className="relative">

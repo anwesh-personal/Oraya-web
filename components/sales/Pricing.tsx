@@ -89,7 +89,7 @@ export default function PricingSection() {
                         SYSTEM_ADOPTION_PROTOCOLS_V9
                     </motion.div>
 
-                    <h2 className="text-6xl md:text-9xl font-display font-black text-white tracking-tighter leading-[0.8] uppercase">
+                    <h2 className="text-6xl md:text-9xl font-display font-black text-white tracking-tight leading-[0.8] uppercase">
                         Choose Your <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-primary to-white/10">Dominion.</span>
                     </h2>
@@ -120,7 +120,7 @@ export default function PricingSection() {
                                         <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                                         NEURAL_ASSISTANT_ACTIVE
                                     </div>
-                                    <h3 className="text-3xl md:text-4xl font-display font-black text-white uppercase tracking-tighter">Ask Ora.</h3>
+                                    <h3 className="text-3xl md:text-4xl font-display font-black text-white uppercase tracking-tight">Ask Ora.</h3>
                                     <p className="text-zinc-500 font-sans font-light text-lg leading-relaxed">
                                         Not sure which node fits your architecture? Describe your workload and Oraya will recommend the optimal clearance level.
                                     </p>
@@ -190,7 +190,7 @@ function PricingCard({ plan, index }: { plan: any; index: number }) {
 
                     <div className="flex items-baseline gap-2">
                         <span className={cn(
-                            "font-display font-black tracking-tighter leading-none",
+                            "font-display font-black tracking-tight leading-none",
                             plan.popular ? "text-7xl md:text-9xl text-white" : "text-5xl md:text-6xl text-white/90"
                         )}>
                             {plan.price}

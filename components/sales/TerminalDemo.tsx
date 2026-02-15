@@ -2,25 +2,88 @@
 
 import { useEffect, useState, useRef } from "react";
 import { Terminal, Shield, Cpu, Activity, Zap, Box, Command, Search, Sparkles, ChevronRight, Lock } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useInView } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 const COMMAND_HINTS = [
-    { cmd: "oraya --analyze", desc: "Scan project for context leaks" },
-    { cmd: "oraya --brain-link", desc: "Establish OS kernel bridge" },
-    { cmd: "oraya --vault-secure", desc: "Encrypt local memory shards" },
-    { cmd: "oraya --dominate", desc: "Unlock peak hardware mode" },
+    {
+        cmd: "oraya --analyze", desc: "Semantic structure audit", response: [
+            "SCANNING_NEURAL_GRAPH...",
+            "INDEXING: 4,102 modules in 0.8ms",
+            "DETECTED: 12 circular context leaks",
+            "PATCHING: 0x8F01 -> 0x8F02 [SUCCESS]",
+            "RESULT: Contextual amnesia eliminated."
+        ]
+    },
+    {
+        cmd: "oraya --brain-link", desc: "Establish OS kernel bridge", response: [
+            "INITIATING_GLOBAL_RELAY_HANDSHAKE...",
+            "LINKING: Local Kernel ↔ Global Synapse",
+            "SYNC: 100% Lossless rehydration",
+            "STATUS: Biological relay established.",
+            "LATENCY: < 1ms verified [OPTIMAL]"
+        ]
+    },
+    {
+        cmd: "oraya --vault-secure", desc: "Encrypt local memory shards", response: [
+            "ENGAGING_AES_256_GCM_PROTOCOL...",
+            "SHARDING: Local context memory shards",
+            "ROTATING: Session keys per packet",
+            "VAULT: Physical RAM isolation ACTIVE",
+            "SECURITY: Data physically cannot leave."
+        ]
+    },
+    {
+        cmd: "oraya --dominate", desc: "Unlock peak hardware mode", response: [
+            "CRITICAL: BYPASSING_SANDBOX_LIMITS...",
+            "DIRECT_ACCESS: GPU_NEURON_BRIDGE_v5",
+            "OVERRIDE: Browser stack latency tax removed",
+            "GENESIS: Sovereign control engaged.",
+            "WELCOME HOME, MASTER_ARCHITECT."
+        ]
+    },
 ];
 
 export default function TerminalDemo() {
     const [input, setInput] = useState("");
     const [history, setHistory] = useState<string[]>([
-        "ORAYA_KERNEL_v3.2.1 // BOOT_SUCCESS",
-        "NEURAL_LATENCY: 8ms [OPTIMAL]",
+        "ORAYA_KERNEL_v4.0.2 // BOOT_SUCCESS",
+        "NEURAL_LATENCY: 0.2ms [NATIVE]",
         "SYSTEM_STATUS: SOVEREIGN_MODE_ACTIVE",
         "READY_FOR_ARCHITECT_INPUT...",
     ]);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isHovered, setIsHovered] = useState(false);
+    const [autoCycleIndex, setAutoCycleIndex] = useState(0);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef(null);
+    const isInView = useInView(containerRef, { amount: 0.3 });
+
+    useEffect(() => {
+        if (!isInView || isProcessing || isHovered) return;
+
+        const cycle = setInterval(() => {
+            const nextCmd = COMMAND_HINTS[autoCycleIndex];
+            executeAutomation(nextCmd.cmd, nextCmd.response);
+            setAutoCycleIndex((prev) => (prev + 1) % COMMAND_HINTS.length);
+        }, 6000);
+
+        return () => clearInterval(cycle);
+    }, [autoCycleIndex, isInView, isProcessing, isHovered]);
+
+    const executeAutomation = async (cmd: string, response: string[]) => {
+        setIsProcessing(true);
+        setHistory(prev => [...prev, `> ${cmd}`]);
+
+        await new Promise(r => setTimeout(r, 600));
+
+        for (const line of response) {
+            setHistory(prev => [...prev, line]);
+            await new Promise(r => setTimeout(r, 200));
+        }
+
+        setIsProcessing(false);
+    };
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -33,46 +96,21 @@ export default function TerminalDemo() {
         if (!input.trim() || isProcessing) return;
 
         const cmd = input.trim().toLowerCase();
-        setHistory(prev => [...prev, `> ${input}`]);
-        setInput("");
-        setIsProcessing(true);
+        const hint = COMMAND_HINTS.find(h => h.cmd === cmd);
 
-        await new Promise(r => setTimeout(r, 800));
-
-        if (cmd === "help") {
-            setHistory(prev => [...prev,
-                "AUTHORIZED_PROTOCOLS:",
-                "  --analyze     Semantic structure audit",
-                "  --brain-link   Global relay handshake",
-                "  --vault       AES-256 shard validation",
-                "  --dominate    GENESIS_LEVEL_CLEARANCE",
-                "  clear         Reset session buffers",
-            ]);
-        } else if (cmd.includes("--analyze")) {
-            setHistory(prev => [...prev,
-                "SHARDING_PROJECT_CONTEXT...",
-                "FOUND: 12 circular leaks in /lib/core",
-                "ACTION: Native refactor injected.",
-                "IQ_BOOST: +14.2% verified."
-            ]);
-        } else if (cmd.includes("--dominate")) {
-            setHistory(prev => [...prev,
-                "CRITICAL: UNLOCKING GENESIS_MODULE...",
-                "INTENT_ENGINE: Bypassing browser stack.",
-                "HARDWARE_LINK: Direct GPU-to-Neuron link.",
-                "WELCOME HOME, MASTER_ARCHITECT."
-            ]);
+        if (hint) {
+            executeAutomation(hint.cmd, hint.response);
         } else if (cmd === "clear") {
-            setHistory([]);
+            setHistory(["SESSION_CLEARED // RELOADING_KERNEL..."]);
         } else {
-            setHistory(prev => [...prev, `ERR: PROTOCOL '${cmd}' NOT FOUND.`]);
+            setHistory(prev => [...prev, `> ${input}`, `ERR: PROTOCOL '${cmd}' NOT FOUND.`]);
         }
 
-        setIsProcessing(false);
+        setInput("");
     };
 
     return (
-        <section className="py-12 bg-surface-0 relative overflow-hidden noise-overlay">
+        <section ref={containerRef} className="py-24 bg-surface-0 relative overflow-hidden">
             {/* Ambient Background UI elements */}
             <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/[0.05] rounded-full blur-[120px] pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-secondary/[0.05] rounded-full blur-[150px] pointer-events-none" />
@@ -83,13 +121,13 @@ export default function TerminalDemo() {
                         initial={{ opacity: 0, scale: 0.9 }}
                         whileInView={{ opacity: 1, scale: 1 }}
                         viewport={{ once: true }}
-                        className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/[0.03] border border-white/[0.08] rounded-full font-mono text-[9px] font-black uppercase tracking-[0.4em] text-primary shadow-[0_0_20px_var(--primary-glow)] backdrop-blur-3xl"
+                        className="inline-flex items-center gap-3 px-6 py-2 bg-white/[0.03] border border-white/[0.08] rounded-full font-mono text-[10px] font-black uppercase tracking-[0.4em] text-primary shadow-[0_0_40px_rgba(245,158,11,0.1)] backdrop-blur-3xl"
                     >
-                        <Terminal size={12} />
-                        Kernel_Interface_01
+                        <Terminal size={12} className="text-secondary" />
+                        Intelligence_Kernel_v4.0.2
                     </motion.div>
 
-                    <h2 className="text-5xl md:text-8xl font-display font-black text-white tracking-tighter leading-[0.9] uppercase">
+                    <h2 className="text-5xl md:text-8xl font-display font-black text-white tracking-tight leading-[0.9] uppercase">
                         Precision <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary via-[80%] to-secondary">Control.</span>
                     </h2>
@@ -102,10 +140,12 @@ export default function TerminalDemo() {
 
                 {/* THE TERMINAL 2.0 */}
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
+                    initial={{ opacity: 0, y: 40 }}
+                    whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className="relative w-full max-w-4xl mx-auto rounded-[32px] overflow-hidden border border-white/10 bg-surface-1 shadow-[0_60px_150px_rgba(0,0,0,1)] group"
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                    className="relative w-full max-w-5xl mx-auto rounded-[48px] overflow-hidden border border-white/10 bg-[#050505] shadow-[0_80px_200px_rgba(0,0,0,1)] group"
                 >
                     {/* Glass Header */}
                     <div className="bg-white/[0.03] px-8 py-4 border-b border-white/5 flex items-center justify-between backdrop-blur-md">
@@ -121,7 +161,7 @@ export default function TerminalDemo() {
                     </div>
 
                     {/* Terminal Body */}
-                    <div className="relative p-10 h-[500px] flex flex-col items-stretch">
+                    <div className="relative p-12 h-[550px] flex flex-col items-stretch">
                         <div
                             ref={scrollRef}
                             className="flex-1 overflow-y-auto space-y-3 font-mono text-[13px] text-left custom-scrollbar scroll-smooth"
@@ -175,16 +215,27 @@ export default function TerminalDemo() {
                     <div className="absolute inset-0 pointer-events-none bg-[repeating-linear-gradient(transparent,transparent_50%,rgba(0,0,0,0.2)_50%,rgba(0,0,0,0.2)_100%)] bg-[length:100%_4px] opacity-20" />
                 </motion.div>
 
-                {/* Command Quicklinks - Reduced Scale */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-12 max-w-4xl mx-auto">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mt-16 max-w-5xl mx-auto">
                     {COMMAND_HINTS.map((hint, i) => (
                         <button
                             key={i}
-                            onClick={() => setInput(hint.cmd)}
-                            className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:border-primary/30 hover:bg-primary/5 transition-all duration-300 text-left group"
+                            onClick={() => executeAutomation(hint.cmd, hint.response)}
+                            className={cn(
+                                "p-6 rounded-3xl bg-white/[0.02] border transition-all duration-500 text-left group relative overflow-hidden",
+                                autoCycleIndex === i ? "border-primary/40 bg-primary/5" : "border-white/[0.05] hover:border-primary/30 hover:bg-primary/[0.03]"
+                            )}
                         >
+                            {autoCycleIndex === i && (
+                                <motion.div
+                                    layoutId="auto-indicator"
+                                    className="absolute bottom-0 left-0 h-1 bg-primary"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: "100%" }}
+                                    transition={{ duration: 6, ease: "linear" }}
+                                />
+                            )}
                             <div className="flex items-center gap-2 mb-2">
-                                <span className="text-[10px] font-mono font-black text-white uppercase tracking-tighter group-hover:text-primary transition-colors">{hint.cmd}</span>
+                                <span className="text-[10px] font-mono font-black text-white uppercase tracking-tight group-hover:text-primary transition-colors">{hint.cmd}</span>
                             </div>
                             <p className="text-[10px] text-zinc-600 font-sans tracking-wide">{hint.desc}</p>
                         </button>

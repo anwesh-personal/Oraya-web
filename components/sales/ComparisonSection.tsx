@@ -25,7 +25,7 @@ export default function ComparisonSection() {
             <div className="max-w-5xl mx-auto px-6 relative z-10">
 
                 <div className="text-center mb-20 space-y-6">
-                    <h2 className="text-5xl md:text-7xl font-display font-black text-white tracking-tighter leading-none">
+                    <h2 className="text-5xl md:text-7xl font-display font-black text-white tracking-tight leading-none">
                         Why Not Just <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-400 to-gray-600">Use Something Else?</span>
                     </h2>

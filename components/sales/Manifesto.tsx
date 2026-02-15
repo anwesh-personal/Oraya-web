@@ -91,7 +91,7 @@ export default function Manifesto() {
                                 I didn&apos;t build <br />
                                 <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-white/20">a tool.</span> <br />
                                 I forged a <br />
-                                <span className="italic underline decoration-primary/20 decoration-8 underline-offset-[-15px]">New Frequency.</span>
+                                <span className="underline decoration-primary/20 decoration-8 underline-offset-[-15px]">New Frequency.</span>
                             </motion.h2>
                         </div>
 
@@ -106,7 +106,7 @@ export default function Manifesto() {
                             </div>
                             <div className="space-y-10 lg:pt-16">
                                 <div className="p-10 rounded-[48px] bg-white/[0.01] border border-white/[0.05] backdrop-blur-3xl relative overflow-hidden group hover:border-primary/20 transition-all duration-700 shadow-2xl">
-                                    <blockquote className="text-xl md:text-2xl font-display font-black text-white italic leading-tight uppercase tracking-tight relative z-10">
+                                    <blockquote className="text-xl md:text-2xl font-display font-black text-white leading-tight uppercase tracking-tight relative z-10">
                                         &quot;Absolute hardware dominion is the only way to win in a post-AI world.&quot;
                                     </blockquote>
                                     <div className="absolute top-0 right-0 p-6 opacity-5">

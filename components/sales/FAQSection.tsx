@@ -52,7 +52,7 @@ export default function FAQSection() {
                     >
                         SYSTEM_INTEL_BRIEFING
                     </motion.div>
-                    <h2 className="text-3xl md:text-5xl font-display font-black text-white tracking-tighter leading-tight uppercase">
+                    <h2 className="text-3xl md:text-5xl font-display font-black text-white tracking-tight leading-tight uppercase">
                         Architect <span className="text-white/40">Intel.</span>
                     </h2>
                 </div>
@@ -84,7 +84,7 @@ function FAQItem({ q, a, index }: { q: string, a: string, index: number }) {
             >
                 <div className="flex gap-6 items-center">
                     <span className="text-primary/40 font-mono text-[9px] font-black group-hover/btn:text-primary transition-colors whitespace-nowrap tracking-widest uppercase">0{index + 1}</span>
-                    <span className="text-lg md:text-xl font-display font-black text-white uppercase tracking-tighter group-hover/btn:text-white transition-colors">{q}</span>
+                    <span className="text-lg md:text-xl font-display font-black text-white uppercase tracking-tight group-hover/btn:text-white transition-colors">{q}</span>
                 </div>
                 <motion.div
                     animate={{ rotate: open ? 180 : 0 }}

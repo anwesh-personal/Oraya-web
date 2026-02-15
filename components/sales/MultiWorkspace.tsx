@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence, useInView } from "framer-motion";
 import {
     Layers, ArrowLeftRight, FolderOpen, GitBranch, Zap,
     Link2, Plus, Search, FileCode, Share2, Network,
@@ -19,7 +19,9 @@ const WORKSPACES = [
         language: "RUST",
         stats: "24,391 LC",
         nodes: "1.2M",
-        sync: "98.4%"
+        sync: "98.4%",
+        desc: "High-speed native kernel management. Current mission: Optimizing session relay and shard encryption.",
+        live: ["- ENCRYPTING_SESSION_VAULT", "- OPTIMIZING_DATABASE_HANDOFF"]
     },
     {
         id: "ws-02",
@@ -30,7 +32,9 @@ const WORKSPACES = [
         language: "TYPESCRIPT",
         stats: "18,672 LC",
         nodes: "840K",
-        sync: "99.1%"
+        sync: "99.1%",
+        desc: "Architectural UI and design system orchestration. Current mission: Resolving hydration conflicts and neural styling.",
+        live: ["- HYDRATION_ANCHOR_VERIFIED", "- SHADOW_DOM_RECONSTRUCTION"]
     },
     {
         id: "ws-03",
@@ -41,7 +45,9 @@ const WORKSPACES = [
         language: "YAML/DOCKER",
         stats: "3,108 LC",
         nodes: "120K",
-        sync: "100%"
+        sync: "100%",
+        desc: "Sovereign infrastructure and deployment manifests. Current mission: Orchestrating global relay nodes and VPS drivers.",
+        live: ["- RELAY_MESH_STABILIZED", "- SECRETS_ROTATION_COMPLETE"]
     },
     {
         id: "ws-04",
@@ -52,7 +58,9 @@ const WORKSPACES = [
         language: "REACT_NATIVE",
         stats: "11,445 LC",
         nodes: "560K",
-        sync: "97.5%"
+        sync: "97.5%",
+        desc: "Native mobile cognition and touch-surface bridges. Current mission: Bridging neural API contracts to iOS/Android.",
+        live: ["- API_BRIDGE_SYNCED", "- PUSH_TOKEN_HANDSHAKE"]
     },
 ];
 
@@ -67,20 +75,23 @@ export default function MultiWorkspace() {
     const [isHovered, setIsHovered] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [isSearching, setIsSearching] = useState(false);
+    const containerRef = useRef(null);
+    const isInView = useInView(containerRef, { amount: 0.1 });
 
     // Auto-cycle Workspaces
     useEffect(() => {
-        if (isHovered) return;
+        if (isHovered || !isInView) return;
 
         const interval = setInterval(() => {
             setActiveWs((prev) => (prev + 1) % WORKSPACES.length);
         }, 5000);
 
         return () => clearInterval(interval);
-    }, [isHovered]);
+    }, [isHovered, isInView]);
 
     // Synchronized Search Simulation based on Active Workspace
     useEffect(() => {
+        if (!isInView) return;
         const queriesMap: Record<number, string[]> = {
             0: ["handleAuth middleware", "postgres migration", "rust kernel hooks"],
             1: ["hydration error fix", "tailwind config", "supabase RLS"],
@@ -105,12 +116,13 @@ export default function MultiWorkspace() {
         }, 40);
 
         return () => clearInterval(typeInterval);
-    }, [activeWs]);
+    }, [activeWs, isInView]);
 
     const activeWorkspace = WORKSPACES[activeWs];
 
     return (
         <section
+            ref={containerRef}
             className="py-12 md:py-16 bg-transparent relative overflow-hidden"
             id="workspaces"
             onMouseEnter={() => setIsHovered(true)}
@@ -288,92 +300,123 @@ export default function MultiWorkspace() {
                                 </div>
                             </div>
 
-                            {/* Active Dependency Visualization */}
-                            <div className="space-y-10 relative z-10">
-                                <div className="text-[10px] font-mono text-zinc-600 uppercase tracking-[0.6em]">NEURAL_DEPENDENCY_RESOLVER</div>
-                                <div className="space-y-6 bg-black/20 p-12 rounded-[48px] border border-white/[0.05] backdrop-blur-xl">
-                                    {CONNECTIONS.map((conn, i) => {
-                                        const isRelevant = WORKSPACES[conn.from].id === activeWorkspace.id || WORKSPACES[conn.to].id === activeWorkspace.id;
-                                        return (
-                                            <div key={i} className={cn(
-                                                "flex items-center gap-8 transition-all duration-1000",
-                                                isRelevant ? "opacity-100" : "opacity-10 grayscale"
-                                            )}>
-                                                <div className="w-14 h-14 rounded-2xl flex items-center justify-center border border-white/[0.05] bg-surface-50 text-xl">
-                                                    {WORKSPACES[conn.from].icon}
+                            {/* LIVE_WORKSPACE_CONTEXT — Moved up next to the search output */}
+                            <AnimatePresence mode="wait">
+                                <motion.div
+                                    key={activeWs}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    className="space-y-10 relative z-10"
+                                >
+                                    <div className="space-y-6">
+                                        <div className="flex items-center justify-between">
+                                            <div className="text-[10px] font-mono text-zinc-600 uppercase tracking-[0.6em]">REALTIME_WORKSPACE_CONTEXT</div>
+                                            <div className="flex gap-4">
+                                                <div className="flex flex-col items-end">
+                                                    <span className="text-[8px] font-mono text-zinc-700 uppercase tracking-widest leading-none">FLEET_NODES</span>
+                                                    <span className="text-xs font-mono text-white">{WORKSPACES[activeWs].nodes}</span>
                                                 </div>
-                                                <div className="flex-1 h-[1px] bg-white/[0.05] relative">
-                                                    {isRelevant && (
-                                                        <motion.div
-                                                            animate={{ x: ["0%", "100%"] }}
-                                                            transition={{ duration: 3, repeat: Infinity, ease: [0.16, 1, 0.3, 1], delay: i * 0.8 }}
-                                                            className="absolute top-0 bottom-0 w-32 bg-gradient-to-r from-transparent via-primary/40 to-transparent"
-                                                        />
-                                                    )}
-                                                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] font-mono text-zinc-700 uppercase tracking-[0.3em] whitespace-nowrap">
-                                                        {conn.label}
-                                                    </div>
-                                                </div>
-                                                <div className="w-14 h-14 rounded-2xl flex items-center justify-center border border-white/[0.05] bg-surface-50 text-xl">
-                                                    {WORKSPACES[conn.to].icon}
+                                                <div className="flex flex-col items-end">
+                                                    <span className="text-[8px] font-mono text-zinc-700 uppercase tracking-widest leading-none">SYNC_RATE</span>
+                                                    <span className="text-xs font-mono text-primary">{WORKSPACES[activeWs].sync}</span>
                                                 </div>
                                             </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        </div>
+                                        </div>
 
-                        {/* Summary Box & Anticipatory Impact Report */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="p-10 rounded-[48px] border border-white/[0.03] bg-white/[0.01] space-y-6 shadow-2xl flex-1">
-                                <h4 className="text-white/80 font-black uppercase tracking-tight text-xl">SYNTHESIZED_REPORT</h4>
-                                <p className="text-zinc-500 font-extralight text-sm leading-relaxed uppercase italic">
-                                    &quot;Oraya resolves <span className="text-white/60 font-normal">connective dependencies</span> in real-time, providing logic aware of the full system state.&quot;
-                                </p>
-                                <div className="flex gap-6 mt-4">
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-mono text-zinc-700 uppercase tracking-widest leading-none">Fleet_Nodes</span>
-                                        <span className="text-base font-mono text-white">4.8M ACTIVE</span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-mono text-zinc-700 uppercase tracking-widest leading-none">Relay_Speed</span>
-                                        <span className="text-base font-mono text-primary">0.02ms</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="p-10 rounded-[48px] border border-primary/10 bg-primary/[0.02] space-y-6 shadow-2xl flex-1 relative overflow-hidden"
-                            >
-                                <div className="absolute top-0 right-0 p-8 opacity-10">
-                                    <Scan size={60} className="text-primary" />
-                                </div>
-                                <h4 className="text-primary font-black uppercase tracking-tight text-xl">ANTICIPATORY_IMPACT</h4>
-                                <div className="space-y-4">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                                        <span className="text-[10px] font-mono text-white/80 uppercase tracking-widest">Logic leak detected in API contact</span>
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
-                                        <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Mobile_Native sync pending...</span>
-                                    </div>
-                                    <div className="pt-2">
-                                        <div className="text-[9px] font-mono text-zinc-700 uppercase tracking-widest mb-1">Impact_Weight</div>
-                                        <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                                            <motion.div
-                                                animate={{ width: ["10%", "85%", "40%", "72%"] }}
-                                                transition={{ duration: 10, repeat: Infinity }}
-                                                className="h-full bg-primary"
-                                            />
+                                        <div className="p-10 rounded-[48px] border border-white/[0.05] bg-black/20 backdrop-blur-xl relative overflow-hidden group">
+                                            <div className="relative z-10 space-y-6">
+                                                <p className="text-xl md:text-2xl text-zinc-400 font-extralight leading-tight">
+                                                    &quot;{WORKSPACES[activeWs].desc}&quot;
+                                                </p>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-white/5">
+                                                    {WORKSPACES[activeWs].live.map((l, idx) => (
+                                                        <div key={idx} className="flex items-center gap-3">
+                                                            <div className="w-1 h-1 rounded-full bg-primary" />
+                                                            <span className="text-[10px] font-mono text-white/40 uppercase tracking-widest">{l}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                                                <Network size={120} strokeWidth={0.5} className="text-primary" />
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </motion.div>
+
+                                    {/* Minimalist Dependency Resolver */}
+                                    <div className="pt-6">
+                                        <div className="text-[10px] font-mono text-zinc-700 uppercase tracking-[0.6em] mb-6">MINIMAL_DEPENDENCY_TRACKER</div>
+                                        <div className="flex flex-wrap gap-4">
+                                            {CONNECTIONS.filter(conn => WORKSPACES[conn.from].id === activeWorkspace.id || WORKSPACES[conn.to].id === activeWorkspace.id).map((conn, i) => (
+                                                <div key={i} className="px-5 py-3 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center gap-4">
+                                                    <span className="text-sm">{WORKSPACES[conn.from].icon}</span>
+                                                    <div className="w-8 h-[1px] bg-white/10 relative">
+                                                        <motion.div
+                                                            animate={{ x: [0, 32] }}
+                                                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                                                            className="absolute top-0 h-full w-2 bg-primary/40 blur-[1px]"
+                                                        />
+                                                    </div>
+                                                    <span className="text-sm">{WORKSPACES[conn.to].icon}</span>
+                                                    <span className="text-[8px] font-mono text-zinc-600 uppercase tracking-[0.2em] ml-2">{conn.label}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            </AnimatePresence>
                         </div>
+
+                        {/* Anticipatory Impact Report — Now Full Width & Cinematic */}
+                        <motion.div
+                            key={`impact-${activeWs}`}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="p-10 md:p-12 rounded-[56px] border border-primary/10 bg-primary/[0.01] flex flex-col md:flex-row items-center justify-between gap-12 shadow-2xl relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 right-0 p-12 opacity-5">
+                                <Scan size={140} className="text-primary" />
+                            </div>
+
+                            <div className="space-y-6 relative z-10 max-w-xl">
+                                <h4 className="text-primary font-black uppercase tracking-tight text-xl flex items-center gap-4">
+                                    <Activity size={20} className="animate-pulse" />
+                                    ANTICIPATORY_IMPACT_ORCHESTRATION
+                                </h4>
+                                <div className="space-y-4">
+                                    <p className="text-zinc-500 font-mono text-xs uppercase leading-relaxed">
+                                        Logic handoff detected to {WORKSPACES[(activeWs + 1) % WORKSPACES.length].name}. <br />
+                                        Contextual integrity mapping 100% complete across fleet nodes.
+                                    </p>
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                            <motion.div
+                                                animate={{ width: ["20%", "92%", "50%", "88%"] }}
+                                                transition={{ duration: 12, repeat: Infinity }}
+                                                className="h-full bg-primary shadow-[0_0_15px_rgba(240,180,41,0.5)]"
+                                            />
+                                        </div>
+                                        <span className="text-[10px] font-mono text-primary font-black">HIGH_IMPACT</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-8 relative z-10 shrink-0">
+                                <div className="flex flex-col items-center gap-2">
+                                    <div className="w-16 h-16 rounded-2xl bg-black border border-white/5 flex items-center justify-center text-zinc-600 group-hover:text-primary transition-colors">
+                                        <Database size={24} />
+                                    </div>
+                                    <span className="text-[8px] font-mono text-zinc-700 uppercase">REPO_SYNC</span>
+                                </div>
+                                <div className="flex flex-col items-center gap-2">
+                                    <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                                        <Zap size={24} />
+                                    </div>
+                                    <span className="text-[8px] font-mono text-zinc-700 uppercase">FAST_LANE</span>
+                                </div>
+                            </div>
+                        </motion.div>
                     </div>
                 </div>
             </div>

@@ -75,9 +75,9 @@ export default function TransformationSection() {
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] via-transparent to-secondary/[0.02]" />
 
                     <div className="relative z-10 space-y-12">
-                        <blockquote className="text-2xl md:text-5xl font-display font-black text-white leading-[0.95] italic uppercase">
+                        <blockquote className="text-2xl md:text-5xl font-display font-black text-white leading-[0.95] uppercase">
                             &quot;I used to spend 2 hours a day just re-indexing context. <br className="hidden md:block" />
-                            <span className="text-primary/80 italic underline decoration-primary/20 decoration-8 underline-offset-[-10px]">Oraya gave me my life back.</span>&quot;
+                            <span className="text-primary/80 underline decoration-primary/20 decoration-8 underline-offset-[-10px]">Oraya gave me my life back.</span>&quot;
                         </blockquote>
 
                         <div className="flex flex-col items-center gap-6">
@@ -116,7 +116,7 @@ function TransformationRow({ dimension, before, after, index, icon: Icon }: any)
                 <div className="flex items-center gap-3 text-[10px] font-mono font-black text-zinc-700 uppercase mb-6 tracking-widest">
                     <div className="w-1.5 h-1.5 rounded-full bg-zinc-800" /> Legacy_Friction
                 </div>
-                <p className="text-base text-zinc-400 font-sans font-extralight leading-relaxed italic">
+                <p className="text-base text-zinc-400 font-sans font-extralight leading-relaxed">
                     {before}
                 </p>
             </div>

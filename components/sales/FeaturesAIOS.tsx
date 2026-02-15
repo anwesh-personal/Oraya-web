@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence, useInView } from "framer-motion";
 import {
     Cpu, Shield, Zap, Terminal, Database, Link, Sparkles,
     Workflow, Brain, Monitor, Activity, Lock, Layers,
@@ -145,6 +145,21 @@ const secondaryFeatures = [
 export default function FeaturesAIOS() {
     const [hovered, setHovered] = React.useState<string | null>(null);
     const [selectedFeature, setSelectedFeature] = React.useState<any>(null);
+    const [autoIndex, setAutoIndex] = useState(0);
+    const [isHoveredManually, setIsHoveredManually] = useState(false);
+
+    const containerRef = useRef(null);
+    const isInView = useInView(containerRef, { amount: 0.2 });
+
+    useEffect(() => {
+        if (!isInView || isHoveredManually || hovered) return;
+
+        const interval = setInterval(() => {
+            setAutoIndex((prev) => (prev + 1) % BENTO_FEATURES.length);
+        }, 6000);
+
+        return () => clearInterval(interval);
+    }, [isInView, isHoveredManually, hovered]);
 
     // Lock body scroll when a feature is selected to prevent viewport shifts
     React.useEffect(() => {
@@ -159,7 +174,13 @@ export default function FeaturesAIOS() {
     }, [selectedFeature]);
 
     return (
-        <section className="py-12 bg-transparent relative overflow-hidden" id="aios-features">
+        <section
+            ref={containerRef}
+            onMouseEnter={() => setIsHoveredManually(true)}
+            onMouseLeave={() => setIsHoveredManually(false)}
+            className="py-24 bg-transparent relative overflow-hidden"
+            id="aios-features"
+        >
             <div className="max-w-[1400px] mx-auto px-6 relative z-10">
                 {/* ACT HEADER: Architectural Subsystems */}
                 <div className="mb-12 space-y-12">
@@ -227,7 +248,8 @@ export default function FeaturesAIOS() {
                                 key={uniqueId}
                                 item={item}
                                 uniqueId={uniqueId}
-                                isHovered={hovered === item.id}
+                                isHovered={hovered === item.id || (!hovered && BENTO_FEATURES[autoIndex].id === item.id)}
+                                isAutoHighlight={!hovered && BENTO_FEATURES[autoIndex].id === item.id}
                                 onHover={() => setHovered(item.id)}
                                 onLeave={() => setHovered(null)}
                                 onClick={() => setSelectedFeature({ ...item, uniqueId })}
@@ -357,7 +379,7 @@ export default function FeaturesAIOS() {
     );
 }
 
-function BentoCard({ item, uniqueId, isHovered, onHover, onLeave, onClick }: any) {
+function BentoCard({ item, uniqueId, isHovered, isAutoHighlight, onHover, onLeave, onClick }: any) {
     const isLarge = item.size === "large";
     const isWide = item.size === "wide";
 
@@ -373,7 +395,23 @@ function BentoCard({ item, uniqueId, isHovered, onHover, onLeave, onClick }: any
             )}
         >
             {/* Dynamic Background Glow */}
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-1000 pointer-events-none" style={{ backgroundColor: item.color }} />
+            <div
+                className={cn(
+                    "absolute inset-0 opacity-0 transition-opacity duration-1000 pointer-events-none",
+                    isHovered ? "opacity-10" : ""
+                )}
+                style={{ backgroundColor: item.color }}
+            />
+
+            {isAutoHighlight && (
+                <motion.div
+                    className="absolute bottom-0 left-0 h-1 z-30 opacity-60"
+                    style={{ backgroundColor: item.color }}
+                    initial={{ width: 0 }}
+                    animate={{ width: "100%" }}
+                    transition={{ duration: 6, ease: "linear" }}
+                />
+            )}
 
             {/* Content Container */}
             <div className="p-10 h-full flex flex-col justify-between relative z-20">
@@ -397,7 +435,7 @@ function BentoCard({ item, uniqueId, isHovered, onHover, onLeave, onClick }: any
 
                     <div>
                         {item.stats && <span className="text-[10px] font-mono font-black text-zinc-700 uppercase tracking-[0.5em] mb-4 block group-hover:text-zinc-500 transition-colors">{item.stats} // LOAD_NOMINAL</span>}
-                        <h3 className="text-3xl font-sans font-black text-white tracking-tighter uppercase mb-4 leading-none">{item.title}</h3>
+                        <h3 className="text-3xl font-sans font-black text-white tracking-tight uppercase mb-4 leading-none">{item.title}</h3>
                         <p className="text-zinc-500 text-[15px] leading-relaxed max-w-[300px] group-hover:text-zinc-300 transition-colors font-light italic">&quot;{item.desc}&quot;</p>
                     </div>
                 </div>
@@ -447,7 +485,7 @@ function FeatureSmallCard({ item, uniqueId, index, onClick }: { item: any, uniqu
                     <Icon size={28} strokeWidth={1} />
                 </div>
                 <div className="space-y-3">
-                    <h4 className="text-white font-black text-xl uppercase tracking-tighter">{item.label}</h4>
+                    <h4 className="text-white font-black text-xl uppercase tracking-tight">{item.label}</h4>
                     <p className="text-zinc-600 text-sm leading-snug group-hover:text-zinc-400 transition-colors font-light">{item.desc}</p>
                 </div>
             </div>

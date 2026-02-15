@@ -82,7 +82,7 @@ export default function NeuralArchitecture() {
                                 System_Evolution_Spec
                             </motion.div>
 
-                            <h2 className="text-5xl md:text-8xl font-display font-black text-white leading-[0.85] tracking-tighter uppercase">
+                            <h2 className="text-5xl md:text-8xl font-display font-black text-white leading-[0.85] tracking-tight uppercase">
                                 Your AI Never <br />
                                 Had a <br />
                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-white to-primary/40 animate-gradient-x bg-[length:200%_auto]">

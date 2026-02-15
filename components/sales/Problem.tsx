@@ -1,12 +1,13 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { motion, useScroll, useTransform, AnimatePresence, useInView } from "framer-motion";
 import { BrainCog, Unplug, ShieldAlert, Activity, AlertTriangle, Cpu, Network, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function ProblemSection() {
     const sectionRef = useRef(null);
+    const isInView = useInView(sectionRef, { amount: 0.1 });
     const { scrollYProgress } = useScroll({
         target: sectionRef,
         offset: ["start end", "end start"]
@@ -44,14 +45,14 @@ export default function ProblemSection() {
                             </div>
 
                             <h2 className="text-[clamp(2.6rem,11.25vw,9rem)] font-display font-black leading-[0.9] uppercase">
-                                <span className="block text-white/25 italic font-extralight tracking-[0.2em] mb-4">The Cloud</span>
+                                <span className="block text-white/25 font-extralight tracking-[0.2em] mb-4">The Cloud</span>
                                 <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white/80 to-zinc-800 drop-shadow-[0_0_60px_rgba(255,255,255,0.05)]">
                                     Is Broken.
                                 </span>
                             </h2>
 
-                            <p className="text-xl md:text-3xl text-zinc-400 font-sans font-extralight max-w-5xl mx-auto leading-snug tracking-tight uppercase">
-                                Most AI tools are <span className="text-white/60 italic font-normal">toys</span>—messy web-wrappers that leak your data and forget your context. You’re building the future on <span className="text-white font-black underline decoration-primary/30 decoration-4 underline-offset-8">&quot;Rented Land.&quot;</span>
+                            <p className="text-xl md:text-3xl text-zinc-400 font-sans font-extralight max-w-5xl mx-auto leading-snug tracking-tight">
+                                Most AI tools are <span className="text-white/60 font-normal">toys</span>—messy web-wrappers that leak your data and forget your context. You’re building the future on <span className="text-white font-black underline decoration-primary/30 decoration-4 underline-offset-8">&quot;Rented Land.&quot;</span>
                             </p>
                         </motion.div>
                     </div>
@@ -60,11 +61,13 @@ export default function ProblemSection() {
                     <div className="lg:col-span-12 mb-16 relative group">
                         <div className="relative p-[1px] rounded-[48px] overflow-hidden">
                             {/* The Subtle Current Border */}
-                            <motion.div
-                                animate={{ rotate: [0, 360] }}
-                                transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                                className="absolute inset-[-100%] bg-[conic-gradient(transparent_0deg,transparent_300deg,rgba(217,119,6,0.3)_360deg)] pointer-events-none"
-                            />
+                            {isInView && (
+                                <motion.div
+                                    animate={{ rotate: [0, 360] }}
+                                    transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                                    className="absolute inset-[-100%] bg-[conic-gradient(transparent_0deg,transparent_300deg,rgba(217,119,6,0.3)_360deg)] pointer-events-none"
+                                />
+                            )}
 
                             <div className="relative bg-[#080808] rounded-[47px] p-12 md:p-24 border border-white/5 space-y-12">
                                 <div className="max-w-5xl mx-auto text-center space-y-10">
@@ -79,11 +82,11 @@ export default function ProblemSection() {
                                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/40">Broken Infrastructure.</span>
                                     </h4>
 
-                                    <p className="text-lg md:text-xl text-zinc-400 font-sans font-extralight leading-relaxed uppercase tracking-tight max-w-4xl mx-auto">
-                                        The industry has tricked you into believing that <span className="text-white/60 font-normal italic">messy web-wrappers</span> are intelligence. That waiting for the <span className="text-white/60 font-normal italic">spinning wheel</span> is the cost of entry. That leaking your proprietary logic to a third-party server is a necessary tradeoff.
+                                    <p className="text-lg md:text-xl text-zinc-400 font-sans font-extralight leading-relaxed tracking-tight max-w-4xl mx-auto">
+                                        The industry has tricked you into believing that <span className="text-white/60 font-normal">messy web-wrappers</span> are intelligence. That waiting for the <span className="text-white/60 font-normal">spinning wheel</span> is the cost of entry. That leaking your proprietary logic to a third-party server is a necessary tradeoff.
                                     </p>
 
-                                    <div className="pt-8 text-2xl md:text-3xl font-display font-black text-zinc-300 italic uppercase tracking-tighter">
+                                    <div className="text-2xl md:text-3xl font-display font-black text-zinc-300 uppercase tracking-tight">
                                         &quot;It’s not just you. The system is fundamentally rotten.&quot;
                                     </div>
                                 </div>
@@ -199,7 +202,7 @@ function ProblemCard({ icon: Icon, title, narrative, counter, tag, delay }: any)
                         <Zap size={10} className="text-primary" />
                         Oraya_Solution
                     </div>
-                    <p className="text-sm text-zinc-300 font-sans italic leading-relaxed">
+                    <p className="text-sm text-zinc-300 font-sans leading-relaxed">
                         &quot;{counter}&quot;
                     </p>
                 </div>

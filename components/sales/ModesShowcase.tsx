@@ -1,8 +1,9 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
+import { motion, AnimatePresence, useInView } from "framer-motion";
 import { MessageSquare, Lightbulb, Swords, Ghost, ChevronRight, Lock, Cpu, Zap } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const modes = [
     {
@@ -82,6 +83,19 @@ const modes = [
 export default function ModesShowcase() {
     const [activeMode, setActiveMode] = useState(0);
     const [visibleLines, setVisibleLines] = useState(0);
+    const [isHovered, setIsHovered] = useState(false);
+    const containerRef = useRef(null);
+    const isInView = useInView(containerRef, { amount: 0.3 });
+
+    useEffect(() => {
+        if (!isInView || isHovered) return;
+
+        const cycle = setInterval(() => {
+            setActiveMode((prev) => (prev + 1) % modes.length);
+        }, 8000);
+
+        return () => clearInterval(cycle);
+    }, [isInView, isHovered]);
 
     useEffect(() => {
         setVisibleLines(0);
@@ -96,7 +110,7 @@ export default function ModesShowcase() {
     }, [activeMode]);
 
     return (
-        <section className="py-12 bg-black relative overflow-hidden border-t border-white/5" id="modes">
+        <section ref={containerRef} className="py-24 bg-black relative overflow-hidden border-t border-white/5" id="modes">
             <div className="max-w-7xl mx-auto px-6 relative z-10">
 
                 {/* Header */}
@@ -110,7 +124,7 @@ export default function ModesShowcase() {
                         <Cpu size={12} />
                         Cognitive Modes
                     </div>
-                    <h2 className="text-5xl md:text-7xl font-display font-black text-white tracking-tighter leading-none">
+                    <h2 className="text-5xl md:text-7xl font-display font-black text-white tracking-tight leading-none">
                         Four Modes. <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00F0FF] via-[#F0B429] to-[#10B981]">
                             Infinite Control.
@@ -133,13 +147,25 @@ export default function ModesShowcase() {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: i * 0.1 }}
+                                onMouseEnter={() => setIsHovered(true)}
+                                onMouseLeave={() => setIsHovered(false)}
                                 onClick={() => setActiveMode(i)}
-                                className={`flex items-center gap-2.5 px-6 py-3.5 rounded-xl font-mono text-sm font-bold uppercase tracking-wider transition-all duration-300 border ${activeMode === i
-                                    ? "bg-white/10 border-white/20 text-white shadow-lg"
-                                    : "bg-white/[0.02] border-white/5 text-gray-500 hover:text-white hover:border-white/10"
-                                    }`}
+                                className={cn(
+                                    "flex items-center gap-2.5 px-6 py-3.5 rounded-xl font-mono text-sm font-bold uppercase tracking-wider transition-all duration-300 border relative overflow-hidden",
+                                    activeMode === i
+                                        ? "bg-white/10 border-white/20 text-white shadow-lg"
+                                        : "bg-white/[0.02] border-white/5 text-gray-500 hover:text-white hover:border-white/10"
+                                )}
                                 style={activeMode === i ? { boxShadow: `0 0 30px ${mode.color}20` } : {}}
                             >
+                                {activeMode === i && (
+                                    <motion.div
+                                        className="absolute bottom-0 left-0 h-0.5 bg-white/40 z-20"
+                                        initial={{ width: 0 }}
+                                        animate={{ width: "100%" }}
+                                        transition={{ duration: 8, ease: "linear" }}
+                                    />
+                                )}
                                 <Icon size={16} style={{ color: activeMode === i ? mode.color : undefined }} />
                                 {mode.name}
                             </motion.button>

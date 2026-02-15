@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence, useInView } from "framer-motion";
 import {
     Brain, Search, Moon, Clock, Palette, Sliders,
     RefreshCw, Network, Lightbulb, Bookmark, Layers, ScanSearch,
@@ -83,6 +83,19 @@ const PILLARS = [
 export default function ResearchMemory() {
     const [activePillar, setActivePillar] = useState(0);
     const [terminalLines, setTerminalLines] = useState(0);
+    const [isHovered, setIsHovered] = useState(false);
+    const containerRef = useRef(null);
+    const isInView = useInView(containerRef, { amount: 0.3 });
+
+    useEffect(() => {
+        if (!isInView || isHovered) return;
+
+        const cycle = setInterval(() => {
+            setActivePillar((prev) => (prev + 1) % PILLARS.length);
+        }, 8000);
+
+        return () => clearInterval(cycle);
+    }, [isInView, isHovered]);
 
     useEffect(() => {
         setTerminalLines(0);
@@ -99,7 +112,7 @@ export default function ResearchMemory() {
     const ActivePillarIcon = PILLARS[activePillar].icon;
 
     return (
-        <section className="py-12 md:py-16 bg-black relative overflow-hidden noise-overlay border-t border-white/5" id="intelligence">
+        <section ref={containerRef} className="py-24 bg-black relative overflow-hidden noise-overlay border-t border-white/5" id="intelligence">
             <div className="scanline" />
 
             <div className="max-w-[1400px] mx-auto px-6 relative z-10">
@@ -114,7 +127,7 @@ export default function ResearchMemory() {
                             NEURAL_ATMOSPHERE_SYST
                         </motion.div>
 
-                        <h2 className="text-6xl md:text-9xl font-sans font-black text-white tracking-tighter leading-[0.85] uppercase">
+                        <h2 className="text-6xl md:text-9xl font-sans font-black text-white tracking-tight leading-[0.85] uppercase">
                             The AI That <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white/50 to-[#FF00AA]">Never Stops.</span>
                         </h2>
@@ -128,6 +141,8 @@ export default function ResearchMemory() {
                         return (
                             <button
                                 key={pillar.id}
+                                onMouseEnter={() => setIsHovered(true)}
+                                onMouseLeave={() => setIsHovered(false)}
                                 onClick={() => setActivePillar(i)}
                                 className={cn(
                                     "flex items-center gap-4 px-8 py-4 rounded-[24px] font-mono text-xs font-black uppercase tracking-[0.3em] transition-all duration-700 border relative overflow-hidden group",
@@ -136,6 +151,14 @@ export default function ResearchMemory() {
                                         : "bg-white/[0.01] border-white/5 text-zinc-600 hover:text-white"
                                 )}
                             >
+                                {activePillar === i && (
+                                    <motion.div
+                                        className="absolute bottom-0 left-0 h-0.5 bg-white/40 z-20"
+                                        initial={{ width: 0 }}
+                                        animate={{ width: "100%" }}
+                                        transition={{ duration: 8, ease: "linear" }}
+                                    />
+                                )}
                                 {activePillar === i && (
                                     <motion.div
                                         layoutId="pillar-bg"
@@ -165,10 +188,10 @@ export default function ResearchMemory() {
                                 <div className="text-[10px] font-mono font-black uppercase tracking-[0.6em]" style={{ color: PILLARS[activePillar].color }}>
                                     {PILLARS[activePillar].tagline}
                                 </div>
-                                <h3 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none">
+                                <h3 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight leading-none">
                                     {PILLARS[activePillar].headline}
                                 </h3>
-                                <p className="text-xl text-zinc-500 font-light leading-relaxed uppercase tracking-tighter italic">
+                                <p className="text-xl text-zinc-500 font-light leading-relaxed uppercase tracking-tight italic">
                                     &quot;{PILLARS[activePillar].desc}&quot;
                                 </p>
                             </div>
@@ -194,7 +217,7 @@ export default function ResearchMemory() {
                         <div className="pt-10 border-t border-white/5 flex items-center justify-between relative z-10">
                             <div className="space-y-1">
                                 <div className="text-[9px] font-mono text-zinc-700 uppercase tracking-widest">{PILLARS[activePillar].stats.label}</div>
-                                <div className="text-3xl font-black text-white uppercase tracking-tighter">
+                                <div className="text-3xl font-black text-white uppercase tracking-tight">
                                     {PILLARS[activePillar].stats.value}
                                     <span className="text-xs text-zinc-500 ml-2">{PILLARS[activePillar].stats.unit}</span>
                                 </div>

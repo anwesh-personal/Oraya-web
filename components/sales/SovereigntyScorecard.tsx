@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence, useInView } from "framer-motion";
 import { Check, X, HardDrive, ShieldAlert, Terminal, HelpCircle, Activity, Cpu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -64,10 +64,25 @@ const COMPARISON_DATA = [
 ];
 
 export default function SovereigntyScorecard() {
+    const [activeRow, setActiveRow] = useState(0);
     const [hoveredRow, setHoveredRow] = useState<number | null>(null);
     const [terminalLines, setTerminalLines] = useState<string[]>([]);
+    const [isHoveredManually, setIsHoveredManually] = useState(false);
+    const containerRef = useRef(null);
+    const isInView = useInView(containerRef, { amount: 0.2 });
 
     useEffect(() => {
+        if (!isInView || isHoveredManually || hoveredRow !== null) return;
+
+        const cycle = setInterval(() => {
+            setActiveRow((prev) => (prev + 1) % COMPARISON_DATA.length);
+        }, 6000);
+
+        return () => clearInterval(cycle);
+    }, [isInView, isHoveredManually, hoveredRow]);
+
+    useEffect(() => {
+        if (!isInView) return;
         const logs = [
             "KERNEL: initializing_sovereign_core...",
             "SUCCESS: hardware_isolation_active",
@@ -81,10 +96,16 @@ export default function SovereigntyScorecard() {
             i++;
         }, 3000);
         return () => clearInterval(interval);
-    }, []);
+    }, [isInView]);
 
     return (
-        <section className="py-12 md:py-24 bg-transparent relative" id="scorecard">
+        <section
+            ref={containerRef}
+            onMouseEnter={() => setIsHoveredManually(true)}
+            onMouseLeave={() => setIsHoveredManually(false)}
+            className="py-24 bg-transparent relative"
+            id="scorecard"
+        >
             <div className="max-w-[1400px] mx-auto px-6 relative z-10">
 
                 {/* ─── HEADER: THE AUTHORITY ───────────────────────────────── */}
@@ -114,7 +135,7 @@ export default function SovereigntyScorecard() {
                         </div>
                     </div>
 
-                    <h2 className="text-[clamp(2.6rem,8vw,8rem)] font-display font-black text-white leading-[0.9] uppercase tracking-tighter">
+                    <h2 className="text-[clamp(2.6rem,8vw,8rem)] font-display font-black text-white leading-[0.9] uppercase tracking-tight">
                         Absolute <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-white/10">Authority.</span>
                     </h2>
@@ -146,11 +167,13 @@ export default function SovereigntyScorecard() {
                                 <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-primary/10 via-primary/[0.02] to-transparent opacity-40" />
 
                                 {/* Scanning Ray (Low Cost Performance) */}
-                                <motion.div
-                                    animate={{ y: ["-100%", "200%"] }}
-                                    transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
-                                    className="absolute inset-x-0 h-px bg-primary/10 pointer-events-none"
-                                />
+                                {isInView && (
+                                    <motion.div
+                                        animate={{ y: ["-100%", "200%"] }}
+                                        transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+                                        className="absolute inset-x-0 h-px bg-primary/10 pointer-events-none"
+                                    />
+                                )}
                             </div>
 
                             <div className="relative z-30 p-10 md:p-14 flex flex-col items-center gap-6 h-full justify-center">
@@ -190,7 +213,7 @@ export default function SovereigntyScorecard() {
                                     <p className="text-sm text-zinc-500 font-sans font-light uppercase tracking-tight max-w-sm">{row.detail}</p>
 
                                     <AnimatePresence>
-                                        {hoveredRow === i && (
+                                        {(hoveredRow === i || activeRow === i) && (
                                             <motion.div
                                                 initial={{ opacity: 0, x: -10 }}
                                                 animate={{ opacity: 1, x: 0 }}
@@ -208,7 +231,19 @@ export default function SovereigntyScorecard() {
 
                                 {/* ORAYA DATA - THE MONOLITH CELL */}
                                 <div className="col-span-full md:col-span-3 relative p-10 md:p-0">
-                                    <div className="absolute inset-0 bg-surface-0 border-x border-primary/30 z-20 group-hover/row:bg-primary/[0.04] transition-all duration-700 ease-[0.16,1,0.3,1]" />
+                                    <div className={cn(
+                                        "absolute inset-0 bg-surface-0 border-x border-primary/30 z-20 transition-all duration-700 ease-[0.16,1,0.3,1]",
+                                        (activeRow === i || hoveredRow === i) ? "bg-primary/[0.08]" : "group-hover/row:bg-primary/[0.04]"
+                                    )} />
+                                    {activeRow === i && !isHoveredManually && !hoveredRow && (
+                                        <motion.div
+                                            className="absolute right-0 top-0 bottom-0 w-1 bg-primary z-30 opacity-40"
+                                            layoutId="scorecard-indicator"
+                                            initial={{ height: 0 }}
+                                            animate={{ height: "100%" }}
+                                            transition={{ duration: 6, ease: "linear" }}
+                                        />
+                                    )}
                                     <div className="relative z-30 h-full flex flex-col items-center justify-center p-10 md:p-16 gap-4">
                                         <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.2)]">
                                             <Check className="text-primary" size={24} strokeWidth={4} />
@@ -219,9 +254,9 @@ export default function SovereigntyScorecard() {
 
                                 {/* COMPETITOR DATA CELLS */}
                                 <div className="col-span-full md:col-span-5 grid grid-cols-3">
-                                    <CompetitorCell value={row.chatgpt} />
-                                    <CompetitorCell value={row.cursor} border />
-                                    <CompetitorCell value={row.claude} border />
+                                    <CompetitorCell value={row.chatgpt} isActive={activeRow === i || hoveredRow === i} />
+                                    <CompetitorCell value={row.cursor} isActive={activeRow === i || hoveredRow === i} border />
+                                    <CompetitorCell value={row.claude} isActive={activeRow === i || hoveredRow === i} border />
                                 </div>
                             </div>
                         ))}
@@ -255,14 +290,15 @@ function CompetitorHeader({ model, label }: { model: string, label: string }) {
     );
 }
 
-function CompetitorCell({ value, border }: { value: string, border?: boolean }) {
+function CompetitorCell({ value, border, isActive }: { value: string, border?: boolean, isActive?: boolean }) {
     return (
         <div className={cn(
             "p-10 md:p-16 flex flex-col items-center justify-center gap-6 opacity-20 transition-all duration-700 group-hover/row:opacity-100",
-            border && "border-l border-white/5"
+            border && "border-l border-white/5",
+            isActive && "opacity-100"
         )}>
-            <X className="text-zinc-800" size={20} strokeWidth={3} />
-            <span className="text-sm md:text-base font-black text-white uppercase italic text-center leading-tight">{value}</span>
+            <X className={cn("text-zinc-800 transition-colors", isActive ? "text-primary/40" : "")} size={20} strokeWidth={3} />
+            <span className={cn("text-sm md:text-base font-black text-white uppercase italic text-center leading-tight transition-colors", isActive ? "text-white" : "text-white/40")}>{value}</span>
         </div>
     );
 }

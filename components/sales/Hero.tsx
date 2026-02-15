@@ -106,7 +106,7 @@ export default function SalesHero() {
                             <motion.div
                                 animate={{ scale: [0.99, 1.01, 0.99], opacity: [0.4, 0.8, 0.4] }}
                                 transition={{ duration: 5, repeat: Infinity }}
-                                className="font-display text-[15vw] md:text-[10vw] font-black text-primary tracking-[-0.04em] uppercase leading-none"
+                                className="font-display text-[15vw] md:text-[10vw] font-black text-primary tracking-tight uppercase leading-none"
                             >
                                 KERNEL_LIVE
                             </motion.div>
@@ -160,7 +160,7 @@ export default function SalesHero() {
                         className="block text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary via-[70%] to-secondary drop-shadow-[0_0_60px_var(--primary-glow)]"
                     >
                         OPERATING SYSTEM <br />
-                        <span className="text-[0.6em] tracking-[-0.04em] opacity-30">FOR THE 1%.</span>
+                        <span className="text-[0.6em] tracking-tight opacity-30">FOR THE 1%.</span>
                     </motion.span>
                 </h1>
 
@@ -170,11 +170,11 @@ export default function SalesHero() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.8, duration: 1 }}
-                        className="text-lg md:text-2xl text-zinc-600 font-sans font-extralight max-w-4xl mx-auto leading-relaxed tracking-wider px-4 uppercase"
+                        className="text-lg md:text-2xl text-zinc-600 font-sans font-extralight max-w-4xl mx-auto leading-relaxed tracking-wider px-4"
                     >
                         Stop renting your intelligence from the cloud.
                         <br className="hidden md:block" />
-                        <span className="text-white/80 font-normal mt-6 block text-base md:text-lg lowercase">Oraya is a native neural interface that lives on your hardware, remembers every line of your history, and executes at the speed of thought. You aren&apos;t just coding; <span className="text-primary italic uppercase font-black">you&apos;re orchestrating.</span></span>
+                        <span className="text-white/80 font-normal mt-6 block text-base md:text-lg">Oraya is a native neural interface that lives on your hardware, remembers every line of your history, and executes at the speed of thought. You aren&apos;t just coding; <span className="text-primary font-black uppercase">you&apos;re orchestrating.</span></span>
                     </motion.p>
 
                     {/* THE LINE: Clearly visible with depth effect */}

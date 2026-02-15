@@ -17,6 +17,7 @@ import TransformationSection from "@/components/sales/Transformation";
 import PricingSection from "@/components/sales/Pricing";
 import Footer from "@/components/sales/Footer";
 import AgentEcosystem from "@/components/sales/AgentEcosystem";
+import AgentOrchestration from "@/components/sales/AgentOrchestration";
 import MultiWorkspace from "@/components/sales/MultiWorkspace";
 import ModesShowcase from "@/components/sales/ModesShowcase";
 import SecurityVault from "@/components/sales/SecurityVault";
@@ -105,6 +106,7 @@ export default function LandingPage() {
             <div className="relative">
                 <div className="space-y-4 md:space-y-8">
                     <AgentEcosystem />
+                    <AgentOrchestration />
                     <NeuralArchitecture />
                     <ModesShowcase />
                     <div className="py-12">

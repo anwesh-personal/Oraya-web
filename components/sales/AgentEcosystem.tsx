@@ -1,17 +1,30 @@
 "use client";
 
+import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
-import { Users, Crown, Sparkles, Plus, Trash2, Settings, Brain, Shield, Activity, Fingerprint, Network } from "lucide-react";
+import { Users, Crown, Sparkles, Plus, Settings, Activity, Fingerprint, Network } from "lucide-react";
+import { motion, AnimatePresence, useInView } from "framer-motion";
+import { cn } from "@/lib/utils";
 import { agents } from "@/lib/agents";
-import OrchestrationFlow from "./OrchestrationFlow";
 
 export default function AgentEcosystem() {
     const [activeAgent, setActiveAgent] = useState(0);
+    const [isHovered, setIsHovered] = useState(false);
+    const containerRef = useRef(null);
+    const isInView = useInView(containerRef, { amount: 0.2 });
+
+    useEffect(() => {
+        if (!isInView || isHovered) return;
+
+        const interval = setInterval(() => {
+            setActiveAgent((prev) => (prev + 1) % agents.length);
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [isInView, isHovered]);
 
     return (
-        <section className="py-12 md:py-16 bg-black relative overflow-hidden noise-overlay border-t border-white/5" id="agents">
+        <section ref={containerRef} className="py-24 bg-black relative overflow-hidden noise-overlay border-t border-white/5" id="agents">
             <div className="scanline" />
 
             {/* Architectural Background */}
@@ -30,12 +43,12 @@ export default function AgentEcosystem() {
                             MULTI_AGENT_ORCHESTRATION_L5
                         </motion.div>
 
-                        <h2 className="text-6xl md:text-[8rem] font-display font-black text-white tracking-tighter leading-[0.8] uppercase">
+                        <h2 className="text-6xl md:text-[8rem] font-display font-black text-white tracking-tight leading-[0.8] uppercase">
                             Multiply <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-primary to-white/10">Your Genius.</span>
                         </h2>
 
-                        <p className="text-zinc-500 font-light text-xl md:text-2xl max-w-4xl uppercase tracking-tighter">
+                        <p className="text-zinc-500 font-light text-xl md:text-2xl max-w-4xl uppercase tracking-tight">
                             You are the Architect. Oraya gives you a <span className="text-white italic">Sovereign Swarm</span>—a team of specialized agents that execute your vision while you focus on the $18M ideas.
                         </p>
                     </div>
@@ -54,12 +67,23 @@ export default function AgentEcosystem() {
                         {agents.map((agent, i) => (
                             <motion.button
                                 key={agent.name}
-                                onClick={() => setActiveAgent(i)}
-                                className={`w-full p-6 rounded-[32px] border text-left transition-all duration-700 group relative overflow-hidden ${activeAgent === i
-                                    ? "bg-white/[0.04] border-white/20 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)]"
-                                    : "bg-white/[0.01] border-white/5 hover:border-white/10"
-                                    }`}
+                                onMouseEnter={() => setIsHovered(true)}
+                                onMouseLeave={() => setIsHovered(false)}
+                                className={cn(
+                                    "w-full p-8 rounded-[40px] border text-left transition-all duration-700 group relative overflow-hidden",
+                                    activeAgent === i
+                                        ? "bg-white/[0.04] border-white/20 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)]"
+                                        : "bg-white/[0.01] border-white/5 hover:border-white/10"
+                                )}
                             >
+                                {activeAgent === i && (
+                                    <motion.div
+                                        className="absolute bottom-0 left-0 h-1 bg-primary z-20"
+                                        initial={{ width: 0 }}
+                                        animate={{ width: "100%" }}
+                                        transition={{ duration: 5, ease: "linear" }}
+                                    />
+                                )}
                                 <div className="flex items-center gap-6 relative z-10">
                                     <div className="relative">
                                         <div className="w-16 h-16 rounded-[24px] overflow-hidden border border-white/10 bg-black group-hover:border-[currentColor] transition-all duration-700" style={{ color: agent.color }}>
@@ -78,7 +102,7 @@ export default function AgentEcosystem() {
 
                                     <div className="flex-1 space-y-1">
                                         <div className="flex items-center gap-3">
-                                            <h4 className="text-2xl font-black text-white uppercase tracking-tighter">{agent.name}</h4>
+                                            <h4 className="text-2xl font-black text-white uppercase tracking-tight">{agent.name}</h4>
                                             {agent.role === "Sovereign" && <Crown size={14} className="text-[#F0B429]" />}
                                         </div>
                                         <div className="flex gap-4 text-[10px] font-mono text-zinc-600 uppercase tracking-widest">
@@ -103,56 +127,28 @@ export default function AgentEcosystem() {
                         </button>
                     </div>
 
-                    {/* RIGHT: AGENT COMMAND CONSOLE & ORCHESTRATION FLOW */}
-                    <div className="lg:col-span-3 space-y-8">
-                        <OrchestrationFlow />
-
-                        {/* HIGH-FIDELITY EXECUTION VIDEO (EPHEMERAL AGENT) */}
-                        <div className="relative group rounded-[48px] overflow-hidden border border-white/5 bg-[#050505] shadow-2xl">
-                            <div className="absolute inset-0 z-10 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
-
-                            <div className="relative aspect-video bg-[#0A0A0A] flex items-center justify-center overflow-hidden">
-                                {/* Placeholder for the 5-6s clip */}
-                                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2000')] bg-cover bg-center opacity-20 grayscale scale-110 group-hover:scale-100 transition-transform duration-[3s]" />
-
-                                <div className="relative z-20 flex flex-col items-center gap-6">
-                                    <div className="w-20 h-20 rounded-full bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-3xl group-hover:bg-primary group-hover:text-black transition-all duration-700 cursor-pointer">
-                                        <Zap size={32} />
-                                    </div>
-                                    <div className="text-center space-y-2">
-                                        <div className="text-[10px] font-mono text-primary font-black uppercase tracking-[0.4em]">Video_Feed: 0x889_EPHEMERAL</div>
-                                        <div className="text-zinc-500 font-sans text-xs uppercase tracking-widest">Self-Destruction Sequence // 5.4s</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Tactical Overlays */}
-                            <div className="absolute top-8 left-8 z-20 flex items-center gap-4">
-                                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                                <div className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest">Live_Recording_Active</div>
-                            </div>
-                        </div>
-
+                    {/* RIGHT: AGENT COMMAND CONSOLE */}
+                    <div className="lg:col-span-3">
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={activeAgent}
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
-                                className="p-10 md:p-16 rounded-[48px] border border-white/5 bg-[#050505] relative overflow-hidden shadow-2xl min-h-[400px] flex flex-col justify-between"
+                                className="p-10 md:p-16 rounded-[48px] border border-white/5 bg-[#050505] relative overflow-hidden shadow-2xl min-h-[600px] flex flex-col justify-between"
                             >
                                 <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
                                     <Image src={agents[activeAgent].avatar} alt="" width={400} height={400} className="grayscale" unoptimized />
                                 </div>
 
-                                <div className="space-y-10 relative z-10">
+                                <div className="space-y-12 relative z-10">
                                     <div className="space-y-6">
                                         <div className="inline-flex items-center gap-3 px-4 py-1.5 bg-white/[0.03] border border-white/10 rounded-full font-mono text-[10px] font-black uppercase tracking-[0.4em]" style={{ color: agents[activeAgent].color }}>
                                             <Fingerprint size={12} />
                                             IDENTITY_VERIFIED // 0x{activeAgent}F3
                                         </div>
-                                        <h3 className="text-5xl md:text-6xl font-display font-black text-white uppercase tracking-tighter leading-none">{agents[activeAgent].name}</h3>
-                                        <p className="text-xl text-zinc-500 font-sans font-light leading-snug uppercase tracking-tighter italic max-w-2xl">
+                                        <h3 className="text-5xl md:text-7xl font-display font-black text-white uppercase tracking-tight leading-none">{agents[activeAgent].name}</h3>
+                                        <p className="text-2xl text-zinc-500 font-sans font-light leading-snug tracking-tight max-w-2xl">
                                             &quot;{agents[activeAgent].desc}&quot;
                                         </p>
                                     </div>
@@ -166,6 +162,7 @@ export default function AgentEcosystem() {
                                         ))}
                                     </div>
                                 </div>
+
                                 {/* Telemetry Footer */}
                                 <div className="pt-12 mt-12 border-t border-white/5 grid grid-cols-3 gap-8 relative z-10">
                                     <div className="space-y-2">
@@ -178,7 +175,7 @@ export default function AgentEcosystem() {
                                     </div>
                                     <div className="space-y-2">
                                         <div className="text-[9px] font-mono text-zinc-700 uppercase tracking-[0.4em]">Execution_Mode</div>
-                                        <div className="text-2xl font-black uppercase tracking-tighter" style={{ color: agents[activeAgent].color }}>{agents[activeAgent].mode}</div>
+                                        <div className="text-2xl font-black uppercase tracking-tight" style={{ color: agents[activeAgent].color }}>{agents[activeAgent].mode}</div>
                                     </div>
                                 </div>
 

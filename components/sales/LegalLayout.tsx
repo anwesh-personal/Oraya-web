@@ -61,7 +61,7 @@ export default function LegalLayout({ title, children }: { title: string, childr
                         <motion.h1
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="text-7xl md:text-[8rem] font-display font-black text-[var(--surface-900)] tracking-tighter leading-[0.8]"
+                            className="text-7xl md:text-[8rem] font-display font-black text-[var(--surface-900)] tracking-tight leading-[0.8]"
                         >
                             {title}
                         </motion.h1>

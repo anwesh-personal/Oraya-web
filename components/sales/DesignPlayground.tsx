@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useRef, useState, useEffect } from "react";
+import { motion, AnimatePresence, useInView } from "framer-motion";
 import {
     Cpu, Shield, Zap, Terminal, Database, Link, Sparkles,
     Workflow, Brain, Monitor, Activity, Lock, Layers,
@@ -94,16 +94,33 @@ const THEMES = [
 export default function DesignPlayground() {
     const [activeTheme, setActiveTheme] = useState(THEMES[0]);
     const [mounted, setMounted] = useState(false);
+    const [isHovered, setIsHovered] = useState(false);
+    const containerRef = useRef(null);
+    const isInView = useInView(containerRef, { amount: 0.2 });
 
     useEffect(() => {
         setMounted(true);
     }, []);
 
+    useEffect(() => {
+        if (!isInView || isHovered) return;
+
+        const interval = setInterval(() => {
+            const currentIndex = THEMES.findIndex(t => t.id === activeTheme.id);
+            setActiveTheme(THEMES[(currentIndex + 1) % THEMES.length]);
+        }, 10000);
+
+        return () => clearInterval(interval);
+    }, [activeTheme, isInView, isHovered]);
+
     if (!mounted) return null;
 
     return (
         <div
-            className="min-h-screen py-20 px-6 transition-colors duration-1000 overflow-hidden relative"
+            ref={containerRef}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            className="min-h-screen py-24 px-6 transition-colors duration-1000 overflow-hidden relative"
             style={{ backgroundColor: activeTheme.bg, color: activeTheme.primary }}
         >
             {/* Background Texture Overlay */}
@@ -117,12 +134,20 @@ export default function DesignPlayground() {
                             key={theme.id}
                             onClick={() => setActiveTheme(theme)}
                             className={cn(
-                                "px-6 py-2.5 rounded-full text-[10px] font-mono font-black uppercase tracking-widest transition-all duration-500 border",
+                                "px-6 py-2.5 rounded-full text-[10px] font-mono font-black uppercase tracking-widest transition-all duration-500 border relative overflow-hidden",
                                 activeTheme.id === theme.id
                                     ? "bg-white text-black border-white shadow-[0_0_20px_white]"
                                     : "bg-transparent text-white/40 border-transparent hover:text-white"
                             )}
                         >
+                            {activeTheme.id === theme.id && (
+                                <motion.div
+                                    className="absolute bottom-0 left-0 h-0.5 bg-black/20 z-20"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: "100%" }}
+                                    transition={{ duration: 10, ease: "linear" }}
+                                />
+                            )}
                             {theme.id.split('-').join('_')}
                         </button>
                     ))}
@@ -146,7 +171,7 @@ export default function DesignPlayground() {
                         initial={{ scale: 0.95, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ duration: 0.8 }}
-                        className={cn(activeTheme.fontDisplay, "text-[clamp(2.25rem,7.5vw,7.5rem)] font-black uppercase tracking-tighter leading-[0.8] mb-12")}
+                        className={cn(activeTheme.fontDisplay, "text-[clamp(2.25rem,7.5vw,7.5rem)] font-black uppercase tracking-tight leading-[0.8] mb-12")}
                     >
                         <span className="opacity-60 block mb-4 text-[0.4em] tracking-[0.2em] font-mono">Behold the</span>
                         <span
@@ -218,7 +243,7 @@ export default function DesignPlayground() {
                         >
                             <div className="font-mono text-xs opacity-40 tracking-[0.5em] uppercase">Reflex_Latency</div>
                             <div
-                                className={cn(activeTheme.fontDisplay, "text-[8rem] font-black leading-none tracking-tighter")}
+                                className={cn(activeTheme.fontDisplay, "text-[8rem] font-black leading-none tracking-tight")}
                                 style={{ color: 'white', textShadow: `0 0 60px ${activeTheme.primary}40` }}
                             >
                                 12<span className="text-2xl font-mono align-top mt-10 ml-2">MS</span>
@@ -270,7 +295,7 @@ export default function DesignPlayground() {
                 {/* THEMATIC DESCRIPTION */}
                 <div className="mt-40 pt-40 border-t border-white/5 grid grid-cols-1 md:grid-cols-2 gap-20">
                     <div className="space-y-8">
-                        <h4 className={cn(activeTheme.fontDisplay, "text-5xl font-black text-white uppercase tracking-tighter")}>Rationale.</h4>
+                        <h4 className={cn(activeTheme.fontDisplay, "text-5xl font-black text-white uppercase tracking-tight")}>Rationale.</h4>
                         <p className="text-xl text-zinc-500 font-light leading-relaxed italic">
                             "Every aesthetic decision here is a strategic signal. We aren't just choosing colors; we're choosing which frequency the Architect operates on."
                         </p>

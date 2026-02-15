@@ -1,6 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 const partners = [
     { name: "KERNEL_RND", color: "from-primary/20 to-zinc-900" },
@@ -12,8 +14,10 @@ const partners = [
 ];
 
 export default function SocialProof() {
+    const ref = useRef(null);
+    const isInView = useInView(ref, { amount: 0.1 });
     return (
-        <section className="py-20 bg-transparent relative overflow-hidden">
+        <section ref={ref} className="py-20 bg-transparent relative overflow-hidden">
             <div className="max-w-7xl mx-auto px-6 text-center">
                 <motion.div
                     initial={{ opacity: 0 }}
@@ -27,7 +31,7 @@ export default function SocialProof() {
                     </h2>
 
                     <div className="relative flex overflow-hidden py-12">
-                        <div className="flex animate-marquee whitespace-nowrap gap-32 items-center">
+                        <div className={cn("flex whitespace-nowrap gap-32 items-center", isInView ? "animate-marquee" : "")}>
                             {[...partners, ...partners, ...partners, ...partners].map((partner, i) => (
                                 <div
                                     key={i}

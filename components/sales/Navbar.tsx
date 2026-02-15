@@ -121,7 +121,7 @@ export default function SalesNavbar() {
                                         animate={{ x: 0, opacity: 1 }}
                                         transition={{ delay: i * 0.1 }}
                                         onClick={() => setMobileOpen(false)}
-                                        className="text-4xl font-display font-black text-white hover:text-primary transition-all uppercase tracking-tighter"
+                                        className="text-4xl font-display font-black text-white hover:text-primary transition-all uppercase tracking-tight"
                                     >
                                         {link.label.split('_')[1]}
                                     </motion.a>

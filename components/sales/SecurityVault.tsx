@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { useState, useEffect } from "react";
+import { motion, useMotionValue, useTransform, animate, useInView } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
 import { Shield, Lock, Eye, Key, Fingerprint, FileKey, Server, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -54,21 +54,24 @@ const securityLayers = [
 export default function SecurityVault() {
     const [activeLayer, setActiveLayer] = useState<number | null>(null);
     const ringRotation = useMotionValue(0);
+    const containerRef = useRef(null);
+    const isInView = useInView(containerRef, { amount: 0.2 });
 
     useEffect(() => {
+        if (!isInView) return;
         const controls = animate(ringRotation, 360, {
             duration: 60,
             repeat: Infinity,
             ease: "linear",
         });
         return controls.stop;
-    }, [ringRotation]);
+    }, [ringRotation, isInView]);
 
     const ring1 = useTransform(ringRotation, (v) => `rotate(${v}deg)`);
     const ring2 = useTransform(ringRotation, (v) => `rotate(${-v * 1.8}deg)`);
 
     return (
-        <section className="py-12 md:py-16 bg-black relative overflow-hidden noise-overlay border-t border-white/5" id="security">
+        <section ref={containerRef} className="py-12 md:py-16 bg-black relative overflow-hidden noise-overlay border-t border-white/5" id="security">
             <div className="scanline" />
 
             <div className="max-w-[1400px] mx-auto px-6 relative z-10">
@@ -130,11 +133,13 @@ export default function SecurityVault() {
                                 </motion.div>
 
                                 {/* Rotating Inner Glint */}
-                                <motion.div
-                                    animate={{ rotate: 360 }}
-                                    transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                                    className="absolute inset-0 bg-gradient-to-t from-transparent via-white/[0.02] to-transparent pointer-events-none"
-                                />
+                                {isInView && (
+                                    <motion.div
+                                        animate={{ rotate: 360 }}
+                                        transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                                        className="absolute inset-0 bg-gradient-to-t from-transparent via-white/[0.02] to-transparent pointer-events-none"
+                                    />
+                                )}
                             </div>
 
                             {/* ELITE FLOATING LABELS */}
@@ -195,7 +200,7 @@ export default function SecurityVault() {
 
                                         <div className="flex-1 space-y-2">
                                             <div className="flex items-center gap-4">
-                                                <h4 className="text-lg font-black text-white uppercase tracking-tighter leading-none">{layer.name}</h4>
+                                                <h4 className="text-lg font-black text-white uppercase tracking-tight leading-none">{layer.name}</h4>
                                                 <div className="px-2.5 py-0.5 rounded-full border text-[8px] font-mono font-black"
                                                     style={{ borderColor: `${layer.color}40`, color: layer.color, background: `${layer.color}05` }}>
                                                     {layer.status}
@@ -235,7 +240,7 @@ export default function SecurityVault() {
                                 </div>
                                 <div className="space-y-4">
                                     <h5 className="text-[#F0B429] font-mono text-xs font-black uppercase tracking-[0.3em]">PROPRIETARY_ENGINEERING_NOTE</h5>
-                                    <p className="text-zinc-500 text-sm leading-relaxed uppercase tracking-tighter font-light">
+                                    <p className="text-zinc-500 text-sm leading-relaxed uppercase tracking-tight font-light">
                                         <span className="text-white font-bold">No other local AI app can claim this.</span> Most are Electron shells proxying to cloud APIs. Oraya is a native Rust binary with byte-level encryption. Your machine is a sovereign territory.
                                     </p>
                                 </div>

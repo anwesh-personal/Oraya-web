@@ -80,7 +80,7 @@ export default function StorySection() {
                         The Solution
                     </div>
 
-                    <h2 className="text-5xl md:text-7xl font-display font-black tracking-tighter text-white leading-[0.9]">
+                    <h2 className="text-5xl md:text-7xl font-display font-black tracking-tight text-white leading-[0.9]">
                         Your Second Brain. <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00F0FF] to-[#FF00AA]">Actually Useful.</span>
                     </h2>
