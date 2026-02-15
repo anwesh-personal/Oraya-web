@@ -56,6 +56,20 @@ const BENTO_FEATURES = [
         edge: "Everything you've ever typed, coded, or researched is indexed locally. You don't search for code; you recall it with zero latency."
     },
     {
+        id: "pulse",
+        size: "medium",
+        title: "Sub-ms Tactical Pulse",
+        headline: "Instant Decisioning.",
+        desc: "Neural response times that outpace human thought. Zero-latency feedback loops.",
+        icon: Zap,
+        color: "#00F0FF",
+        stats: "0.12ms LATENCY",
+        telemetry: ["Fast-path IO", "Kernel Bypass", "Non-blocking Async"],
+        code: `const pulse = await oraya.pulse.ping();\nif (pulse.latency < 0.2) execute();`,
+        payload: "High-frequency neural bus optimized for real-time task decisioning and local feedback.",
+        edge: "Oraya reacts before you even finish the sentence. Every interaction is fluid, native, and local."
+    },
+    {
         id: "execution",
         size: "medium",
         title: "Atomic Execution Kernel",
@@ -82,6 +96,20 @@ const BENTO_FEATURES = [
         code: `const vault = new SovereignVault({\n  enclave: "HSM_L5",\n  zeroOutbound: true\n});\nvault.lock(process.env.IP_SECRET);`,
         payload: "Secure enclave weight distribution with zero cloud-outbound traffic for logic processing.",
         edge: "Your IP is your edge. Oraya ensures it never touches a cloud server, preventing training leakage and corporate espionage."
+    },
+    {
+        id: "recall",
+        size: "medium",
+        title: "Neural Recall API",
+        headline: "Memory as an Interface.",
+        desc: "Programmatic access to every interaction slice. Total archival dominance.",
+        icon: Brain,
+        color: "#F0B429",
+        stats: "99.9% ACCURACY",
+        telemetry: ["Vector Search", "Hybrid Ranking", "Context Stitching"],
+        code: `const memory = await oraya.recall("Q4_Strategy");\nconsole.log(memory.layers[0]);`,
+        payload: "Semantic retrieval API built on top of the local graph for instant context injection.",
+        edge: "Stop searching logs. Query your memory like a database. Oraya understands the intent, not just the keywords."
     },
     {
         id: "dominion",
@@ -111,6 +139,16 @@ const secondaryFeatures = [
         edge: "You stop being a coder and start being a commander. Trigger a 5-agent parallel refactor while you watch."
     },
     {
+        icon: Network,
+        label: "Encrypted Team Relay",
+        desc: "Sync knowledge across your circle without a central server.",
+        color: "#10B981",
+        stats: "P2P_ACTIVE",
+        code: `relay.sync({ \n  protocol: "GHOST", \n  p2p: true \n});`,
+        payload: "Peer-to-peer relay protocol for decentralized team synchronization and consensus.",
+        edge: "Collaboration without compromise. Sync your team's neural shards directly without ever touching the cloud."
+    },
+    {
         icon: MessageSquare,
         label: "Neuro-Link Relay",
         desc: "Command your agents via secure satellite relay while off the grid.",
@@ -119,6 +157,16 @@ const secondaryFeatures = [
         code: `relay.connect({ \n  key: AUTH_SHARD, \n  ephemeral: true \n});`,
         payload: "Secure bi-directional relay between Oraya Core and the encrypted bot API.",
         edge: "Your AI shouldn't have a leash. Command builds, check status, and get proactive alerts from your phone. Anytime. Anywhere."
+    },
+    {
+        icon: Globe,
+        label: "Global Sovereignty Map",
+        desc: "Visualize your tactical node distribution across the globe.",
+        color: "#00F0FF",
+        stats: "NODES_VISUALIZED",
+        code: `map.traceNodes();\nmap.highlightSovereign();`,
+        payload: "Geo-spatial visualization engine for monitoring decentralized Oraya deployments.",
+        edge: "See your kingdom. Track Every Recon Node and Sovereign Entity in real-time on a high-fidelity tactical display."
     },
     {
         icon: Database,
@@ -178,59 +226,152 @@ export default function FeaturesAIOS() {
     }, [selectedFeature]);
 
     const architectHeader = (
-        <div className="mb-12 space-y-12">
-            <div className={cn("flex flex-col xl:flex-row xl:items-end justify-between", isMobile ? "gap-10" : "gap-16")}>
-                <div className={cn("flex flex-col md:flex-row items-start", isMobile ? "gap-10" : "gap-12")}>
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.98 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        viewport={{ once: true }}
-                        className={cn(
-                            "relative aspect-[4/5] rounded-[40px] md:rounded-[48px] overflow-hidden border border-white/[0.05] group bg-surface-50 shadow-2xl shrink-0",
-                            isMobile ? "w-full max-w-[280px] mx-auto" : "w-64"
-                        )}
-                    >
+        <div className="relative mb-24 md:mb-40">
+            {/* Background Scanning Stroke - Atmospheric Element */}
+            <div className="absolute -top-20 -left-20 w-[120%] h-[120%] pointer-events-none opacity-20">
+                <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.02)_50%,transparent_100%)] animate-scan-x bg-[length:200%_100%]" />
+            </div>
+
+            <div className={cn(
+                "relative z-10 flex flex-col xl:flex-row items-center xl:items-start justify-between gap-16 md:gap-24",
+                isMobile ? "text-center" : "text-left"
+            )}>
+                {/* 1. THE FOUNDER KEY (Architect Card) */}
+                <motion.div
+                    initial={{ opacity: 0, x: -30 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                    className={cn(
+                        "relative group shrink-0",
+                        isMobile ? "w-full max-w-[320px]" : "w-72"
+                    )}
+                >
+                    {/* Glowing Aura */}
+                    <div className="absolute -inset-4 bg-primary/10 rounded-[60px] blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+
+                    <div className="relative aspect-[3/4] rounded-[48px] overflow-hidden border border-white/10 bg-[#050505] shadow-2xl overflow-hidden">
                         <Image
                             src="/architect_authentic_likeness.png"
-                            alt="The Architect of Oraya"
+                            alt="The Architect"
                             fill
-                            className="object-cover grayscale brightness-75 hover:brightness-100 transition-all duration-1000 scale-105 group-hover:scale-100"
-                            priority
+                            className="object-cover grayscale brightness-50 group-hover:grayscale-0 group-hover:brightness-100 transition-all duration-1000 scale-105 group-hover:scale-100"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-surface-0 via-transparent to-transparent opacity-80" />
 
-                        <div className="absolute bottom-6 left-6 right-6 p-4 md:p-5 rounded-[20px] md:rounded-[24px] border border-white/[0.08] bg-black/40 backdrop-blur-2xl space-y-1.5 md:space-y-2 z-10">
-                            <p className="text-[7px] md:text-[9px] font-mono font-black text-primary/60 tracking-[0.4em] uppercase">// ARCHITECT_VERIFIED</p>
-                            <p className="text-sm md:text-base font-display font-black text-white uppercase tracking-tight leading-none">Anwesh Rath</p>
-                            <p className="text-[7px] md:text-[8px] font-mono text-zinc-600 tracking-[0.2em] uppercase">ID: 4192.BF.F0 // OS: v1.2</p>
-                        </div>
-                    </motion.div>
-
-                    <div className={cn("space-y-8 md:space-y-10", isMobile && "text-center w-full")}>
+                        {/* Scanning Line Animation */}
                         <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
+                            animate={{ y: ["-100%", "300%"] }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                            className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent opacity-40 z-20"
+                        />
+
+                        {/* Card Overlay Info */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90" />
+
+                        <div className="absolute bottom-0 left-0 right-0 p-8 space-y-4">
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <Fingerprint size={10} className="text-primary" />
+                                    <span className="text-[8px] font-mono text-white/40 tracking-[0.4em] uppercase">Security_Clearance: L5</span>
+                                </div>
+                                <h3 className="text-xl font-display font-black text-white uppercase tracking-tight">Anwesh Rath</h3>
+                                <p className="text-[9px] font-mono text-primary font-black tracking-[0.2em] uppercase">SYSTEM_ARCHITECT_01</p>
+                            </div>
+
+                            <div className="pt-4 border-t border-white/5 flex justify-between items-center text-[7px] font-mono text-zinc-600 uppercase tracking-widest">
+                                <span>SINCE_2024</span>
+                                <div className="flex gap-1">
+                                    <div className="w-1 h-1 rounded-full bg-primary" />
+                                    <div className="w-1 h-1 rounded-full bg-white/20" />
+                                    <div className="w-1 h-1 rounded-full bg-white/20" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Outer Metadata Tags */}
+                    <div className="absolute top-10 -right-8 flex flex-col gap-2 pointer-events-none hidden md:flex">
+                        <div className="px-3 py-1 bg-black/80 backdrop-blur-xl border border-white/10 rounded-full text-[8px] font-mono text-white/40 tracking-widest uppercase">
+                            Bio_Verified
+                        </div>
+                        <div className="px-3 py-1 bg-black/80 backdrop-blur-xl border border-white/10 rounded-full text-[8px] font-mono text-white/40 tracking-widest uppercase">
+                            Core_Root
+                        </div>
+                    </div>
+                </motion.div>
+
+                {/* 2. THE COMMAND HEADLINE */}
+                <div className="flex-1 space-y-12">
+                    <div className="space-y-6">
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
-                            className="inline-flex items-center gap-4 px-6 md:px-7 py-2 md:py-2.5 bg-white/[0.02] border border-white/[0.08] rounded-full font-mono text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] md:tracking-[0.6em] text-white/40 shadow-2xl"
+                            className={cn(
+                                "inline-flex items-center gap-4 px-6 py-2.5 bg-white/[0.03] border border-white/10 rounded-full font-mono text-[10px] font-black uppercase tracking-[0.6em] text-white/30 shadow-2xl",
+                                isMobile && "mx-auto"
+                            )}
                         >
-                            <ScanLine size={12} className="text-secondary/40" />
-                            SOVEREIGN_SUBSYSTEM_AUDIT
+                            <ScanLine size={12} className="text-primary/50 animate-pulse" />
+                            Establishing_Dominion
                         </motion.div>
 
-                        <h2 className="text-4xl md:text-[clamp(2.6rem,6vw,6rem)] font-display font-black text-white leading-[0.95] uppercase">
+                        <h2 className="text-5xl md:text-[clamp(3rem,8vw,8rem)] font-display font-black text-white leading-[0.85] uppercase tracking-tighter">
                             The First <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white/40 to-white/10">Sovereign OS.</span>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-primary to-white animate-shimmer bg-[length:200%_auto]">
+                                Sovereign OS.
+                            </span>
                         </h2>
                     </div>
-                </div>
 
-                <div className={cn("max-w-md space-y-4 md:space-y-6 lg:pb-8", isMobile && "text-center mx-auto")}>
-                    <p className="text-zinc-500 font-extralight text-lg md:text-xl uppercase leading-snug">
-                        Unlike modular &quot;AI Tools&quot; that live in a browser tab, Oraya is a <span className="text-white/60 italic font-normal">Resident Intelligence</span> that owns the machine motor cortex.
-                    </p>
-                    <div className={cn("flex gap-4 font-mono text-[8px] md:text-[9px] text-primary/30 uppercase tracking-[0.4em]", isMobile && "justify-center")}>
-                        <span>$ grep -p &quot;sovereignty&quot; /kernel</span>
-                        <span className="animate-pulse">_</span>
+                    <div className={cn(
+                        "grid grid-cols-1 md:grid-cols-2 gap-12",
+                        isMobile && "text-center"
+                    )}>
+                        <div className="space-y-6">
+                            <p className="text-lg md:text-2xl text-zinc-400 font-extralight uppercase leading-tight tracking-tight">
+                                Oraya is not a browser extension. It is a <span className="text-white font-medium italic">Resident Intelligence</span> that owns the machine motor cortex.
+                                <span className="text-white"> Full kernel dominance. Direct disk control. Zero telemetry.</span>
+                            </p>
+                            <div className={cn("flex gap-4 font-mono text-[9px] text-primary/40 uppercase tracking-[0.4em]", isMobile && "justify-center")}>
+                                <span>$ grep -p "sovereignty" /sys/kernel</span>
+                                <span className="animate-pulse">_</span>
+                            </div>
+                        </div>
+
+                        {/* 3. SYSTEM TELEMETRY PANEL (Tactical Metadata) */}
+                        <div className="hidden lg:block space-y-6 border-l border-white/5 pl-12">
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between text-[10px] font-mono text-zinc-600 font-black uppercase tracking-widest">
+                                    <span>Kernel_Integrity</span>
+                                    <span className="text-primary">100%</span>
+                                </div>
+                                <div className="h-[2px] w-full bg-white/5 relative overflow-hidden">
+                                    <motion.div
+                                        animate={{ width: ["20%", "85%", "60%", "100%", "45%"] }}
+                                        transition={{ duration: 10, repeat: Infinity }}
+                                        className="h-full bg-primary"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-6">
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-2 text-[9px] font-mono text-white/20 uppercase tracking-widest">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                        Memory_Safe
+                                    </div>
+                                    <div className="text-lg font-display font-black text-white">RUST_L5</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-2 text-[9px] font-mono text-white/20 uppercase tracking-widest">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                                        Encryption
+                                    </div>
+                                    <div className="text-lg font-display font-black text-white">AES_GCM</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
