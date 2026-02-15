@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { useInView } from "framer-motion";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { useResponsive } from "./responsive/ResponsiveProvider";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TYPES & TASKS
@@ -45,28 +46,17 @@ const TASKS = [
     "SYNC DECENTRALIZED NODES"
 ];
 
-// ─────────────────────────────────────────────────────────────────────────────
-// COMPONENT
-// ─────────────────────────────────────────────────────────────────────────────
 export default function OrchestrationFlow() {
     const [agents, setAgents] = useState<Agent[]>([]);
     const [oraState, setOraState] = useState<"IDLE" | "ANALYZING" | "BROADCASTING">("IDLE");
     const [sysLoad, setSysLoad] = useState(32);
-    const [isMobile, setIsMobile] = useState(false);
+    const { isMobile } = useResponsive();
 
     const agentsRef = useRef<Agent[]>([]);
     const containerRef = useRef(null);
     const isInView = useInView(containerRef, { amount: 0.2 });
 
     useEffect(() => { agentsRef.current = agents; }, [agents]);
-
-    // Handle Responsiveness
-    useEffect(() => {
-        const check = () => setIsMobile(window.innerWidth < 1024);
-        check();
-        window.addEventListener("resize", check);
-        return () => window.removeEventListener("resize", check);
-    }, []);
 
     const loadColor = sysLoad <= 40 ? "#10B981" : sysLoad <= 70 ? "#F0B429" : "#EF4444";
     const loadBg = sysLoad <= 40 ? "rgba(16, 185, 129, 0.1)" : sysLoad <= 70 ? "rgba(240, 180, 41, 0.1)" : "rgba(239, 68, 68, 0.1)";
@@ -165,59 +155,78 @@ export default function OrchestrationFlow() {
         loop(); return () => { mounted = false; };
     }, [isInView]);
 
-    return (
-        <div ref={containerRef} className="relative w-full lg:h-[850px] h-auto bg-[#030303] lg:rounded-[48px] rounded-3xl border border-white/[0.08] overflow-hidden select-none shadow-2xl flex flex-col lg:flex-row">
-            {/* ORA CORE PANEL */}
-            <div className="relative lg:w-[30%] w-full flex flex-col items-center justify-center border-b lg:border-b-0 lg:border-r border-white/5 bg-gradient-to-r from-white/[0.02] to-transparent z-20 p-6 lg:p-10">
-                <div className="relative w-full max-w-[280px] lg:max-w-none aspect-square flex flex-col items-center justify-center">
-                    <AnimatePresence>
-                        {oraState === "ANALYZING" && (
-                            <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1.2 }} exit={{ opacity: 0, scale: 0.8 }}
-                                transition={{ duration: 1.5, repeat: Infinity }} className="absolute inset-0 bg-primary/10 rounded-full blur-[100px]" />
-                        )}
-                    </AnimatePresence>
-                    <motion.div animate={{ scale: oraState === "ANALYZING" ? 1.05 : 1 }} className="relative w-full aspect-square rounded-[40px] lg:rounded-[60px] border border-white/10 p-2 bg-black shadow-2xl overflow-hidden ring-1 ring-white/5">
-                        <div className="relative w-full h-full rounded-[32px] lg:rounded-[52px] overflow-hidden border border-white/5">
-                            <Image src={ORA_AVATAR} alt="ORA" fill className="object-cover scale-110" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                        </div>
-                    </motion.div>
-                </div>
-
-                <div className="mt-8 w-full max-w-[280px] lg:max-w-none px-6">
-                    <motion.div animate={{ backgroundColor: loadBg, borderColor: loadBorder, color: loadColor }} className="w-full flex items-center justify-between px-6 py-4 rounded-[28px] border backdrop-blur-xl transition-all duration-500 shadow-lg">
-                        <div className="flex items-center gap-3">
-                            <Activity size={16} className="animate-pulse" />
-                            <span className="text-[11px] font-mono font-black uppercase tracking-[0.2em]">Sys_Load</span>
-                        </div>
-                        <div className="text-2xl font-mono font-black tabular-nums">{Math.round(sysLoad)}%</div>
-                    </motion.div>
-                </div>
-
-                <div className="mt-6 text-center space-y-2">
-                    <div className="text-[10px] font-mono font-black text-white/30 uppercase tracking-[0.5em]">PLATFORM_SOVEREIGN</div>
-                    <div className="flex items-center gap-4 justify-center">
-                        <motion.div animate={{ scale: [1, 1.3, 1], opacity: [0.6, 1, 0.6] }} transition={{ repeat: Infinity, duration: 2 }} className="w-2 h-2 lg:w-2.5 lg:h-2.5 rounded-full" style={{ backgroundColor: loadColor, boxShadow: `0 0 15px ${loadColor}` }} />
-                        <span className="text-[10px] lg:text-xs font-mono text-white font-black uppercase tracking-[0.3em]">ORA_PRIME</span>
+    const oraCore = (
+        <div className={cn(
+            "relative flex flex-col items-center justify-center border-white/5 bg-gradient-to-r from-white/[0.02] to-transparent z-20",
+            isMobile ? "w-full p-6 border-b" : "lg:w-[30%] w-full h-full border-r p-10"
+        )}>
+            <div className={cn("relative w-full aspect-square flex flex-col items-center justify-center", isMobile ? "max-w-[140px]" : "max-w-[280px]")}>
+                <AnimatePresence>
+                    {oraState === "ANALYZING" && (
+                        <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1.2 }} exit={{ opacity: 0, scale: 0.8 }}
+                            transition={{ duration: 1.5, repeat: Infinity }} className="absolute inset-0 bg-primary/10 rounded-full blur-[60px] md:blur-[100px]" />
+                    )}
+                </AnimatePresence>
+                <motion.div animate={{ scale: oraState === "ANALYZING" ? 1.05 : 1 }} className="relative w-full aspect-square rounded-[30px] md:rounded-[60px] border border-white/10 p-2 bg-black shadow-2xl overflow-hidden ring-1 ring-white/5">
+                    <div className="relative w-full h-full rounded-[24px] md:rounded-[52px] overflow-hidden border border-white/5">
+                        <Image src={ORA_AVATAR} alt="ORA" fill className="object-cover scale-110" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                     </div>
-                </div>
+                </motion.div>
             </div>
 
+            <div className={cn("w-full px-4", isMobile ? "mt-4 max-w-[220px]" : "mt-8")}>
+                <motion.div animate={{ backgroundColor: loadBg, borderColor: loadBorder, color: loadColor }} className="w-full flex items-center justify-between px-4 py-3 md:px-6 md:py-4 rounded-[20px] md:rounded-[28px] border backdrop-blur-xl transition-all duration-500 shadow-lg">
+                    <div className="flex items-center gap-2 md:gap-3">
+                        <Activity size={14} className="animate-pulse" />
+                        <span className="text-[10px] md:text-[11px] font-mono font-black uppercase tracking-[0.2em]">Load</span>
+                    </div>
+                    <div className="text-xl md:text-2xl font-mono font-black tabular-nums">{Math.round(sysLoad)}%</div>
+                </motion.div>
+            </div>
+
+            <div className="mt-4 text-center space-y-2">
+                <div className="flex items-center gap-3 justify-center">
+                    <motion.div animate={{ scale: [1, 1.3, 1], opacity: [0.6, 1, 0.6] }} transition={{ repeat: Infinity, duration: 2 }} className="w-2 h-2 rounded-full" style={{ backgroundColor: loadColor, boxShadow: `0 0 15px ${loadColor}` }} />
+                    <span className="text-[10px] md:text-xs font-mono text-white font-black uppercase tracking-[0.3em]">ORA_PRIME</span>
+                </div>
+            </div>
+        </div>
+    );
+
+    return (
+        <div ref={containerRef} className={cn(
+            "relative w-full bg-[#030303] border border-white/[0.08] overflow-hidden select-none shadow-2xl flex flex-col",
+            isMobile ? "rounded-[32px] min-h-[850px]" : "lg:h-[850px] lg:flex-row lg:rounded-[48px]"
+        )}>
+            {oraCore}
+
             {/* THE WOMB ZONE */}
-            <div className="relative lg:w-[70%] w-full min-h-[600px] lg:h-full bg-[#050505] lg:p-12 p-6">
-                <div className="relative w-full h-full border border-white/10 rounded-[40px] lg:rounded-[60px] bg-black/40 overflow-hidden shadow-2xl backdrop-blur-xl">
-                    <div className="absolute top-10 left-12 right-12 flex justify-between items-start z-30">
-                        <div className="flex items-center gap-5">
-                            <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse shadow-[0_0_20px_#F0B429]" />
-                            <span className="text-[12px] font-mono text-primary font-black uppercase tracking-[0.4em]">EPHEMERAL_SWARM</span>
+            <div className={cn("relative w-full bg-[#050505]", isMobile ? "flex-1 overflow-hidden" : "lg:w-[70%] h-full lg:p-12")}>
+                <div className={cn("relative w-full h-full border border-white/10 rounded-[24px] md:rounded-[40px] lg:rounded-[60px] bg-black/40 overflow-hidden shadow-2xl backdrop-blur-xl", isMobile && "border-0 rounded-0 bg-transparent")}>
+                    <div className={cn("absolute left-8 right-8 flex justify-between items-start z-30", isMobile ? "top-6" : "top-10")}>
+                        <div className="flex items-center gap-3 md:gap-5">
+                            <div className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-primary animate-pulse shadow-[0_0_20px_#F0B429]" />
+                            <span className="text-[10px] md:text-[12px] font-mono text-primary font-black uppercase tracking-[0.4em]">EPHEMERAL_SWARM</span>
                         </div>
-                        <div className="flex items-center gap-3 text-zinc-700 font-mono text-[10px] uppercase tracking-widest transition-opacity"><ShieldCheck size={14} className="opacity-40" /> SECURE_ORCHESTRATION</div>
+                        {!isMobile && (
+                            <div className="flex items-center gap-3 text-zinc-700 font-mono text-[10px] uppercase tracking-widest transition-opacity">
+                                <ShieldCheck size={14} className="opacity-40" /> SECURE_ORCHESTRATION
+                            </div>
+                        )}
                     </div>
 
-                    <div className="relative w-full h-full lg:overflow-hidden">
-                        <div className="relative w-full h-full lg:py-0 py-20">
-                            <AnimatePresence>
-                                {agents.map((a) => <AgentMolecule key={a.id} agent={a} loadColor={loadColor} isMobile={isMobile} />)}
+                    <div className="relative w-full h-full">
+                        <div className={cn(
+                            "w-full h-full",
+                            isMobile
+                                ? "pt-24 pb-12 px-6 overflow-y-auto scrollbar-hide flex flex-col gap-8"
+                                : "relative py-0"
+                        )}>
+                            <AnimatePresence initial={false}>
+                                {[...agents].sort((a, b) => a.slot - b.slot).map((a) => (
+                                    <AgentMolecule key={a.id} agent={a} loadColor={loadColor} isMobile={isMobile} />
+                                ))}
                             </AnimatePresence>
                         </div>
                     </div>
@@ -251,7 +260,7 @@ function TetherPath({ slot, color }: { slot: number, color: string }) {
 }
 
 function AgentMolecule({ agent, loadColor, isMobile }: { agent: Agent, loadColor: string, isMobile: boolean }) {
-    const ySlots = ["20%", "50%", "80%"];
+    const ySlots = isMobile ? ["0%", "0%", "0%"] : ["20%", "50%", "80%"]; // Mobile uses flex
     const [progress, setProgress] = useState(0);
 
     useEffect(() => {
@@ -270,49 +279,61 @@ function AgentMolecule({ agent, loadColor, isMobile }: { agent: Agent, loadColor
     const isHiding = agent.state === "DESTRUCTING";
 
     return (
-        <motion.div layout transition={{ duration: 1.5, type: "spring", bounce: 0.2 }}
-            className={cn("absolute -translate-y-[50%] flex items-center", isMobile ? "left-[5%] gap-4" : "left-[32%] gap-12")}
-            style={{ top: ySlots[agent.slot] }}
+        <motion.div
+            layout
+            initial={isMobile ? { opacity: 0, x: -20, scale: 0.95 } : { opacity: 0 }}
+            animate={isHiding ? { opacity: 0, scale: 0.5, filter: "blur(10px)", transition: { delay: 1.5, duration: 0.8 } } : { opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 1, type: "spring", bounce: 0.2 }}
+            className={cn(
+                "flex items-center",
+                isMobile ? "relative w-full gap-4 p-4 rounded-3xl bg-white/[0.02] border border-white/5" : "absolute -translate-y-[50%] left-[32%] gap-12"
+            )}
+            style={!isMobile ? { top: ySlots[agent.slot] } : {}}
         >
             <motion.div
-                animate={isHiding ? { opacity: 0, scale: 0.5, filter: "blur(20px)", transition: { delay: 1.5, duration: 0.8 } } : { opacity: 1, scale: 1, y: [0, -10, 0] }}
+                animate={!isHiding ? { y: [0, -6, 0] } : {}}
                 transition={isHiding ? {} : { y: { duration: 4, repeat: Infinity, ease: "easeInOut" } }}
                 className="relative flex-shrink-0"
             >
-                <div className="relative lg:w-40 lg:h-40 w-28 h-28 flex items-center justify-center">
+                <div className={cn("relative flex items-center justify-center", isMobile ? "w-16 h-16" : "lg:w-40 lg:h-40 w-28 h-28")}>
                     <motion.svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100" animate={isHiding ? { opacity: 0, transition: { delay: 2.2 } } : {}}>
                         <circle cx="50" cy="50" r="48" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="2" />
                         <motion.circle cx="50" cy="50" r="48" fill="none" stroke={agent.state === "SUBMITTING" ? "#10B981" : loadColor} strokeWidth="2.5" strokeLinecap="round"
                             initial={{ strokeDasharray: "0 302" }} animate={{ strokeDasharray: `${progress * 302} 302` }} transition={{ ease: "linear" }} />
                     </motion.svg>
-                    <div className="relative lg:w-32 lg:h-32 w-22 h-22 rounded-full overflow-hidden border-2 border-white/20 bg-black shadow-2xl">
+                    <div className={cn("relative rounded-full overflow-hidden border-2 border-white/20 bg-black shadow-2xl", isMobile ? "w-11 h-11" : "lg:w-32 lg:h-32 w-22 h-22")}>
                         <Image src={agent.avatar} alt={agent.code} fill className="object-cover" unoptimized />
                     </div>
                 </div>
             </motion.div>
 
-            <div className="flex flex-col gap-4 drop-shadow-2xl min-w-[300px]">
-                <div className="space-y-1">
-                    <div className="flex items-center gap-4 mb-2">
-                        <AnimatePresence>
-                            {(agent.state !== "SPAWNING" && !isHiding) && (
-                                <StatusIcon icon={Database} label="Context" color="text-primary" delay={0} />
-                            )}
-                        </AnimatePresence>
-                        <AnimatePresence>
-                            {((agent.state === "SYNCING" || agent.state === "WORKING" || agent.state === "SUBMITTING") && !isHiding) && (
-                                <StatusIcon icon={Brain} label="Memory" color="text-cyan-400" delay={0.6} />
-                            )}
-                        </AnimatePresence>
+            <div className={cn("flex flex-col gap-1 md:gap-4 drop-shadow-2xl", isMobile ? "min-w-0 flex-1" : "min-w-[300px]")}>
+                <div className="space-y-0.5 md:space-y-1">
+                    <div className="flex items-center gap-2 md:gap-4 mb-1">
+                        {!isMobile && (
+                            <>
+                                <AnimatePresence>
+                                    {(agent.state !== "SPAWNING" && !isHiding) && (
+                                        <StatusIcon icon={Database} label="Context" color="text-primary" delay={0} />
+                                    )}
+                                </AnimatePresence>
+                                <AnimatePresence>
+                                    {((agent.state === "SYNCING" || agent.state === "WORKING" || agent.state === "SUBMITTING") && !isHiding) && (
+                                        <StatusIcon icon={Brain} label="Memory" color="text-cyan-400" delay={0.6} />
+                                    )}
+                                </AnimatePresence>
+                            </>
+                        )}
                         <motion.div animate={isHiding ? { opacity: 0, x: 20, transition: { delay: 1 } } : {}}
-                            className={cn("px-4 py-1 rounded-full border text-[10px] font-mono font-black uppercase tracking-widest",
+                            className={cn("px-2 py-0.5 md:px-4 md:py-1 rounded-full border text-[7px] md:text-[10px] font-mono font-black uppercase tracking-widest",
                                 agent.state === "WORKING" ? "bg-primary/10 border-primary/40 text-primary" : "bg-white/5 border-white/10 text-zinc-500")}>
                             {agent.state.replace(/_/g, " ")}
                         </motion.div>
                     </div>
                     <motion.div animate={isHiding ? { opacity: 0, y: 10, transition: { delay: 1.2 } } : {}}>
-                        <div className="text-[11px] font-mono text-white/30 font-black uppercase tracking-[0.4em]">{agent.code}</div>
-                        <div className="text-xl lg:text-3xl font-display font-black text-white uppercase tracking-tight leading-none">{agent.role}</div>
+                        <div className="text-[8px] md:text-[11px] font-mono text-white/30 font-black uppercase tracking-[0.4em] truncate">{agent.code}</div>
+                        <div className="text-sm md:text-3xl font-display font-black text-white uppercase tracking-tight leading-none truncate">{agent.role}</div>
                     </motion.div>
                 </div>
             </div>

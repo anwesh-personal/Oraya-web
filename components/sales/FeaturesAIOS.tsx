@@ -142,11 +142,15 @@ const secondaryFeatures = [
     }
 ];
 
+import { useResponsive } from "./responsive/ResponsiveProvider";
+import { ResponsiveSwitcher } from "./responsive/ResponsiveSwitcher";
+
 export default function FeaturesAIOS() {
     const [hovered, setHovered] = React.useState<string | null>(null);
     const [selectedFeature, setSelectedFeature] = React.useState<any>(null);
     const [autoIndex, setAutoIndex] = useState(0);
     const [isHoveredManually, setIsHoveredManually] = useState(false);
+    const { isMobile } = useResponsive();
 
     const containerRef = useRef(null);
     const isInView = useInView(containerRef, { amount: 0.2 });
@@ -161,7 +165,7 @@ export default function FeaturesAIOS() {
         return () => clearInterval(interval);
     }, [isInView, isHoveredManually, hovered]);
 
-    // Lock body scroll when a feature is selected to prevent viewport shifts
+    // Lock body scroll when a feature is selected
     React.useEffect(() => {
         if (selectedFeature) {
             document.body.style.overflow = "hidden";
@@ -173,6 +177,168 @@ export default function FeaturesAIOS() {
         };
     }, [selectedFeature]);
 
+    const architectHeader = (
+        <div className="mb-12 space-y-12">
+            <div className={cn("flex flex-col xl:flex-row xl:items-end justify-between", isMobile ? "gap-10" : "gap-16")}>
+                <div className={cn("flex flex-col md:flex-row items-start", isMobile ? "gap-10" : "gap-12")}>
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        className={cn(
+                            "relative aspect-[4/5] rounded-[40px] md:rounded-[48px] overflow-hidden border border-white/[0.05] group bg-surface-50 shadow-2xl shrink-0",
+                            isMobile ? "w-full max-w-[280px] mx-auto" : "w-64"
+                        )}
+                    >
+                        <Image
+                            src="/architect_authentic_likeness.png"
+                            alt="The Architect of Oraya"
+                            fill
+                            className="object-cover grayscale brightness-75 hover:brightness-100 transition-all duration-1000 scale-105 group-hover:scale-100"
+                            priority
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-surface-0 via-transparent to-transparent opacity-80" />
+
+                        <div className="absolute bottom-6 left-6 right-6 p-4 md:p-5 rounded-[20px] md:rounded-[24px] border border-white/[0.08] bg-black/40 backdrop-blur-2xl space-y-1.5 md:space-y-2 z-10">
+                            <p className="text-[7px] md:text-[9px] font-mono font-black text-primary/60 tracking-[0.4em] uppercase">// ARCHITECT_VERIFIED</p>
+                            <p className="text-sm md:text-base font-display font-black text-white uppercase tracking-tight leading-none">Anwesh Rath</p>
+                            <p className="text-[7px] md:text-[8px] font-mono text-zinc-600 tracking-[0.2em] uppercase">ID: 4192.BF.F0 // OS: v1.2</p>
+                        </div>
+                    </motion.div>
+
+                    <div className={cn("space-y-8 md:space-y-10", isMobile && "text-center w-full")}>
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            className="inline-flex items-center gap-4 px-6 md:px-7 py-2 md:py-2.5 bg-white/[0.02] border border-white/[0.08] rounded-full font-mono text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] md:tracking-[0.6em] text-white/40 shadow-2xl"
+                        >
+                            <ScanLine size={12} className="text-secondary/40" />
+                            SOVEREIGN_SUBSYSTEM_AUDIT
+                        </motion.div>
+
+                        <h2 className="text-4xl md:text-[clamp(2.6rem,6vw,6rem)] font-display font-black text-white leading-[0.95] uppercase">
+                            The First <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white/40 to-white/10">Sovereign OS.</span>
+                        </h2>
+                    </div>
+                </div>
+
+                <div className={cn("max-w-md space-y-4 md:space-y-6 lg:pb-8", isMobile && "text-center mx-auto")}>
+                    <p className="text-zinc-500 font-extralight text-lg md:text-xl uppercase leading-snug">
+                        Unlike modular &quot;AI Tools&quot; that live in a browser tab, Oraya is a <span className="text-white/60 italic font-normal">Resident Intelligence</span> that owns the machine motor cortex.
+                    </p>
+                    <div className={cn("flex gap-4 font-mono text-[8px] md:text-[9px] text-primary/30 uppercase tracking-[0.4em]", isMobile && "justify-center")}>
+                        <span>$ grep -p &quot;sovereignty&quot; /kernel</span>
+                        <span className="animate-pulse">_</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
+    const augmentationHeader = (
+        <div className="text-center mb-24 md:mb-40 space-y-8 md:space-y-10">
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                className="inline-flex items-center gap-4 px-6 md:px-7 py-2 md:py-2.5 bg-white/[0.02] border border-white/[0.08] rounded-full font-mono text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] md:tracking-[0.6em] text-white/40 shadow-2xl"
+            >
+                <Layers size={12} className="text-primary/40" />
+                TACTICAL_KERNEL_EXTENSIONS
+            </motion.div>
+
+            <h2 className="text-4xl md:text-[clamp(2.25rem,4.5vw,4.5rem)] font-display font-black text-white uppercase leading-[0.95]">
+                Deep <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white/40 to-white/10">Augmentations.</span>
+            </h2>
+        </div>
+    );
+
+    const desktopView = (
+        <div className="max-w-[1400px] mx-auto px-6 relative z-10">
+            {architectHeader}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                {BENTO_FEATURES.map((item) => {
+                    const uniqueId = `bento-${item.id}`;
+                    return (
+                        <BentoCard
+                            key={uniqueId}
+                            item={item}
+                            uniqueId={uniqueId}
+                            isHovered={hovered === item.id || (!hovered && BENTO_FEATURES[autoIndex].id === item.id)}
+                            isAutoHighlight={!hovered && BENTO_FEATURES[autoIndex].id === item.id}
+                            onHover={() => setHovered(item.id)}
+                            onLeave={() => setHovered(null)}
+                            onClick={() => setSelectedFeature({ ...item, uniqueId })}
+                        />
+                    );
+                })}
+            </div>
+
+            <div className="mt-56 space-y-24">
+                {augmentationHeader}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    {secondaryFeatures.map((item, i) => {
+                        const uniqueId = `small-feat-${i}`;
+                        return (
+                            <FeatureSmallCard
+                                key={uniqueId}
+                                item={item}
+                                uniqueId={uniqueId}
+                                index={i}
+                                onClick={() => setSelectedFeature({ ...item, uniqueId })}
+                            />
+                        );
+                    })}
+                </div>
+            </div>
+        </div>
+    );
+
+    const mobileView = (
+        <div className="px-6 relative z-10 space-y-32">
+            {architectHeader}
+            <div className="space-y-6">
+                {BENTO_FEATURES.map((item) => {
+                    const uniqueId = `bento-mob-${item.id}`;
+                    return (
+                        <BentoCard
+                            key={uniqueId}
+                            item={item}
+                            uniqueId={uniqueId}
+                            isHovered={hovered === item.id}
+                            isAutoHighlight={false}
+                            onHover={() => setHovered(item.id)}
+                            onLeave={() => setHovered(null)}
+                            onClick={() => setSelectedFeature({ ...item, uniqueId })}
+                            isMobile={true}
+                        />
+                    );
+                })}
+            </div>
+
+            <div className="pt-20">
+                {augmentationHeader}
+                <div className="space-y-6">
+                    {secondaryFeatures.map((item, i) => {
+                        const uniqueId = `small-feat-mob-${i}`;
+                        return (
+                            <FeatureSmallCard
+                                key={uniqueId}
+                                item={item}
+                                uniqueId={uniqueId}
+                                index={i}
+                                onClick={() => setSelectedFeature({ ...item, uniqueId })}
+                            />
+                        );
+                    })}
+                </div>
+            </div>
+        </div>
+    );
+
     return (
         <section
             ref={containerRef}
@@ -181,193 +347,85 @@ export default function FeaturesAIOS() {
             className="py-24 bg-transparent relative overflow-hidden"
             id="aios-features"
         >
-            <div className="max-w-[1400px] mx-auto px-6 relative z-10">
-                {/* ACT HEADER: Architectural Subsystems */}
-                <div className="mb-12 space-y-12">
-                    <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-16">
-                        <div className="flex flex-col md:flex-row gap-12 items-start">
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.98 }}
-                                whileInView={{ opacity: 1, scale: 1 }}
-                                viewport={{ once: true }}
-                                className="w-full md:w-64 aspect-[4/5] relative rounded-[48px] overflow-hidden border border-white/[0.05] group bg-surface-50 shadow-2xl shrink-0"
-                            >
-                                <Image
-                                    src="/architect_authentic_likeness.png"
-                                    alt="The Architect of Oraya"
-                                    fill
-                                    className="object-cover grayscale brightness-75 hover:brightness-100 transition-all duration-1000 scale-105 group-hover:scale-100"
-                                    priority
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-surface-0 via-transparent to-transparent opacity-80" />
+            <ResponsiveSwitcher mobile={mobileView} desktop={desktopView} />
 
-                                {/* ID Badge HUD */}
-                                <div className="absolute bottom-6 left-6 right-6 p-5 rounded-[24px] border border-white/[0.08] bg-black/40 backdrop-blur-2xl space-y-2 z-10">
-                                    <p className="text-[9px] font-mono font-black text-primary/60 tracking-[0.4em] uppercase">// ARCHITECT_VERIFIED</p>
-                                    <p className="text-base font-display font-black text-white uppercase tracking-tight">Anwesh Rath</p>
-                                    <p className="text-[8px] font-mono text-zinc-600 tracking-[0.2em] uppercase">ID: 4192.BF.F0 // OS: v1.2</p>
-                                </div>
-                            </motion.div>
-
-                            <div className="space-y-10">
-                                <motion.div
-                                    initial={{ opacity: 0, x: -20 }}
-                                    whileInView={{ opacity: 1, x: 0 }}
-                                    viewport={{ once: true }}
-                                    className="inline-flex items-center gap-4 px-7 py-2.5 bg-white/[0.02] border border-white/[0.08] rounded-full font-mono text-[10px] font-black uppercase tracking-[0.6em] text-white/40 shadow-2xl"
-                                >
-                                    <ScanLine size={14} className="text-secondary/40" />
-                                    SOVEREIGN_SUBSYSTEM_AUDIT
-                                </motion.div>
-
-                                <h2 className="text-[clamp(2.6rem,6vw,6rem)] font-display font-black text-white leading-[0.95] uppercase">
-                                    The First <br />
-                                    <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white/40 to-white/10">Sovereign OS.</span>
-                                </h2>
-                            </div>
-                        </div>
-
-                        <div className="max-w-md space-y-6 lg:pb-8">
-                            <p className="text-zinc-500 font-extralight text-xl uppercase leading-snug">
-                                Unlike modular &quot;AI Tools&quot; that live in a browser tab, Oraya is a <span className="text-white/60 italic font-normal">Resident Intelligence</span> that owns the machine motor cortex.
-                            </p>
-                            <div className="flex gap-4 font-mono text-[9px] text-primary/30 uppercase tracking-[0.4em]">
-                                <span>$ grep -p &quot;sovereignty&quot; /kernel</span>
-                                <span className="animate-pulse">_</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* THE BENTO GRID - HIGH DENSITY */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                    {BENTO_FEATURES.map((item) => {
-                        const uniqueId = `bento-${item.id}`;
-                        return (
-                            <BentoCard
-                                key={uniqueId}
-                                item={item}
-                                uniqueId={uniqueId}
-                                isHovered={hovered === item.id || (!hovered && BENTO_FEATURES[autoIndex].id === item.id)}
-                                isAutoHighlight={!hovered && BENTO_FEATURES[autoIndex].id === item.id}
-                                onHover={() => setHovered(item.id)}
-                                onLeave={() => setHovered(null)}
-                                onClick={() => setSelectedFeature({ ...item, uniqueId })}
-                            />
-                        );
-                    })}
-                </div>
-
-                {/* THE SUB-FEATURES GRID - REFINED ACCENTS */}
-                <div className="mt-56 space-y-24">
-                    <div className="text-center mb-40 space-y-10">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            viewport={{ once: true }}
-                            className="inline-flex items-center gap-4 px-7 py-2.5 bg-white/[0.02] border border-white/[0.08] rounded-full font-mono text-[10px] font-black uppercase tracking-[0.6em] text-white/40 shadow-2xl"
-                        >
-                            <Layers size={14} className="text-primary/40" />
-                            TACTICAL_KERNEL_EXTENSIONS
-                        </motion.div>
-
-                        <h2 className="text-[clamp(2.25rem,4.5vw,4.5rem)] font-display font-black text-white uppercase leading-[0.95] uppercase">
-                            Deep <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white/40 to-white/10">Augmentations.</span>
-                        </h2>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                        {[...secondaryFeatures, ...secondaryFeatures].map((item, i) => {
-                            const uniqueId = `small-feat-${i}`;
-                            return (
-                                <FeatureSmallCard
-                                    key={uniqueId}
-                                    item={item}
-                                    uniqueId={uniqueId}
-                                    index={i}
-                                    onClick={() => setSelectedFeature({ ...item, uniqueId })}
-                                />
-                            );
-                        })}
-                    </div>
-                </div>
-            </div>
-
-            {/* LIGHTBOX MODAL - THE "REPORT" UI (Portaled for stability) */}
+            {/* LIGHTBOX MODAL */}
             <AnimatePresence>
                 {selectedFeature && (
                     <FeaturePortal>
-                        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6 md:p-12">
+                        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 md:p-12 overflow-y-auto overflow-x-hidden">
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 onClick={() => setSelectedFeature(null)}
-                                className="absolute inset-0 bg-black/95 backdrop-blur-3xl cursor-zoom-out"
+                                className="fixed inset-0 bg-black/95 backdrop-blur-3xl cursor-zoom-out"
                             />
 
                             <motion.div
                                 layoutId={selectedFeature.uniqueId}
-                                className="relative w-full max-w-5xl bg-[#050505] border border-white/10 rounded-[48px] overflow-hidden shadow-[0_60px_120px_rgba(0,0,0,1)] flex flex-col md:flex-row z-10"
+                                className="relative w-full max-w-5xl bg-[#050505] border border-white/10 rounded-[32px] md:rounded-[48px] overflow-hidden shadow-[0_60px_120px_rgba(0,0,0,1)] flex flex-col md:flex-row z-10"
                             >
-                                <div className="w-full md:w-[45%] aspect-square flex items-center justify-center relative p-16 md:p-24 overflow-hidden border-r border-white/5">
+                                <div className={cn(
+                                    "flex items-center justify-center relative p-12 md:p-24 overflow-hidden border-b md:border-b-0 md:border-r border-white/5",
+                                    isMobile ? "w-full aspect-video" : "w-[45%] h-full"
+                                )}>
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(217,119,6,0.05)_1px,transparent_1px)] bg-[size:32px_32px]" />
                                     {(() => {
                                         const FeatureIcon = selectedFeature.icon;
-                                        return <FeatureIcon size={160} strokeWidth={0.5} style={{ color: selectedFeature.color }} className="relative z-10 drop-shadow-[0_0_40px_rgba(217,119,6,0.2)]" />;
+                                        return <FeatureIcon size={isMobile ? 80 : 160} strokeWidth={0.5} style={{ color: selectedFeature.color }} className="relative z-10 drop-shadow-[0_0_40px_rgba(217,119,6,0.2)]" />;
                                     })()}
-                                    <div className="absolute bottom-12 left-12 right-12 font-mono text-[9px] text-zinc-800 uppercase tracking-[0.5em] text-center">
-                                        Subsystem_ID: {selectedFeature.tag} // ARCHITECT_ONLY
+                                    <div className="absolute bottom-8 md:bottom-12 left-6 right-6 font-mono text-[7px] md:text-[9px] text-zinc-800 uppercase tracking-[0.5em] text-center">
+                                        Subsystem_ID: {selectedFeature.id?.toUpperCase() || 'CORE'} // ARCHITECT_ONLY
                                     </div>
                                 </div>
 
-                                <div className="flex-1 p-10 md:p-16 space-y-10 relative overflow-hidden">
-                                    <button onClick={() => setSelectedFeature(null)} className="absolute top-10 right-10 text-zinc-700 hover:text-white transition-colors">
-                                        <X size={28} />
+                                <div className="flex-1 p-8 md:p-16 space-y-8 md:space-y-10 relative">
+                                    <button onClick={() => setSelectedFeature(null)} className="absolute top-6 right-6 md:top-10 md:right-10 text-zinc-700 hover:text-white transition-colors">
+                                        <X size={isMobile ? 24 : 28} />
                                     </button>
 
-                                    <div className="space-y-4">
-                                        <div className="inline-flex items-center gap-2 text-[11px] font-mono font-black uppercase tracking-[0.5em]" style={{ color: selectedFeature.color }}>
-                                            <Activity size={12} className="animate-pulse" />
+                                    <div className="space-y-3 md:space-y-4">
+                                        <div className="inline-flex items-center gap-2 text-[9px] md:text-[11px] font-mono font-black uppercase tracking-[0.5em]" style={{ color: selectedFeature.color }}>
+                                            <Activity size={isMobile ? 10 : 12} className="animate-pulse" />
                                             Subsystem_Report_v4.02
                                         </div>
-                                        <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase tracking-tight leading-none">{selectedFeature.title}</h2>
+                                        <h2 className="text-xl md:text-3xl font-display font-black text-white uppercase tracking-tight leading-none">{selectedFeature.title || selectedFeature.label}</h2>
                                     </div>
 
-                                    <div className="space-y-12">
-                                        <div className="space-y-4">
-                                            <div className="text-[10px] font-mono font-black text-zinc-600 uppercase tracking-[0.6em]">Core_Rationale</div>
-                                            <div className="p-8 rounded-[32px] bg-white/[0.02] border border-white/5 relative overflow-hidden group">
-                                                <p className="text-zinc-300 text-xl leading-relaxed italic font-light relative z-10">&quot;{selectedFeature.desc}&quot;</p>
+                                    <div className="space-y-10 md:space-y-12">
+                                        <div className="space-y-3 md:space-y-4">
+                                            <div className="text-[9px] md:text-[10px] font-mono font-black text-zinc-600 uppercase tracking-[0.4em] md:tracking-[0.6em]">Core_Rationale</div>
+                                            <div className="p-6 md:p-8 rounded-[24px] md:rounded-[32px] bg-white/[0.02] border border-white/5 relative overflow-hidden group">
+                                                <p className="text-zinc-300 text-base md:text-xl leading-relaxed italic font-light relative z-10">&quot;{selectedFeature.desc}&quot;</p>
                                             </div>
                                         </div>
 
-                                        <div className="space-y-4">
-                                            <div className="text-[10px] font-mono font-black text-secondary uppercase tracking-[0.6em]">Technical_Nucleus // Execution</div>
-                                            <div className="p-8 rounded-[32px] bg-secondary/5 border border-secondary/10 relative overflow-hidden">
+                                        <div className="space-y-3 md:space-y-4">
+                                            <div className="text-[9px] md:text-[10px] font-mono font-black text-secondary uppercase tracking-[0.4em] md:tracking-[0.6em]">Technical_Nucleus</div>
+                                            <div className="p-6 md:p-8 rounded-[24px] md:rounded-[32px] bg-secondary/5 border border-secondary/10 relative overflow-hidden">
                                                 <div className="absolute top-0 right-0 p-4 opacity-10">
-                                                    <Terminal size={40} className="text-secondary" />
+                                                    <Terminal size={isMobile ? 32 : 40} className="text-secondary" />
                                                 </div>
-                                                <pre className="text-secondary text-sm md:text-base font-mono leading-relaxed font-black whitespace-pre-wrap min-h-[4em]">
+                                                <pre className="text-secondary text-xs md:text-base font-mono leading-relaxed font-black whitespace-pre-wrap min-h-[4em]">
                                                     <code><Typewriter text={selectedFeature.code || `oraya --status ${selectedFeature.id?.toUpperCase() || 'CORE'}`} /></code>
                                                 </pre>
-                                                <div className="mt-8 pt-6 border-t border-secondary/10 flex items-center justify-between">
-                                                    <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">{selectedFeature.stats || "LOAD_NOMINAL"}</span>
-                                                    <span className="text-[10px] font-mono text-secondary/40 font-black">X_RECV_099</span>
+                                                <div className="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-secondary/10 flex items-center justify-between">
+                                                    <span className="text-[8px] md:text-[10px] font-mono text-zinc-500 uppercase tracking-widest">{selectedFeature.stats || "LOAD_NOMINAL"}</span>
+                                                    <span className="text-[8px] md:text-[10px] font-mono text-secondary/40 font-black">X_RECV_099</span>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="pt-8 border-t border-white/5 flex justify-between items-center bg-black/50 sticky bottom-0">
-                                        <div className="flex gap-8">
+                                    <div className="pt-6 md:pt-8 border-t border-white/5 flex justify-between items-center bg-black/50">
+                                        <div className="flex gap-6 md:gap-8">
                                             <div className="space-y-1">
-                                                <div className="text-[9px] font-mono text-zinc-700 uppercase tracking-widest">Clearance</div>
-                                                <div className="text-[11px] font-mono text-white">SOVEREIGN_L5</div>
+                                                <div className="text-[8px] md:text-[9px] font-mono text-zinc-700 uppercase tracking-widest">Clearance</div>
+                                                <div className="text-[9px] md:text-[11px] font-mono text-white">SOVEREIGN_L5</div>
                                             </div>
                                         </div>
-                                        <button onClick={() => setSelectedFeature(null)} className="px-8 py-3 bg-primary text-black font-mono font-black text-xs uppercase tracking-widest hover:bg-white transition-colors rounded-xl shadow-[0_10px_30px_var(--primary-glow)]">Terminate_Report</button>
+                                        <button onClick={() => setSelectedFeature(null)} className="px-5 py-2.5 md:px-8 md:py-3 bg-primary text-black font-mono font-black text-[9px] md:text-xs uppercase tracking-widest hover:bg-white transition-colors rounded-xl shadow-[0_10px_30px_var(--primary-glow)]">Terminate</button>
                                     </div>
                                 </div>
                             </motion.div>
@@ -379,7 +437,7 @@ export default function FeaturesAIOS() {
     );
 }
 
-function BentoCard({ item, uniqueId, isHovered, isAutoHighlight, onHover, onLeave, onClick }: any) {
+function BentoCard({ item, uniqueId, isHovered, isAutoHighlight, onHover, onLeave, onClick, isMobile }: any) {
     const isLarge = item.size === "large";
     const isWide = item.size === "wide";
 
@@ -390,11 +448,11 @@ function BentoCard({ item, uniqueId, isHovered, isAutoHighlight, onHover, onLeav
             onMouseLeave={onLeave}
             onClick={onClick}
             className={cn(
-                "relative group rounded-[40px] border border-white/5 bg-[#080808] overflow-hidden transition-all duration-700 cursor-pointer shadow-2xl",
-                isLarge ? "md:col-span-2 md:row-span-2" : isWide ? "md:col-span-2" : "md:col-span-1"
+                "relative group rounded-[32px] md:rounded-[40px] border border-white/5 bg-[#080808] overflow-hidden transition-all duration-700 cursor-pointer shadow-2xl",
+                !isMobile && (isLarge ? "md:col-span-2 md:row-span-2" : isWide ? "md:col-span-2" : "md:col-span-1"),
+                isMobile && "min-h-[240px]"
             )}
         >
-            {/* Dynamic Background Glow */}
             <div
                 className={cn(
                     "absolute inset-0 opacity-0 transition-opacity duration-1000 pointer-events-none",
@@ -413,48 +471,47 @@ function BentoCard({ item, uniqueId, isHovered, isAutoHighlight, onHover, onLeav
                 />
             )}
 
-            {/* Content Container */}
-            <div className="p-10 h-full flex flex-col justify-between relative z-20">
-                <div className="space-y-8">
-                    {/* Header: Icon + Telemetry */}
+            <div className={cn("h-full flex flex-col justify-between relative z-20", isMobile ? "p-8" : "p-10")}>
+                <div className={cn("space-y-6 md:space-y-8")}>
                     <div className="flex justify-between items-start">
-                        <div className="w-16 h-16 rounded-[24px] flex items-center justify-center border border-white/10 bg-black group-hover:border-[currentColor] group-hover:bg-[currentColor]/5 transition-all duration-700" style={{ color: item.color }}>
+                        <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl md:rounded-[24px] flex items-center justify-center border border-white/10 bg-black group-hover:border-[currentColor] group-hover:bg-[currentColor]/5 transition-all duration-700" style={{ color: item.color }}>
                             {(() => {
                                 const ItemIcon = item.icon;
-                                return <ItemIcon size={32} strokeWidth={1} />;
+                                return <ItemIcon size={isMobile ? 24 : 32} strokeWidth={1} />;
                             })()}
                         </div>
 
-                        {/* Technical Telemetry Bits */}
-                        <div className="hidden sm:block text-right space-y-1 opacity-0 group-hover:opacity-100 transition-opacity duration-700 delay-100">
-                            {item.telemetry?.map((t: string, i: number) => (
-                                <div key={i} className="text-[8px] font-mono text-zinc-600 uppercase tracking-widest">{t}</div>
-                            ))}
-                        </div>
+                        {!isMobile && (
+                            <div className="text-right space-y-1 opacity-0 group-hover:opacity-100 transition-opacity duration-700 delay-100">
+                                {item.telemetry?.map((t: string, i: number) => (
+                                    <div key={i} className="text-[8px] font-mono text-zinc-600 uppercase tracking-widest">{t}</div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
-                    <div>
-                        {item.stats && <span className="text-[10px] font-mono font-black text-zinc-700 uppercase tracking-[0.5em] mb-4 block group-hover:text-zinc-500 transition-colors">{item.stats} // LOAD_NOMINAL</span>}
-                        <h3 className="text-3xl font-sans font-black text-white tracking-tight uppercase mb-4 leading-none">{item.title}</h3>
-                        <p className="text-zinc-500 text-[15px] leading-relaxed max-w-[300px] group-hover:text-zinc-300 transition-colors font-light italic">&quot;{item.desc}&quot;</p>
+                    <div className="space-y-3">
+                        {item.stats && !isMobile && <span className="text-[10px] font-mono font-black text-zinc-700 uppercase tracking-[0.5em] mb-4 block group-hover:text-zinc-500 transition-colors">{item.stats}</span>}
+                        <h3 className="text-xl md:text-3xl font-sans font-black text-white tracking-tight uppercase leading-none">{item.title}</h3>
+                        <p className="text-zinc-500 text-sm md:text-[15px] leading-relaxed max-w-[300px] group-hover:text-zinc-300 transition-colors font-light italic">&quot;{item.desc}&quot;</p>
                     </div>
                 </div>
 
-                {/* Bottom Bar: Interactive Cue */}
-                <div className="flex items-center justify-between mt-12 bg-white/[0.02] border border-white/5 rounded-2xl p-4 group-hover:bg-white/[0.04] transition-colors">
-                    <div className="text-[10px] font-mono text-zinc-600 uppercase tracking-[0.4em] group-hover:text-white transition-colors">
+                <div className="flex items-center justify-between mt-8 md:mt-12 bg-white/[0.02] border border-white/5 rounded-2xl p-4 group-hover:bg-white/[0.04] transition-colors">
+                    <div className="text-[9px] md:text-[10px] font-mono text-zinc-600 uppercase tracking-[0.4em] group-hover:text-white transition-colors">
                         View_Detailed_Spec
                     </div>
-                    <ChevronRight size={16} className="text-zinc-600 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                    <ChevronRight size={14} className="text-zinc-600 group-hover:text-white group-hover:translate-x-1 transition-all" />
                 </div>
             </div>
 
-            {/* Visual Preview Layer - Deep Framing */}
             {item.visual && (
-                <div className={cn("absolute opacity-20 group-hover:opacity-60 transition-all duration-1000", isLarge ? "right-[-15%] bottom-[-5%] w-[110%]" : "right-[-10%] bottom-[-5%] w-[100%]")}>
-                    <div className="relative aspect-video rounded-tl-[60px] overflow-hidden border-t border-l border-white/10 shadow-[-40px_-40px_80px_rgba(0,0,0,0.8)] backdrop-blur-2xl">
+                <div className={cn(
+                    "absolute opacity-20 group-hover:opacity-60 transition-all duration-1000",
+                    !isMobile ? (isLarge ? "right-[-15%] bottom-[-5%] w-[110%]" : "right-[-10%] bottom-[-5%] w-[100%]") : "right-[-20%] bottom-[-10%] w-[80%]"
+                )}>
+                    <div className="relative aspect-video rounded-tl-[40px] md:rounded-tl-[60px] overflow-hidden border-t border-l border-white/10 shadow-[-40px_-40px_80px_rgba(0,0,0,0.8)] backdrop-blur-2xl">
                         <Image src={item.visual} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform duration-[4s] ease-out" />
-                        {/* Edge masking */}
                         <div className="absolute inset-0 bg-gradient-to-t from-[#080808] via-transparent to-transparent" />
                         <div className="absolute inset-0 bg-gradient-to-l from-[#080808] via-transparent to-transparent" />
                     </div>
@@ -466,6 +523,8 @@ function BentoCard({ item, uniqueId, isHovered, isAutoHighlight, onHover, onLeav
 
 function FeatureSmallCard({ item, uniqueId, index, onClick }: { item: any, uniqueId: string, index: number, onClick: () => void }) {
     const Icon = item.icon;
+    const { isMobile } = useResponsive();
+
     return (
         <motion.div
             layoutId={uniqueId}
@@ -474,24 +533,23 @@ function FeatureSmallCard({ item, uniqueId, index, onClick }: { item: any, uniqu
             viewport={{ once: true }}
             transition={{ delay: index * 0.03 }}
             onClick={onClick}
-            className="group relative p-10 rounded-[32px] bg-[#0A0A0A] border border-white/5 hover:border-[currentColor] hover:bg-white/[0.02] transition-all duration-700 cursor-pointer overflow-hidden flex flex-col justify-between min-h-[280px]"
+            className="group relative p-8 md:p-10 rounded-[28px] md:rounded-[32px] bg-[#0A0A0A] border border-white/5 hover:border-[currentColor] hover:bg-white/[0.02] transition-all duration-700 cursor-pointer overflow-hidden flex flex-col justify-between min-h-[240px] md:min-h-[280px]"
             style={{ color: item.color }}
         >
-            {/* Background Glow */}
             <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity" style={{ backgroundColor: 'currentColor' }} />
 
-            <div className="relative z-10 space-y-6">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center border border-white/10 bg-black group-hover:border-[currentColor] group-hover:shadow-[0_0_30px_-5px_currentColor] transition-all duration-700">
-                    <Icon size={28} strokeWidth={1} />
+            <div className="relative z-10 space-y-4 md:space-y-6">
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center border border-white/10 bg-black group-hover:border-[currentColor] group-hover:shadow-[0_0_30px_-5px_currentColor] transition-all duration-700">
+                    <Icon size={isMobile ? 24 : 28} strokeWidth={1} />
                 </div>
-                <div className="space-y-3">
-                    <h4 className="text-white font-black text-xl uppercase tracking-tight">{item.label}</h4>
-                    <p className="text-zinc-600 text-sm leading-snug group-hover:text-zinc-400 transition-colors font-light">{item.desc}</p>
+                <div className="space-y-2 md:space-y-3">
+                    <h4 className="text-white font-black text-lg md:text-xl uppercase tracking-tight">{item.label}</h4>
+                    <p className="text-zinc-600 text-xs md:text-sm leading-snug group-hover:text-zinc-400 transition-colors font-light">{item.desc}</p>
                 </div>
             </div>
 
-            <div className="flex items-center gap-2 text-[9px] font-mono text-zinc-800 uppercase tracking-[0.5em] mt-8 group-hover:text-white transition-colors">
-                L5_SPEC <ChevronRight size={14} className="group-hover:translate-x-1 transition-all" />
+            <div className="flex items-center gap-2 text-[8px] md:text-[9px] font-mono text-zinc-800 uppercase tracking-[0.4em] md:tracking-[0.5em] mt-6 group-hover:text-white transition-colors">
+                L5_SPEC <ChevronRight size={isMobile ? 12 : 14} className="group-hover:translate-x-1 transition-all" />
             </div>
         </motion.div>
     );

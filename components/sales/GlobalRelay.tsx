@@ -17,27 +17,208 @@ const nodes = [
     { city: "Singapore", status: "Syncing", color: "#F0B429", top: "58%", left: "75%", latency: "15ms" },
 ];
 
+import { ResponsiveSwitcher } from "./responsive/ResponsiveSwitcher";
+
 export default function GlobalRelay() {
     const [hoveredNode, setHoveredNode] = useState<number | null>(null);
+    const [showMapOnMobile, setShowMapOnMobile] = useState(false);
     const containerRef = useRef(null);
     const isInView = useInView(containerRef, { amount: 0.2 });
 
+    const desktopView = (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1.5 }}
+            className="relative w-full max-w-[1400px] mx-auto rounded-[60px] overflow-hidden border border-white/[0.06] bg-[#050505] shadow-[0_100px_250px_-50px_rgba(0,0,0,1)]"
+        >
+            <div className="relative aspect-[16/9] overflow-hidden group">
+                <Image
+                    src="/assets/Assets/global_map_tactical.png"
+                    alt="Oraya Global Tactical Network"
+                    fill
+                    className="object-cover opacity-60 group-hover:opacity-100 grayscale hover:grayscale-0 transition-all duration-[2s] ease-out scale-105 group-hover:scale-100"
+                    priority
+                />
+
+                {/* Animated Interactivity */}
+                <div className="absolute inset-0 bg-black/40 mix-blend-multiply transition-opacity group-hover:opacity-20" />
+
+                {/* City Nodes */}
+                {nodes.map((node, i) => (
+                    <motion.div
+                        key={i}
+                        onMouseEnter={() => setHoveredNode(i)}
+                        onMouseLeave={() => setHoveredNode(null)}
+                        className="absolute z-20 cursor-pointer group/node"
+                        style={{ top: node.top, left: node.left }}
+                    >
+                        {/* Shockwave Ring */}
+                        {isInView && (
+                            <motion.div
+                                animate={{ scale: [1, 4], opacity: [0.4, 0] }}
+                                transition={{ duration: 3, repeat: Infinity, delay: i * 0.2 }}
+                                className="absolute -inset-6 rounded-full border border-primary/30"
+                            />
+                        )}
+
+                        {/* Core Dot */}
+                        <div className="relative">
+                            <div
+                                className="w-3 h-3 rounded-full bg-primary shadow-[0_0_20px_var(--primary-glow)] group-hover/node:scale-150 transition-transform duration-300"
+                            />
+                            <div className="absolute inset-0 w-3 h-3 rounded-full bg-primary animate-ping opacity-40" />
+                        </div>
+
+                        {/* Premium Tactical Tooltip */}
+                        <AnimatePresence>
+                            {hoveredNode === i && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    className="absolute -top-24 left-1/2 -translate-x-1/2 pointer-events-none z-50 min-w-[180px]"
+                                >
+                                    <div className="bg-black/80 backdrop-blur-2xl border border-white/10 p-5 rounded-2xl shadow-3xl">
+                                        <div className="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
+                                            <span className="text-[10px] font-mono font-black text-primary uppercase tracking-widest">{node.city}</span>
+                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10B981]" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between text-[9px] font-mono text-white/40">
+                                                <span>LATENCY</span>
+                                                <span className="text-white">{node.latency}</span>
+                                            </div>
+                                            <div className="flex justify-between text-[9px] font-mono text-white/40">
+                                                <span>PROTOCOL</span>
+                                                <span className="text-white">SOV_REH_0.1</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </motion.div>
+                ))}
+
+                {/* Live Log Widget (Industrial HUD) */}
+                <div className="absolute bottom-12 left-12 p-8 glass rounded-[32px] border border-white/5 space-y-4 max-w-[300px] hidden lg:block text-left">
+                    <div className="flex items-center gap-3">
+                        <Activity className="text-[#BF00FF]" size={16} />
+                        <span className="text-[10px] font-mono font-black text-white/40 uppercase tracking-[0.4em]">Live_Stream</span>
+                    </div>
+                    <div className="space-y-1.5 text-[9px] font-mono text-white/20 uppercase tracking-widest leading-loose">
+                        <p className="text-emerald-500/60">[08:44:12] Handshake complete sf_1</p>
+                        <p>[08:44:13] Context shard sync: 14%</p>
+                        <p>[08:44:15] Global relay resonance active</p>
+                        <p className="text-secondary">[ALERT] Tokyo node throughput peak</p>
+                    </div>
+                </div>
+
+                {/* Top Stats HUD */}
+                <div className="absolute top-12 right-12 flex items-center gap-12 font-mono text-[10px] text-zinc-500 tracking-[0.5em] hidden md:flex">
+                    <div className="flex flex-col items-end gap-1">
+                        <span className="text-white font-black">12.1 PB/S</span>
+                        <span>THROUGHPUT</span>
+                    </div>
+                    <div className="w-px h-8 bg-white/10" />
+                    <div className="flex flex-col items-end gap-1">
+                        <span className="text-primary font-black">99.999%</span>
+                        <span>SOVEREIGN_UPTIME</span>
+                    </div>
+                </div>
+            </div>
+        </motion.div>
+    );
+
+    const mobileView = (
+        <div className="space-y-8">
+            <div className="rounded-[40px] border border-white/5 bg-[#050505] overflow-hidden p-8 space-y-8">
+                <div className="flex items-center justify-between border-b border-white/5 pb-6">
+                    <div className="flex items-center gap-3">
+                        <Globe size={16} className="text-primary animate-pulse" />
+                        <span className="text-xs font-mono font-black text-white uppercase tracking-widest">Active_Nodes</span>
+                    </div>
+                    <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-mono text-emerald-500 uppercase tracking-tighter">
+                        Overall_Healthy
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                    {nodes.slice(0, 6).map((node, i) => (
+                        <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                            <div className="flex items-center gap-4">
+                                <div className="w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]" style={{ color: node.color, background: node.color }} />
+                                <div className="space-y-0.5">
+                                    <div className="text-[10px] font-black text-white uppercase tracking-tight">{node.city}</div>
+                                    <div className="text-[8px] font-mono text-zinc-600 uppercase tracking-widest">{node.status}</div>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <div className="text-[10px] font-black text-primary font-mono">{node.latency}</div>
+                                <div className="text-[7px] font-mono text-zinc-700 uppercase tracking-widest">Latency</div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                <div className="pt-6 border-t border-white/5">
+                    <div className="grid grid-cols-2 gap-8">
+                        <div className="space-y-1">
+                            <div className="text-[8px] font-mono text-zinc-700 uppercase tracking-widest">Uptime</div>
+                            <div className="text-xl font-black text-white font-mono tracking-tighter">99.99%</div>
+                        </div>
+                        <div className="space-y-1">
+                            <div className="text-[8px] font-mono text-zinc-700 uppercase tracking-widest">Protocol</div>
+                            <div className="text-xl font-black text-primary font-mono tracking-tighter">SOV_REH</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Mobile Tactical Preview Toggle - If they really want to see the map */}
+            <button
+                onClick={() => setShowMapOnMobile(!showMapOnMobile)}
+                className="w-full py-4 rounded-2xl border border-white/10 bg-white/[0.02] font-mono text-[9px] text-zinc-400 uppercase tracking-[0.3em] font-black"
+            >
+                {showMapOnMobile ? "Hide_Tactical_View" : "View_Tactical_Map_Overlay"}
+            </button>
+
+            {showMapOnMobile && (
+                <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="relative aspect-video rounded-3xl overflow-hidden border border-white/5 grayscale"
+                >
+                    <Image
+                        src="/assets/Assets/global_map_tactical.png"
+                        alt="Oraya Global Tactical Network"
+                        fill
+                        className="object-cover opacity-60"
+                        unoptimized
+                    />
+                </motion.div>
+            )}
+        </div>
+    );
+
     return (
-        <section ref={containerRef} className="py-12 md:py-16 bg-black relative overflow-hidden noise-overlay">
+        <section ref={containerRef} className="py-16 md:py-24 bg-black relative overflow-hidden noise-overlay">
             {/* Deep Atmospheric Backdrop */}
             <div className="absolute inset-0 z-0 pointer-events-none">
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[100%] bg-[radial-gradient(circle_at_center,var(--primary-glow)_0%,transparent_60%)] opacity-5" />
                 <div className="absolute bottom-0 left-0 w-full h-[50%] bg-gradient-to-t from-black via-transparent to-transparent" />
             </div>
 
-            <div className="max-w-7xl mx-auto px-10 relative z-10 text-center">
+            <div className="max-w-7xl mx-auto px-6 md:px-10 relative z-10 text-center">
                 {/* Header Section with breathing space */}
-                <div className="space-y-8 mb-12 max-w-5xl mx-auto">
+                <div className="space-y-8 mb-12 md:mb-16 max-w-5xl mx-auto">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         whileInView={{ opacity: 1, scale: 1 }}
                         viewport={{ once: true }}
-                        className="inline-flex items-center gap-4 px-6 py-2.5 bg-white/[0.02] border border-white/[0.08] rounded-full font-mono text-[10px] font-black uppercase tracking-[0.6em] text-primary glass shadow-2xl"
+                        className="inline-flex items-center gap-4 px-6 py-2.5 bg-white/[0.02] border border-white/[0.08] rounded-full font-mono text-[9px] md:text-[10px] font-black uppercase tracking-[0.6em] text-primary glass shadow-2xl"
                     >
                         <Radio size={14} className="animate-pulse" />
                         Intelligence_Sovereignty_Relay
@@ -59,121 +240,17 @@ export default function GlobalRelay() {
                         whileInView={{ opacity: 1 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.4 }}
-                        className="text-2xl text-zinc-500 font-sans font-light leading-relaxed max-w-3xl mx-auto tracking-wide"
+                        className="text-lg md:text-2xl text-zinc-500 font-sans font-light leading-relaxed max-w-3xl mx-auto tracking-wide uppercase italic tracking-tighter"
                     >
                         Distribute your cognition across 8 global nodes without sacrificing owner control.
                         Oraya scales with you, locally and globally.
                     </motion.p>
                 </div>
 
-                {/* THE TACTICAL MAP CENTERPIECE */}
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 1.5 }}
-                    className="relative w-full max-w-[1400px] mx-auto rounded-[60px] overflow-hidden border border-white/[0.06] bg-[#050505] shadow-[0_100px_250px_-50px_rgba(0,0,0,1)]"
-                >
-                    <div className="relative aspect-[16/9] overflow-hidden group">
-                        <Image
-                            src="/assets/Assets/global_map_tactical.png"
-                            alt="Oraya Global Tactical Network"
-                            fill
-                            className="object-cover opacity-60 group-hover:opacity-100 grayscale hover:grayscale-0 transition-all duration-[2s] ease-out scale-105 group-hover:scale-100"
-                            priority
-                        />
-
-                        {/* Animated Interactivity */}
-                        <div className="absolute inset-0 bg-black/40 mix-blend-multiply transition-opacity group-hover:opacity-20" />
-
-                        {/* City Nodes */}
-                        {nodes.map((node, i) => (
-                            <motion.div
-                                key={i}
-                                onMouseEnter={() => setHoveredNode(i)}
-                                onMouseLeave={() => setHoveredNode(null)}
-                                className="absolute z-20 cursor-pointer group/node"
-                                style={{ top: node.top, left: node.left }}
-                            >
-                                {/* Shockwave Ring */}
-                                {isInView && (
-                                    <motion.div
-                                        animate={{ scale: [1, 4], opacity: [0.4, 0] }}
-                                        transition={{ duration: 3, repeat: Infinity, delay: i * 0.2 }}
-                                        className="absolute -inset-6 rounded-full border border-primary/30"
-                                    />
-                                )}
-
-                                {/* Core Dot */}
-                                <div className="relative">
-                                    <div
-                                        className="w-3 h-3 rounded-full bg-primary shadow-[0_0_20px_var(--primary-glow)] group-hover/node:scale-150 transition-transform duration-300"
-                                    />
-                                    <div className="absolute inset-0 w-3 h-3 rounded-full bg-primary animate-ping opacity-40" />
-                                </div>
-
-                                {/* Premium Tactical Tooltip */}
-                                <AnimatePresence>
-                                    {hoveredNode === i && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                            className="absolute -top-24 left-1/2 -translate-x-1/2 pointer-events-none z-50 min-w-[180px]"
-                                        >
-                                            <div className="bg-black/80 backdrop-blur-2xl border border-white/10 p-5 rounded-2xl shadow-3xl">
-                                                <div className="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
-                                                    <span className="text-[10px] font-mono font-black text-primary uppercase tracking-widest">{node.city}</span>
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10B981]" />
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <div className="flex justify-between text-[9px] font-mono text-white/40">
-                                                        <span>LATENCY</span>
-                                                        <span className="text-white">{node.latency}</span>
-                                                    </div>
-                                                    <div className="flex justify-between text-[9px] font-mono text-white/40">
-                                                        <span>PROTOCOL</span>
-                                                        <span className="text-white">SOV_REH_0.1</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </motion.div>
-                        ))}
-
-                        {/* Live Log Widget (Industrial HUD) */}
-                        <div className="absolute bottom-12 left-12 p-8 glass rounded-[32px] border border-white/5 space-y-4 max-w-[300px] hidden lg:block">
-                            <div className="flex items-center gap-3">
-                                <Activity className="text-[#BF00FF]" size={16} />
-                                <span className="text-[10px] font-mono font-black text-white/40 uppercase tracking-[0.4em]">Live_Stream</span>
-                            </div>
-                            <div className="space-y-1.5 text-[9px] font-mono text-white/20 uppercase tracking-widest leading-loose">
-                                <p className="text-emerald-500/60">[08:44:12] Handshake complete sf_1</p>
-                                <p>[08:44:13] Context shard sync: 14%</p>
-                                <p>[08:44:15] Global relay resonance active</p>
-                                <p className="text-secondary">[ALERT] Tokyo node throughput peak</p>
-                            </div>
-                        </div>
-
-                        {/* Top Stats HUD */}
-                        <div className="absolute top-12 right-12 flex items-center gap-12 font-mono text-[10px] text-zinc-500 tracking-[0.5em] hidden md:flex">
-                            <div className="flex flex-col items-end gap-1">
-                                <span className="text-white font-black">12.1 PB/S</span>
-                                <span>THROUGHPUT</span>
-                            </div>
-                            <div className="w-px h-8 bg-white/10" />
-                            <div className="flex flex-col items-end gap-1">
-                                <span className="text-primary font-black">99.999%</span>
-                                <span>SOVEREIGN_UPTIME</span>
-                            </div>
-                        </div>
-                    </div>
-                </motion.div>
+                <ResponsiveSwitcher mobile={mobileView} desktop={desktopView} />
 
                 {/* CAPABILITY TILES - Simplified for Breathing room */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mt-16 text-left">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 mt-16 text-left">
                     <CapabilityItem
                         icon={Server}
                         title="Decentralized Shards"
@@ -204,13 +281,13 @@ function CapabilityItem({ icon: Icon, title, desc }: { icon: any; title: string;
     return (
         <motion.div
             whileHover={{ y: -10 }}
-            className="p-10 rounded-[40px] border border-white/5 bg-white/[0.01] hover:bg-white/[0.02] hover:border-primary/30 transition-all duration-500 group"
+            className="p-8 md:p-10 rounded-[40px] border border-white/5 bg-white/[0.01] hover:bg-white/[0.02] hover:border-primary/30 transition-all duration-500 group"
         >
-            <div className="w-16 h-16 rounded-3xl bg-white/5 border border-white/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-black transition-all duration-500 mb-8">
+            <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl md:rounded-3xl bg-white/5 border border-white/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-black transition-all duration-500 mb-6 md:mb-8">
                 <Icon size={24} strokeWidth={1.5} />
             </div>
-            <h4 className="text-white font-black text-xl mb-4 tracking-tight uppercase">{title}</h4>
-            <p className="text-zinc-500 font-sans font-light text-base leading-relaxed group-hover:text-zinc-400 transition-colors">
+            <h4 className="text-white font-black text-lg md:text-xl mb-4 tracking-tight uppercase">{title}</h4>
+            <p className="text-sm md:text-base text-zinc-500 font-sans font-light leading-relaxed group-hover:text-zinc-400 transition-colors">
                 {desc}
             </p>
         </motion.div>
