@@ -21,6 +21,7 @@ import MultiWorkspace from "@/components/sales/MultiWorkspace";
 import ModesShowcase from "@/components/sales/ModesShowcase";
 import SecurityVault from "@/components/sales/SecurityVault";
 import ResearchMemory from "@/components/sales/ResearchMemory";
+import SelfHealingUI from "@/components/sales/SelfHealingUI";
 import { CursorGlow } from "@/components/sales/CursorGlow";
 
 import Manifesto from "@/components/sales/Manifesto";
@@ -106,6 +107,9 @@ export default function LandingPage() {
                     <AgentEcosystem />
                     <NeuralArchitecture />
                     <ModesShowcase />
+                    <div className="py-12">
+                        <SelfHealingUI />
+                    </div>
                     <FeaturesAIOS />
                     <MultiWorkspace />
                     <SecurityVault />

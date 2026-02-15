@@ -57,9 +57,9 @@ const WORKSPACES = [
 ];
 
 const CONNECTIONS = [
-    { from: 0, to: 1, label: "AUTH_SCHEMA_HANDOFF", weight: 0.9 },
-    { from: 0, to: 2, label: "INFRA_SECRETS_RELAY", weight: 0.6 },
-    { from: 1, to: 3, label: "API_CONTRACT_SYNC", weight: 0.8 },
+    { from: 0, to: 1, label: "AUTH_SCHEMA_HANDOFF", weight: 0.9, impact: "Critical" },
+    { from: 0, to: 2, label: "INFRA_SECRETS_RELAY", weight: 0.6, impact: "Medium" },
+    { from: 1, to: 3, label: "API_CONTRACT_SYNC", weight: 0.8, impact: "High" },
 ];
 
 export default function MultiWorkspace() {
@@ -160,73 +160,99 @@ export default function MultiWorkspace() {
                         </div>
 
                         {WORKSPACES.map((ws, i) => (
-                            <button
+                            <motion.button
                                 key={ws.id}
+                                layout
                                 onClick={() => setActiveWs(i)}
                                 className={cn(
-                                    "w-full p-8 md:p-10 rounded-[40px] border text-left transition-all duration-1000 group relative overflow-hidden shadow-2xl",
+                                    "w-full p-8 md:p-10 rounded-[40px] border text-left transition-all duration-700 group relative overflow-hidden shadow-2xl",
                                     activeWs === i
-                                        ? "bg-white/[0.03] border-white/20"
+                                        ? "bg-white/[0.04] border-white/20 ring-1 ring-primary/20"
                                         : "bg-white/[0.01] border-white/[0.03] hover:border-white/10"
                                 )}
                             >
-                                {/* Static Progress Bar for active tab */}
-                                {activeWs === i && !isHovered && (
-                                    <motion.div
-                                        initial={{ width: "0%" }}
-                                        animate={{ width: "100%" }}
-                                        transition={{ duration: 5, ease: "linear" }}
-                                        className="absolute bottom-0 left-0 h-[2px] bg-primary/20"
-                                    />
-                                )}
+                                <AnimatePresence>
+                                    {activeWs === i && (
+                                        <motion.div
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] to-transparent pointer-events-none"
+                                        />
+                                    )}
+                                </AnimatePresence>
 
                                 <div className="flex items-center gap-8 relative z-10">
-                                    <div className={cn(
-                                        "w-16 h-16 rounded-[24px] flex items-center justify-center border transition-all duration-1000",
-                                        activeWs === i ? "bg-surface-50 border-white/20" : "bg-black border-white/5"
-                                    )} style={{ color: activeWs === i ? ws.color : '#52525b' }}>
+                                    <motion.div
+                                        layout
+                                        className={cn(
+                                            "w-16 h-16 rounded-[24px] flex items-center justify-center border transition-all duration-1000 relative",
+                                            activeWs === i ? "bg-surface-50 border-white/20" : "bg-black border-white/5"
+                                        )} style={{ color: activeWs === i ? ws.color : '#52525b' }}>
                                         <Database size={32} strokeWidth={1} />
-                                    </div>
+                                        {activeWs === i && (
+                                            <motion.div
+                                                layoutId="active-ws-glow"
+                                                className="absolute inset-0 rounded-[24px] shadow-[0_0_30px_-5px_currentColor] transition-all"
+                                            />
+                                        )}
+                                    </motion.div>
 
-                                    <div className="flex-1 space-y-3">
+                                    <div className="flex-1 space-y-2">
                                         <div className="flex items-center gap-4">
                                             <h4 className={cn(
                                                 "text-2xl font-black uppercase transition-colors duration-700",
                                                 activeWs === i ? "text-white" : "text-zinc-600"
                                             )}>{ws.name}</h4>
                                             {activeWs === i && (
-                                                <span className="px-3 py-1 bg-primary/10 border border-primary/20 text-[9px] font-mono font-black text-primary rounded-full tracking-widest uppercase">{ws.language}</span>
+                                                <motion.span
+                                                    initial={{ opacity: 0, x: -10 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    className="px-3 py-1 bg-primary/10 border border-primary/20 text-[9px] font-mono font-black text-primary rounded-full tracking-widest uppercase"
+                                                >
+                                                    {ws.language}
+                                                </motion.span>
                                             )}
                                         </div>
                                         <div className="flex gap-6 text-[10px] font-mono text-zinc-700 uppercase tracking-[0.2em]">
                                             <span>{ws.stats}</span>
-                                            <span>{ws.nodes} NODES</span>
+                                            <span className="flex items-center gap-2">
+                                                <Activity size={10} className={cn(activeWs === i && "animate-pulse", activeWs === i ? "text-primary" : "text-zinc-800")} />
+                                                {ws.nodes} NODES
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Detail Fragment - Minimalist */}
                                 <AnimatePresence initial={false}>
                                     {activeWs === i && (
                                         <motion.div
                                             initial={{ height: 0, opacity: 0 }}
                                             animate={{ height: "auto", opacity: 1 }}
                                             exit={{ height: 0, opacity: 0 }}
-                                            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                                            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                                             className="overflow-hidden"
                                         >
-                                            <div className="mt-10 pt-8 border-t border-white/[0.05] flex flex-wrap gap-4">
-                                                {ws.files.map(f => (
-                                                    <div key={f} className="flex items-center gap-3 text-[10px] font-mono text-zinc-500 bg-black/40 px-4 py-2 rounded-xl border border-white/[0.05]">
-                                                        <FileCode size={12} className="text-primary/40" />
-                                                        {f}
-                                                    </div>
+                                            <div className="mt-10 pt-8 border-t border-white/[0.05] grid grid-cols-1 gap-2">
+                                                {ws.files.map((f, idx) => (
+                                                    <motion.div
+                                                        key={f}
+                                                        initial={{ opacity: 0, x: -10 }}
+                                                        animate={{ opacity: 1, x: 0 }}
+                                                        transition={{ delay: idx * 0.1 }}
+                                                        className="flex items-center justify-between text-[10px] font-mono bg-black/40 px-5 py-3 rounded-2xl border border-white/[0.05] group/file hover:border-primary/20 transition-all"
+                                                    >
+                                                        <div className="flex items-center gap-4 text-zinc-500 group-hover/file:text-white transition-colors">
+                                                            <FileCode size={12} className="text-primary/40 group-hover/file:text-primary transition-colors" />
+                                                            {f}
+                                                        </div>
+                                                        <span className="text-zinc-800 group-hover/file:text-zinc-600 transition-colors uppercase italic">{ws.sync} SYNC</span>
+                                                    </motion.div>
                                                 ))}
                                             </div>
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
-                            </button>
+                            </motion.button>
                         ))}
                     </div>
 
@@ -298,23 +324,55 @@ export default function MultiWorkspace() {
                             </div>
                         </div>
 
-                        {/* Summary Box - Empirical */}
-                        <div className="p-12 rounded-[48px] border border-white/[0.03] bg-white/[0.01] space-y-6 shadow-2xl">
-                            <h4 className="text-white/80 font-black uppercase tracking-tight text-2xl">SYNTHESIZED_CONTEXT_REPORT</h4>
-                            <p className="text-zinc-500 font-extralight text-lg leading-relaxed uppercase italic">
-                                &quot;Conversation context is <span className="text-white/60 font-normal">synthesized across your entire fleet</span>. Oraya resolves dependencies in real-time, providing logic that is aware of the full system state.&quot;
-                            </p>
-                            <div className="flex gap-6 mt-4">
-                                <div className="flex flex-col">
-                                    <span className="text-[10px] font-mono text-zinc-700 uppercase tracking-widest">Cross_Nodes</span>
-                                    <span className="text-sm font-mono text-white">4.8M ACTIVE</span>
-                                </div>
-                                <div className="w-[1px] h-8 bg-white/5" />
-                                <div className="flex flex-col">
-                                    <span className="text-[10px] font-mono text-zinc-700 uppercase tracking-widest">Latency</span>
-                                    <span className="text-sm font-mono text-white">0.02ms RELAY</span>
+                        {/* Summary Box & Anticipatory Impact Report */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="p-10 rounded-[48px] border border-white/[0.03] bg-white/[0.01] space-y-6 shadow-2xl flex-1">
+                                <h4 className="text-white/80 font-black uppercase tracking-tight text-xl">SYNTHESIZED_REPORT</h4>
+                                <p className="text-zinc-500 font-extralight text-sm leading-relaxed uppercase italic">
+                                    &quot;Oraya resolves <span className="text-white/60 font-normal">connective dependencies</span> in real-time, providing logic aware of the full system state.&quot;
+                                </p>
+                                <div className="flex gap-6 mt-4">
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-mono text-zinc-700 uppercase tracking-widest leading-none">Fleet_Nodes</span>
+                                        <span className="text-base font-mono text-white">4.8M ACTIVE</span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-mono text-zinc-700 uppercase tracking-widest leading-none">Relay_Speed</span>
+                                        <span className="text-base font-mono text-primary">0.02ms</span>
+                                    </div>
                                 </div>
                             </div>
+
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="p-10 rounded-[48px] border border-primary/10 bg-primary/[0.02] space-y-6 shadow-2xl flex-1 relative overflow-hidden"
+                            >
+                                <div className="absolute top-0 right-0 p-8 opacity-10">
+                                    <Scan size={60} className="text-primary" />
+                                </div>
+                                <h4 className="text-primary font-black uppercase tracking-tight text-xl">ANTICIPATORY_IMPACT</h4>
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                        <span className="text-[10px] font-mono text-white/80 uppercase tracking-widest">Logic leak detected in API contact</span>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                                        <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Mobile_Native sync pending...</span>
+                                    </div>
+                                    <div className="pt-2">
+                                        <div className="text-[9px] font-mono text-zinc-700 uppercase tracking-widest mb-1">Impact_Weight</div>
+                                        <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                                            <motion.div
+                                                animate={{ width: ["10%", "85%", "40%", "72%"] }}
+                                                transition={{ duration: 10, repeat: Infinity }}
+                                                className="h-full bg-primary"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
                         </div>
                     </div>
                 </div>

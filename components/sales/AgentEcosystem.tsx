@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Users, Crown, Sparkles, Plus, Trash2, Settings, Brain, Shield, Activity, Fingerprint, Network } from "lucide-react";
 import { agents } from "@/lib/agents";
+import OrchestrationFlow from "./OrchestrationFlow";
 
 export default function AgentEcosystem() {
     const [activeAgent, setActiveAgent] = useState(0);
@@ -102,28 +103,56 @@ export default function AgentEcosystem() {
                         </button>
                     </div>
 
-                    {/* RIGHT: AGENT COMMAND CONSOLE */}
-                    <div className="lg:col-span-3">
+                    {/* RIGHT: AGENT COMMAND CONSOLE & ORCHESTRATION FLOW */}
+                    <div className="lg:col-span-3 space-y-8">
+                        <OrchestrationFlow />
+
+                        {/* HIGH-FIDELITY EXECUTION VIDEO (EPHEMERAL AGENT) */}
+                        <div className="relative group rounded-[48px] overflow-hidden border border-white/5 bg-[#050505] shadow-2xl">
+                            <div className="absolute inset-0 z-10 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+
+                            <div className="relative aspect-video bg-[#0A0A0A] flex items-center justify-center overflow-hidden">
+                                {/* Placeholder for the 5-6s clip */}
+                                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2000')] bg-cover bg-center opacity-20 grayscale scale-110 group-hover:scale-100 transition-transform duration-[3s]" />
+
+                                <div className="relative z-20 flex flex-col items-center gap-6">
+                                    <div className="w-20 h-20 rounded-full bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-3xl group-hover:bg-primary group-hover:text-black transition-all duration-700 cursor-pointer">
+                                        <Zap size={32} />
+                                    </div>
+                                    <div className="text-center space-y-2">
+                                        <div className="text-[10px] font-mono text-primary font-black uppercase tracking-[0.4em]">Video_Feed: 0x889_EPHEMERAL</div>
+                                        <div className="text-zinc-500 font-sans text-xs uppercase tracking-widest">Self-Destruction Sequence // 5.4s</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Tactical Overlays */}
+                            <div className="absolute top-8 left-8 z-20 flex items-center gap-4">
+                                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                                <div className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest">Live_Recording_Active</div>
+                            </div>
+                        </div>
+
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={activeAgent}
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
-                                className="p-10 md:p-16 rounded-[48px] border border-white/5 bg-[#050505] relative overflow-hidden shadow-2xl min-h-[600px] flex flex-col justify-between"
+                                className="p-10 md:p-16 rounded-[48px] border border-white/5 bg-[#050505] relative overflow-hidden shadow-2xl min-h-[400px] flex flex-col justify-between"
                             >
                                 <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
                                     <Image src={agents[activeAgent].avatar} alt="" width={400} height={400} className="grayscale" unoptimized />
                                 </div>
 
-                                <div className="space-y-12 relative z-10">
+                                <div className="space-y-10 relative z-10">
                                     <div className="space-y-6">
                                         <div className="inline-flex items-center gap-3 px-4 py-1.5 bg-white/[0.03] border border-white/10 rounded-full font-mono text-[10px] font-black uppercase tracking-[0.4em]" style={{ color: agents[activeAgent].color }}>
                                             <Fingerprint size={12} />
                                             IDENTITY_VERIFIED // 0x{activeAgent}F3
                                         </div>
-                                        <h3 className="text-5xl md:text-7xl font-display font-black text-white uppercase tracking-tighter leading-none">{agents[activeAgent].name}</h3>
-                                        <p className="text-2xl text-zinc-500 font-sans font-light leading-snug uppercase tracking-tighter italic max-w-2xl">
+                                        <h3 className="text-5xl md:text-6xl font-display font-black text-white uppercase tracking-tighter leading-none">{agents[activeAgent].name}</h3>
+                                        <p className="text-xl text-zinc-500 font-sans font-light leading-snug uppercase tracking-tighter italic max-w-2xl">
                                             &quot;{agents[activeAgent].desc}&quot;
                                         </p>
                                     </div>
@@ -137,7 +166,6 @@ export default function AgentEcosystem() {
                                         ))}
                                     </div>
                                 </div>
-
                                 {/* Telemetry Footer */}
                                 <div className="pt-12 mt-12 border-t border-white/5 grid grid-cols-3 gap-8 relative z-10">
                                     <div className="space-y-2">
