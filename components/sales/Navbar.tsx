@@ -21,7 +21,7 @@ export default function SalesNavbar() {
 
     const navLinks = [
         { label: "01_ORCHESTRATION", href: "#aios-features" },
-        { label: "02_NEURAL_RECALL", href: "#intelligence" },
+        { label: "02_SUPERPOWERS", href: "#intelligence" },
         { label: "03_FORTRESS", href: "#security" },
         { label: "04_DOMINION", href: "#grand-offer" },
         { label: "05_PRICING", href: "#pricing" },

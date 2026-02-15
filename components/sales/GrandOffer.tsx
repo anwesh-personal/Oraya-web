@@ -248,19 +248,18 @@ function InventoryCard({ item, index }: { item: typeof VALUE_STACK[0], index: nu
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            whileInView={{
+                opacity: 1,
+                y: 0,
+                transition: { delay: index * 0.05, duration: 0.4 }
+            }}
             whileHover={{
-                scale: 1.25,
-                zIndex: 50,
-                boxShadow: `0 0 50px -10px ${category?.color}30`,
-                borderColor: `${category?.color}40`
+                borderColor: category?.color,
+                boxShadow: `0 0 100px 10px ${item.cat === 'security' ? 'rgba(255,255,255,0.3)' : item.cat === 'memory' ? 'rgba(0,240,255,0.4)' : 'rgba(240,180,41,0.4)'}`,
+                transition: { duration: 0.2, delay: 0 }
             }}
             viewport={{ once: true }}
-            transition={{
-                delay: index * 0.05,
-                scale: { duration: 0.3, ease: "easeOut" }
-            }}
-            className="group relative p-8 rounded-[32px] bg-white/[0.01] border border-white/5 hover:bg-white/[0.02] transition-all duration-500 overflow-hidden min-h-[400px] flex flex-col justify-between"
+            className="group relative p-8 rounded-[32px] bg-white/[0.01] border border-white/5 hover:bg-white/[0.02] overflow-hidden min-h-[400px] flex flex-col justify-between"
         >
             {/* Blueprint Overlay (Bottom right) */}
             <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-20 transition-opacity">

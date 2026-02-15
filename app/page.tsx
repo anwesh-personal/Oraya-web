@@ -30,6 +30,8 @@ import NeuralArchitecture from "@/components/sales/NeuralArchitecture";
 import SovereigntyScorecard from "@/components/sales/SovereigntyScorecard";
 import GlobalRelay from "@/components/sales/GlobalRelay";
 
+import IntelligenceMantle from "@/components/sales/IntelligenceMantle";
+
 // ─── Cinematic Section Divider ─────────────────────────────────
 function Divider({ accent }: { accent?: "primary" | "secondary" | "white" | "none" }) {
     const glowColor = accent === "primary" ? "var(--primary)" : accent === "secondary" ? "var(--secondary)" : accent === "white" ? "#FFFFFF" : undefined;
@@ -112,6 +114,7 @@ export default function LandingPage() {
                     <div className="py-12">
                         <SelfHealingUI />
                     </div>
+                    <IntelligenceMantle />
                     <FeaturesAIOS />
                     <MultiWorkspace />
                     <SecurityVault />

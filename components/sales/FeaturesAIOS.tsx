@@ -3,10 +3,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import {
-    Cpu, Shield, Zap, Terminal, Database, Link, Sparkles,
+    Cpu, Shield, Zap, Terminal, Database, Link,
     Workflow, Brain, Monitor, Activity, Lock, Layers,
     Eye, ChevronRight, X, Globe, Fingerprint, Users,
-    MessageSquare, Network, GitBranch, Boxes, BarChart3, ScanLine
+    MessageSquare, Network, GitBranch, Boxes, BarChart3, ScanLine, Search, GitMerge, Sparkles
 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -39,21 +39,87 @@ function FeaturePortal({ children }: { children: React.ReactNode }) {
     return mounted ? createPortal(children, document.body) : null;
 }
 
+const BRAIN_SUB_FEATURES = [
+    {
+        id: "resonance",
+        title: "Neural Resonance",
+        desc: "Synchronizing high-frequency data streams into a single coherent logical frequency for absolute terminal dominance.",
+        icon: Activity,
+        color: "#00F0FF",
+        visual: "/assets/Assets/brain_resonance.png",
+        stats: "FREQ_MATCH_100%",
+        code: `oraya.brain.sync({\n  mode: "RESONANCE",\n  depth: "MAX"\n});`,
+        telemetry: ["Sub-ms Jitter", "Phase Lock", "Neural Alpha"]
+    },
+    {
+        id: "reflect",
+        title: "Continuous Reflection",
+        desc: "Proactive self-critique loops that analyze execution failures before they happen, optimizing kernel responses.",
+        icon: Eye,
+        color: "#F0B429",
+        visual: "/assets/Assets/brain_tactical.png",
+        stats: "SELF_AWARE_ACTIVE",
+        code: `await oraya.brain.reflect();\n// Diagnostic optimization complete`,
+        telemetry: ["Zero Error Buffer", "Trace Analysis", "Loop Feedback"]
+    },
+    {
+        id: "gap",
+        title: "Knowledge Gap Audit",
+        desc: "Identifying the 'Unknown Unknowns' in your codebase and filling them autonomously through recursive indexing.",
+        icon: ScanLine,
+        color: "#10B981",
+        visual: "/assets/Assets/brain_tactical1Black.png",
+        stats: "GAP_DISCOVERY: ON",
+        code: `brain.scanGaps();\nbrain.fillMissingContext();`,
+        telemetry: ["Context Shards", "Auto-Discovery", "Latent Space"]
+    },
+    {
+        id: "mapping",
+        title: "Content Mapping",
+        desc: "Visualizing the entire semantic landscape of your project, tracing dependencies and logic flow across clusters.",
+        icon: Network,
+        color: "#00F0FF",
+        visual: "/assets/Assets/brain_resonance.png",
+        stats: "MAP_VERIFIED",
+        code: `oraya.brain.mapProject();\n// Graph nodes: 12.4M`,
+        telemetry: ["Graph Tracing", "Logic Flow", "L5 Mapping"]
+    },
+    {
+        id: "research",
+        title: "Proactive Research",
+        desc: "Predictive background research on libraries, vulnerabilities, and architectural patterns before the dev asks.",
+        icon: Search,
+        color: "#F0B429",
+        visual: "/assets/Assets/brain_tactical.png",
+        stats: "RESEARCH_READY",
+        code: `brain.proactiveResearch();\n// Found 4 potential optimizations`,
+        telemetry: ["Predictive Scan", "Pattern Recognition", "Auto-Audit"]
+    },
+    {
+        id: "actions",
+        title: "Proactive Actions",
+        desc: "Taking the leap from thought to execution – autonomously refactoring debt and patching security leaks.",
+        icon: Zap,
+        color: "#FF3366",
+        visual: "/assets/Assets/brain_tactical1Black.png",
+        stats: "AGENCY_ENGAGED",
+        code: `brain.takeAction();\n// Mission: SELF_HEAL_L5_SUCCESS`,
+        telemetry: ["Autonomous Agency", "Direct Patch", "L5 Dominion"]
+    }
+];
+
 const BENTO_FEATURES = [
     {
         id: "indexing",
         size: "large",
         title: "Total Knowledge Persistence",
+        isNeuralCore: true,
         headline: "Context Eternal.",
-        desc: "Oraya builds a living semantic graph across your entire stack. It never forgets context.",
+        desc: "Oraya's brain isn't static. It's a living engine of Resonance, Reflection, and Proactive Agency.",
         icon: Database,
         color: "var(--primary)",
-        visual: "/assets/screenshots/ss2.png",
         stats: "12.4M Nodes",
-        telemetry: ["2M+ Tokens", "Sub-2ms Lookup", "Neural Persistence"],
-        code: `await oraya.persistence.persist({\n  depth: "SEMANTIC_GRAPH",\n  mode: "SOVEREIGN_RECALL",\n  isolation: true\n});`,
-        payload: "Advanced vector-embedding engine using local Rust-based models for semantic graph construction.",
-        edge: "Everything you've ever typed, coded, or researched is indexed locally. You don't search for code; you recall it with zero latency."
+        telemetry: ["2M+ Tokens", "Sub-2ms Lookup", "Neural Persistence"]
     },
     {
         id: "pulse",
@@ -123,7 +189,8 @@ const BENTO_FEATURES = [
         telemetry: ["5+ Parallel Agents", "Shared Context Relay", "Root Tunnel"],
         code: `trigger swarm(Ora, Ova) {\n  task: "REFRESH_ARCHITECTURE",\n  mode: "PARALLEL_DOMINION"\n}`,
         payload: "Multi-agent orchestration layer managing ephemeral sub-agents based on task complexity.",
-        edge: "Stop being a coder and start being a commander. Trigger a 5-agent parallel refactor while you focus on the $18M vision."
+        edge: "Stop being a coder and start being a commander. Trigger a 5-agent parallel refactor while you focus on the $18M vision.",
+        bgImage: "/assets/Assets/the_frequency.png"
     }
 ];
 
@@ -403,6 +470,16 @@ export default function FeaturesAIOS() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                 {BENTO_FEATURES.map((item) => {
                     const uniqueId = `bento-${item.id}`;
+                    if (item.isNeuralCore) {
+                        return (
+                            <NeuralCoreCard
+                                key={uniqueId}
+                                item={item}
+                                uniqueId={uniqueId}
+                                setSelectedFeature={setSelectedFeature}
+                            />
+                        );
+                    }
                     return (
                         <BentoCard
                             key={uniqueId}
@@ -444,6 +521,17 @@ export default function FeaturesAIOS() {
             <div className="space-y-6">
                 {BENTO_FEATURES.map((item) => {
                     const uniqueId = `bento-mob-${item.id}`;
+                    if (item.isNeuralCore) {
+                        return (
+                            <NeuralCoreCard
+                                key={uniqueId}
+                                item={item}
+                                uniqueId={uniqueId}
+                                isMobile
+                                setSelectedFeature={setSelectedFeature}
+                            />
+                        );
+                    }
                     return (
                         <BentoCard
                             key={uniqueId}
@@ -578,6 +666,160 @@ export default function FeaturesAIOS() {
     );
 }
 
+function NeuralCoreCard({ item, uniqueId, isMobile, setSelectedFeature }: any) {
+    const [activeTab, setActiveTab] = useState(0);
+
+    return (
+        <motion.div
+            layoutId={uniqueId}
+            className={cn(
+                "relative group rounded-[32px] md:rounded-[40px] border border-primary/20 bg-[#080808] overflow-hidden transition-all duration-700 shadow-[0_0_50px_rgba(240,180,41,0.15)]",
+                !isMobile ? "md:col-span-2 md:row-span-2" : "min-h-[600px]"
+            )}
+        >
+            {/* Holographic Neural Asset - Central Hero */}
+            <div className="absolute top-[-10%] right-[-10%] w-[80%] aspect-square opacity-10 group-hover:opacity-30 transition-opacity duration-1000 overflow-visible">
+                <motion.div
+                    animate={{
+                        rotate: 360,
+                        scale: [1, 1.05, 1],
+                    }}
+                    transition={{
+                        rotate: { duration: 60, repeat: Infinity, ease: "linear" },
+                        scale: { duration: 8, repeat: Infinity, ease: "easeInOut" }
+                    }}
+                    className="relative w-full h-full"
+                >
+                    <Image
+                        src="/assets/Assets/brain_tactical.png"
+                        alt="Neural Hub"
+                        fill
+                        className="object-contain blur-[2px] group-hover:blur-0 transition-all duration-1000 drop-shadow-[0_0_80px_rgba(240,180,41,0.4)]"
+                    />
+                </motion.div>
+            </div>
+
+            {/* Individual Sub-feature Visual Layer */}
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key={activeTab}
+                    initial={{ opacity: 0, scale: 0.8, filter: "blur(10px)" }}
+                    animate={{ opacity: 0.25, scale: 1, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, scale: 1.1, filter: "blur(10px)" }}
+                    className="absolute bottom-[-5%] left-[-5%] w-[50%] aspect-square pointer-events-none"
+                    transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                >
+                    <Image
+                        src={BRAIN_SUB_FEATURES[activeTab].visual}
+                        alt="Sub-module Visual"
+                        fill
+                        className="object-contain"
+                    />
+                </motion.div>
+            </AnimatePresence>
+
+            <div className="relative z-20 h-full flex flex-col p-8 md:p-14">
+                <div className="space-y-8 md:space-y-10 flex-1">
+                    <div className="flex justify-between items-start">
+                        <div className="space-y-3">
+                            <motion.div
+                                animate={{ opacity: [1, 0.5, 1] }}
+                                transition={{ duration: 4, repeat: Infinity }}
+                                className="flex items-center gap-3 px-4 py-1.5 bg-primary/10 border border-primary/30 rounded-full w-fit"
+                            >
+                                <Brain size={12} className="text-primary animate-pulse" />
+                                <span className="text-[10px] font-mono text-primary font-black uppercase tracking-[0.3em]">ORAYA_NEURAL_CORE_v5</span>
+                            </motion.div>
+                            <h3 className="text-4xl md:text-6xl font-display font-black text-white uppercase tracking-tighter leading-none">
+                                The <br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-primary to-white animate-shimmer bg-[length:200%_auto]">
+                                    Sentience.
+                                </span>
+                            </h3>
+                        </div>
+
+                        <div className="text-right space-y-1 hidden xl:block">
+                            {BRAIN_SUB_FEATURES[activeTab].telemetry.map((t, i) => (
+                                <div key={i} className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest">{t}</div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Tab/Accordion Stack */}
+                    <div className="space-y-2.5 pt-4">
+                        {BRAIN_SUB_FEATURES.map((sub, i) => {
+                            const isActive = activeTab === i;
+                            return (
+                                <div key={sub.id} className="relative">
+                                    <button
+                                        onClick={() => setActiveTab(i)}
+                                        className={cn(
+                                            "w-full flex items-center justify-between px-5 py-3.5 rounded-2xl border transition-all duration-500 group/btn overflow-hidden",
+                                            isActive
+                                                ? "bg-white/[0.04] border-white/20 text-white shadow-2xl"
+                                                : "bg-transparent border-white/[0.03] text-zinc-600 hover:border-white/10 hover:text-zinc-400"
+                                        )}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <sub.icon size={16} className={cn("transition-colors", isActive ? "text-primary" : "text-zinc-700")} />
+                                            <span className="text-[10px] md:text-[11px] font-mono font-black uppercase tracking-[0.2em]">{sub.title}</span>
+                                        </div>
+                                        {isActive ? (
+                                            <motion.div layoutId="neural-dot" className="w-2 h-2 rounded-full bg-primary shadow-[0_0_15px_var(--primary)]" />
+                                        ) : (
+                                            <div className="w-1 h-1 rounded-full bg-white/5 group-hover/btn:bg-white/20 transition-colors" />
+                                        )}
+                                    </button>
+
+                                    <AnimatePresence>
+                                        {isActive && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: "auto", opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                className="overflow-hidden"
+                                            >
+                                                <div className="px-6 py-6 space-y-5 border-x border-b border-white/10 rounded-b-2xl bg-white/[0.01]">
+                                                    <p className="text-zinc-400 text-sm md:text-[14px] italic font-light leading-relaxed">&quot;{sub.desc}&quot;</p>
+                                                    <div className="flex items-center justify-between pt-2">
+                                                        <div className="text-[8px] font-mono text-zinc-700 uppercase tracking-widest">MODULE_ID: <span className="text-white/40">{sub.stats}</span></div>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setSelectedFeature({ ...sub, uniqueId: `${uniqueId}-${sub.id}` });
+                                                            }}
+                                                            className="px-5 py-2 bg-primary/10 hover:bg-primary/20 border border-primary/20 rounded-lg text-[9px] font-mono text-primary font-black uppercase tracking-[0.3em] transition-all flex items-center gap-2"
+                                                        >
+                                                            ACCESS_SPEC <ChevronRight size={12} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                <div className="mt-10 pt-8 border-t border-white/5 flex items-center justify-between text-[9px] font-mono text-zinc-700 uppercase tracking-widest">
+                    <motion.div
+                        initial={{ opacity: 1 }}
+                        animate={{ opacity: [1, 0.4, 0.9, 0.3, 1] }}
+                        transition={{ duration: 0.2, repeat: Infinity, repeatDelay: 5 }}
+                        className="flex items-center gap-3"
+                    >
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                        <span>NEURAL_BUS: STABLE</span>
+                    </motion.div>
+                    <span className="text-zinc-800">SHARD_L5_ACTIVE</span>
+                </div>
+            </div>
+        </motion.div>
+    );
+}
+
 function BentoCard({ item, uniqueId, isHovered, isAutoHighlight, onHover, onLeave, onClick, isMobile }: any) {
     const isLarge = item.size === "large";
     const isWide = item.size === "wide";
@@ -610,6 +852,18 @@ function BentoCard({ item, uniqueId, isHovered, isAutoHighlight, onHover, onLeav
                     animate={{ width: "100%" }}
                     transition={{ duration: 6, ease: "linear" }}
                 />
+            )}
+
+            {item.bgImage && (
+                <div className="absolute inset-0 z-0 opacity-30 pointer-events-none">
+                    <Image
+                        src={item.bgImage}
+                        alt="Background"
+                        fill
+                        className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-br from-black via-transparent to-black opacity-60" />
+                </div>
             )}
 
             <div className={cn("h-full flex flex-col justify-between relative z-20", isMobile ? "p-8" : "p-10")}>
