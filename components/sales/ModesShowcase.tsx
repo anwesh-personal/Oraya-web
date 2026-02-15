@@ -96,7 +96,7 @@ export default function ModesShowcase() {
     }, [activeMode]);
 
     return (
-        <section className="py-32 bg-black relative overflow-hidden border-t border-white/5" id="modes">
+        <section className="py-12 bg-black relative overflow-hidden border-t border-white/5" id="modes">
             <div className="max-w-7xl mx-auto px-6 relative z-10">
 
                 {/* Header */}
@@ -104,7 +104,7 @@ export default function ModesShowcase() {
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className="text-center mb-20 space-y-6"
+                    className="text-center mb-12 space-y-6"
                 >
                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#F0B429]/10 border border-[#F0B429]/20 rounded-full font-mono text-xs font-bold uppercase tracking-widest text-[#F0B429]">
                         <Cpu size={12} />

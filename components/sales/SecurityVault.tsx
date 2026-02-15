@@ -68,11 +68,11 @@ export default function SecurityVault() {
     const ring2 = useTransform(ringRotation, (v) => `rotate(${-v * 1.8}deg)`);
 
     return (
-        <section className="py-24 md:py-48 bg-black relative overflow-hidden noise-overlay border-t border-white/5" id="security">
+        <section className="py-12 md:py-16 bg-black relative overflow-hidden noise-overlay border-t border-white/5" id="security">
             <div className="scanline" />
 
             <div className="max-w-[1400px] mx-auto px-6 relative z-10">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-32 items-center">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
                     {/* LEFT: THE ELEGANT VAULT (The "Proper Circles" version) */}
                     <div className="relative flex items-center justify-center py-20">

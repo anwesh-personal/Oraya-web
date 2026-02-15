@@ -72,30 +72,30 @@ export default function TerminalDemo() {
     };
 
     return (
-        <section className="py-24 md:py-48 bg-black relative overflow-hidden noise-overlay">
+        <section className="py-12 bg-surface-0 relative overflow-hidden noise-overlay">
             {/* Ambient Background UI elements */}
-            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#00F0FF]/[0.05] rounded-full blur-[120px] pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-[#FF00AA]/[0.05] rounded-full blur-[150px] pointer-events-none" />
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/[0.05] rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-secondary/[0.05] rounded-full blur-[150px] pointer-events-none" />
 
             <div className="max-w-6xl mx-auto px-6 relative z-10">
-                <div className="text-center mb-24 space-y-6">
+                <div className="text-center mb-16 space-y-6">
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
                         viewport={{ once: true }}
-                        className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/[0.03] border border-white/[0.08] rounded-full font-mono text-[9px] font-black uppercase tracking-[0.4em] text-[#00F0FF] backdrop-blur-3xl"
+                        className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/[0.03] border border-white/[0.08] rounded-full font-mono text-[9px] font-black uppercase tracking-[0.4em] text-primary shadow-[0_0_20px_var(--primary-glow)] backdrop-blur-3xl"
                     >
                         <Terminal size={12} />
                         Kernel_Interface_01
                     </motion.div>
 
-                    <h2 className="text-5xl md:text-8xl font-sans font-black text-white tracking-tighter leading-[0.9] uppercase">
+                    <h2 className="text-5xl md:text-8xl font-display font-black text-white tracking-tighter leading-[0.9] uppercase">
                         Precision <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white/50 to-white/20">Control.</span>
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary via-[80%] to-secondary">Control.</span>
                     </h2>
 
-                    <p className="text-lg md:text-xl text-zinc-500 font-sans font-light max-w-2xl mx-auto leading-relaxed tracking-tight">
-                        This is the first native kernel designed for artificial intelligence. <br className="hidden md:block" />
+                    <p className="text-lg md:text-xl text-zinc-500 font-sans font-extralight max-w-2xl mx-auto leading-relaxed tracking-tight">
+                        This is the first native kernel designed for sovereign intelligence. <br className="hidden md:block" />
                         No lag. No cloud middle-men. Just raw, unadulterated execution.
                     </p>
                 </div>
@@ -105,7 +105,7 @@ export default function TerminalDemo() {
                     initial={{ opacity: 0, scale: 0.95 }}
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
-                    className="relative w-full max-w-4xl mx-auto rounded-[32px] overflow-hidden border border-white/10 bg-[#050505] shadow-[0_60px_150px_rgba(0,0,0,1)] group"
+                    className="relative w-full max-w-4xl mx-auto rounded-[32px] overflow-hidden border border-white/10 bg-surface-1 shadow-[0_60px_150px_rgba(0,0,0,1)] group"
                 >
                     {/* Glass Header */}
                     <div className="bg-white/[0.03] px-8 py-4 border-b border-white/5 flex items-center justify-between backdrop-blur-md">
@@ -133,8 +133,8 @@ export default function TerminalDemo() {
                                         initial={{ opacity: 0, x: -5 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         className={`flex items-start gap-3 ${line.startsWith(">") ? "text-white font-black" :
-                                            line.includes("SUCCESS") || line.includes("BOOT") ? "text-[#00F0FF]" :
-                                                line.includes("CRITICAL") || line.includes("INTENT") ? "text-[#FF00AA]" :
+                                            line.includes("SUCCESS") || line.includes("BOOT") ? "text-secondary" :
+                                                line.includes("CRITICAL") || line.includes("INTENT") ? "text-primary" :
                                                     "text-zinc-600"
                                             }`}
                                     >
@@ -145,7 +145,7 @@ export default function TerminalDemo() {
                             </AnimatePresence>
 
                             {isProcessing && (
-                                <div className="flex items-center gap-3 text-[#0090FF] animate-pulse">
+                                <div className="flex items-center gap-3 text-primary animate-pulse">
                                     <span className="opacity-20">[..]</span>
                                     <span className="text-[11px] uppercase tracking-widest">Sharding_Neurons...</span>
                                 </div>
@@ -155,7 +155,7 @@ export default function TerminalDemo() {
                         {/* Interactive Input Layer */}
                         <form onSubmit={handleCommand} className="mt-8 relative pt-6 border-t border-white/5">
                             <div className="flex items-center gap-4">
-                                <span className="text-[#00F0FF] font-black tracking-widest">$</span>
+                                <span className="text-secondary font-black tracking-widest">$</span>
                                 <input
                                     type="text"
                                     value={input}
@@ -181,10 +181,10 @@ export default function TerminalDemo() {
                         <button
                             key={i}
                             onClick={() => setInput(hint.cmd)}
-                            className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:border-[#00F0FF]/30 hover:bg-[#00F0FF]/5 transition-all duration-300 text-left group"
+                            className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:border-primary/30 hover:bg-primary/5 transition-all duration-300 text-left group"
                         >
                             <div className="flex items-center gap-2 mb-2">
-                                <span className="text-[10px] font-mono font-black text-white uppercase tracking-tighter group-hover:text-[#00F0FF] transition-colors">{hint.cmd}</span>
+                                <span className="text-[10px] font-mono font-black text-white uppercase tracking-tighter group-hover:text-primary transition-colors">{hint.cmd}</span>
                             </div>
                             <p className="text-[10px] text-zinc-600 font-sans tracking-wide">{hint.desc}</p>
                         </button>

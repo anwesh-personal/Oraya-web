@@ -99,13 +99,13 @@ export default function ResearchMemory() {
     const ActivePillarIcon = PILLARS[activePillar].icon;
 
     return (
-        <section className="py-24 md:py-48 bg-black relative overflow-hidden noise-overlay border-t border-white/5" id="intelligence">
+        <section className="py-12 md:py-16 bg-black relative overflow-hidden noise-overlay border-t border-white/5" id="intelligence">
             <div className="scanline" />
 
             <div className="max-w-[1400px] mx-auto px-6 relative z-10">
 
                 {/* ACT HEADER: The Intelligence Layer */}
-                <div className="text-center mb-32 space-y-10">
+                <div className="text-center mb-16 space-y-10">
                     <div className="flex flex-col items-center gap-6">
                         <motion.div
                             className="inline-flex items-center gap-3 px-5 py-2 bg-white/[0.03] border border-white/10 rounded-full font-mono text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500"
@@ -122,7 +122,7 @@ export default function ResearchMemory() {
                 </div>
 
                 {/* THE HUB CONTROL: Pillar Selectors */}
-                <div className="flex flex-wrap justify-center gap-4 mb-20">
+                <div className="flex flex-wrap justify-center gap-4 mb-12">
                     {PILLARS.map((pillar, i) => {
                         const PillarIcon = pillar.icon;
                         return (
@@ -151,7 +151,7 @@ export default function ResearchMemory() {
                 </div>
 
                 {/* THE CORE CONTENT: 2-Column High-Stakes UI */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
 
                     {/* LEFT: Pillar Report */}
                     <div className="p-10 md:p-16 rounded-[48px] border border-white/5 bg-[#050505] flex flex-col justify-between space-y-12 relative overflow-hidden group">

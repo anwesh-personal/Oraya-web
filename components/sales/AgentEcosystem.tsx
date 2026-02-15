@@ -10,28 +10,28 @@ export default function AgentEcosystem() {
     const [activeAgent, setActiveAgent] = useState(0);
 
     return (
-        <section className="py-24 md:py-48 bg-black relative overflow-hidden noise-overlay border-t border-white/5" id="agents">
+        <section className="py-12 md:py-16 bg-black relative overflow-hidden noise-overlay border-t border-white/5" id="agents">
             <div className="scanline" />
 
             {/* Architectural Background */}
-            <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#00F0FF]/[0.02] rounded-full blur-[150px] pointer-events-none" />
+            <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/[0.02] rounded-full blur-[150px] pointer-events-none" />
 
             <div className="max-w-[1400px] mx-auto px-6 relative z-10">
                 {/* ACT HEADER: Agent Swarm Orchestration */}
-                <div className="mb-32 space-y-10">
+                <div className="mb-16 space-y-10">
                     <div className="flex flex-col items-center text-center space-y-6">
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             whileInView={{ opacity: 1, y: 0 }}
-                            className="inline-flex items-center gap-3 px-5 py-2 bg-white/[0.03] border border-white/10 rounded-full font-mono text-[10px] font-black uppercase tracking-[0.4em] text-[#00F0FF]"
+                            className="inline-flex items-center gap-3 px-5 py-2 bg-white/[0.03] border border-white/10 rounded-full font-mono text-[10px] font-black uppercase tracking-[0.4em] text-primary"
                         >
                             <Users size={14} className="animate-pulse" />
                             MULTI_AGENT_ORCHESTRATION_L5
                         </motion.div>
 
-                        <h2 className="text-6xl md:text-[8rem] font-sans font-black text-white tracking-tighter leading-[0.8] uppercase">
+                        <h2 className="text-6xl md:text-[8rem] font-display font-black text-white tracking-tighter leading-[0.8] uppercase">
                             Multiply <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white/50 to-white/10">Your Genius.</span>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-primary to-white/10">Your Genius.</span>
                         </h2>
 
                         <p className="text-zinc-500 font-light text-xl md:text-2xl max-w-4xl uppercase tracking-tighter">
@@ -122,8 +122,8 @@ export default function AgentEcosystem() {
                                             <Fingerprint size={12} />
                                             IDENTITY_VERIFIED // 0x{activeAgent}F3
                                         </div>
-                                        <h3 className="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter leading-none">{agents[activeAgent].name}</h3>
-                                        <p className="text-2xl text-zinc-500 font-light leading-snug uppercase tracking-tighter italic max-w-2xl">
+                                        <h3 className="text-5xl md:text-7xl font-display font-black text-white uppercase tracking-tighter leading-none">{agents[activeAgent].name}</h3>
+                                        <p className="text-2xl text-zinc-500 font-sans font-light leading-snug uppercase tracking-tighter italic max-w-2xl">
                                             &quot;{agents[activeAgent].desc}&quot;
                                         </p>
                                     </div>

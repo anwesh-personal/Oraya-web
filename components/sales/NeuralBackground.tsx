@@ -65,7 +65,7 @@ export default function NeuralBackground() {
 
             draw() {
                 if (!ctx) return;
-                ctx.fillStyle = "rgba(0, 240, 255, 0.5)"; // Cyan
+                ctx.fillStyle = "rgba(217, 119, 6, 0.4)"; // Copper
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fill();
@@ -93,7 +93,7 @@ export default function NeuralBackground() {
 
                     if (distance < connectionDistance) {
                         ctx.beginPath();
-                        ctx.strokeStyle = `rgba(0, 240, 255, ${0.1 - distance / connectionDistance * 0.1})`; // Fading cyan line
+                        ctx.strokeStyle = `rgba(217, 119, 6, ${0.1 - distance / connectionDistance * 0.1})`; // Fading copper line
                         ctx.lineWidth = 1;
                         ctx.moveTo(particle.x, particle.y);
                         ctx.lineTo(particles[j].x, particles[j].y);
@@ -129,7 +129,7 @@ export default function NeuralBackground() {
     return (
         <canvas
             ref={canvasRef}
-            className="fixed inset-0 z-0 pointer-events-none opacity-40 mix-blend-screen"
+            className="fixed inset-0 z-0 pointer-events-none opacity-40"
         />
     );
 }

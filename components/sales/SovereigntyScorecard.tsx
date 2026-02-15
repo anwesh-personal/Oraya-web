@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, X, Shield, Zap, Activity, Cpu, Terminal, Binary, HelpCircle, HardDrive, ShieldAlert } from "lucide-react";
+import { Check, X, HardDrive, ShieldAlert, Terminal, HelpCircle, Activity, Cpu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
@@ -73,7 +73,7 @@ export default function SovereigntyScorecard() {
             "SUCCESS: hardware_isolation_active",
             "SCANNING: competitor_logic_leaks... detected",
             "ROUTING: sub_synaptic_pathway_established",
-            "STATUS: oraya_dominion_stable_v4.2"
+            "STATUS: oraya_dominion_stable_v5.0_GOLD"
         ];
         let i = 0;
         const interval = setInterval(() => {
@@ -84,35 +84,23 @@ export default function SovereigntyScorecard() {
     }, []);
 
     return (
-        <section className="py-24 md:py-48 bg-black relative overflow-hidden noise-overlay" id="scorecard">
-            <div className="scanline" />
+        <section className="py-12 md:py-24 bg-transparent relative" id="scorecard">
+            <div className="max-w-[1400px] mx-auto px-6 relative z-10">
 
-            {/* High-Fidelity Atmosphere */}
-            <div className="absolute inset-0 z-0 pointer-events-none">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,#F0B42903_0%,transparent_70%)]" />
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:100px_100px] opacity-20" />
-
-                {/* Floating Neural Shards */}
-                <motion.div
-                    animate={{ y: [0, -20, 0], opacity: [0.1, 0.2, 0.1] }}
-                    transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-[20%] right-[10%] w-64 h-64 bg-[#F0B429] blur-[120px] rounded-full"
-                />
-            </div>
-
-            <div className="max-w-[1400px] mx-auto px-4 sm:px-6 relative z-10">
-                {/* Header Section with Live Telemetry */}
-                <div className="text-center mb-32 space-y-10">
-                    <div className="flex flex-col items-center gap-4">
+                {/* ─── HEADER: THE AUTHORITY ───────────────────────────────── */}
+                <div className="text-center mb-20 space-y-12">
+                    <div className="flex flex-col items-center gap-6">
                         <motion.div
-                            className="inline-flex items-center gap-3 px-5 py-2 bg-[#F0B429]/10 border border-[#F0B429]/30 rounded-full font-mono text-[11px] font-black uppercase tracking-[0.4em] text-[#F0B429] backdrop-blur-3xl shadow-[0_0_40px_rgba(240,180,41,0.1)]"
+                            initial={{ opacity: 0, y: 10 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            className="inline-flex items-center gap-4 px-7 py-2.5 bg-white/[0.02] border border-white/[0.08] rounded-full font-mono text-[10px] font-black uppercase tracking-[0.6em] text-white/40"
                         >
-                            <span className="w-2 h-2 rounded-full bg-[#F0B429] animate-pulse" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                             INTELLIGENCE_DOMINION_PROTOCOL
                         </motion.div>
 
-                        {/* Live Terminal Header */}
-                        <div className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest h-4 overflow-hidden">
+                        <div className="font-mono text-[10px] text-zinc-600 uppercase tracking-[0.4em] h-4 overflow-hidden">
                             <AnimatePresence mode="wait">
                                 <motion.div
                                     key={terminalLines.length}
@@ -126,174 +114,174 @@ export default function SovereigntyScorecard() {
                         </div>
                     </div>
 
-                    <h2 className="text-6xl md:text-8xl lg:text-9xl font-sans font-black text-white tracking-tighter leading-[0.85] uppercase">
+                    <h2 className="text-[clamp(2.6rem,8vw,8rem)] font-display font-black text-white leading-[0.9] uppercase tracking-tighter">
                         Absolute <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-[#F0B429]">Authority.</span>
+                        <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-white/10">Authority.</span>
                     </h2>
-
-                    <p className="text-zinc-500 font-light text-xl md:text-2xl max-w-3xl mx-auto uppercase tracking-tighter">
-                        Why pay for an <span className="text-white font-normal italic">&quot;AI wrapper&quot;</span> when you can own the <span className="text-[#F0B429] font-bold">machine</span>?
-                    </p>
                 </div>
 
-                {/* THE MATRIX: PRISTINE READABILITY + YELLOW ORAYA HIGHLIGHT */}
-                <div className="relative rounded-[40px] md:rounded-[60px] bg-white/[0.01] border border-white/5 overflow-visible backdrop-blur-3xl">
-                    <div className="w-full">
-                        <table className="w-full text-left border-collapse table-fixed">
-                            <thead>
-                                <tr className="border-b border-white/5">
-                                    <th className="p-8 sm:p-12 w-[35%] sm:w-[32%]">
-                                        <div className="flex flex-col gap-2">
-                                            <span className="text-[10px] sm:text-[11px] font-mono font-black text-zinc-500 uppercase tracking-[0.6em]">SYSTEM_AXIS</span>
-                                            <div className="h-[1px] w-12 bg-[#F0B429]/40" />
-                                        </div>
-                                    </th>
+                {/* ─── THE GRID: GRID-BASED ARCHITECTURE (NO TABLE CLIPPING) ────── */}
+                <div className="relative pt-32 pb-12">
 
-                                    {/* ORAYA HEADER COLUMN - THE SLAB */}
-                                    <th className="p-0 relative w-[25%] sm:w-[28%] overflow-visible">
-                                        <div className="absolute -top-16 -bottom-16 left-[-4px] right-[-4px] bg-[#0A0A0A] border-[1px] border-white/10 rounded-[32px] md:rounded-[48px] z-10 shadow-[0_40px_80px_-20px_rgba(0,0,0,1)]">
-                                            <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#F0B429] to-transparent opacity-50" />
-                                            <div className="absolute inset-0 bg-[#F0B429]/[0.02] rounded-[inherit]" />
-                                        </div>
+                    {/* Background Slab */}
+                    <div className="absolute inset-x-0 top-0 bottom-0 bg-surface-50/50 rounded-[48px] border border-white/[0.05] shadow-2xl -z-10" />
 
-                                        <div className="relative z-20 p-10 sm:p-14 flex flex-col items-center justify-center gap-6">
+                    {/* Matrix Headers */}
+                    <div className="grid grid-cols-1 md:grid-cols-12 w-full border-b border-white/[0.05]">
+                        <div className="col-span-full md:col-span-4 p-8 md:p-14 border-b md:border-b-0 md:border-r border-white/5">
+                            <div className="space-y-4">
+                                <span className="text-[10px] font-mono font-black text-zinc-200 uppercase tracking-[0.6em] block">SYSTEM_AXIS</span>
+                                <div className="h-[2px] w-12 bg-primary/60" />
+                            </div>
+                        </div>
+
+                        {/* ORAYA MONOLITH HEADER */}
+                        <div className="col-span-full md:col-span-3 relative px-8 md:px-0">
+                            {/* The Monolith Slab Elevation - High Performance & High Fidelity */}
+                            <div className="absolute -top-32 bottom-0 left-[-4px] right-[-4px] bg-surface-0 border-x border-t border-primary/30 rounded-t-[56px] z-20 shadow-[0_-60px_120px_-20px_rgba(245,158,11,0.2)] overflow-hidden">
+                                {/* Apex Light Beam - Softened Glow */}
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-[2px] bg-primary z-30 shadow-[0_0_20px_var(--primary)]" />
+
+                                {/* Polish Highlight Overlay */}
+                                <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-primary/10 via-primary/[0.02] to-transparent opacity-40" />
+
+                                {/* Scanning Ray (Low Cost Performance) */}
+                                <motion.div
+                                    animate={{ y: ["-100%", "200%"] }}
+                                    transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+                                    className="absolute inset-x-0 h-px bg-primary/10 pointer-events-none"
+                                />
+                            </div>
+
+                            <div className="relative z-30 p-10 md:p-14 flex flex-col items-center gap-6 h-full justify-center">
+                                <Image
+                                    src="/logos/oraya-light.png"
+                                    alt="Oraya"
+                                    width={160}
+                                    height={55}
+                                    className="h-10 md:h-16 w-auto object-contain brightness-150 contrast-125 select-none"
+                                />
+                                <div className="px-4 py-1.5 rounded-full border border-primary/30 bg-primary/10 text-primary text-[9px] font-mono font-black uppercase tracking-[0.4em]">
+                                    Active_Kernel
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* COMPETITORS HEADERS */}
+                        <div className="col-span-full md:col-span-5 grid grid-cols-3">
+                            <CompetitorHeader model="GPT-4o" label="Model_01" />
+                            <CompetitorHeader model="CURSOR" label="Spec_02" />
+                            <CompetitorHeader model="CLAUDE" label="Node_03" />
+                        </div>
+                    </div>
+
+                    {/* Matrix Body Rows */}
+                    <div className="relative">
+                        {COMPARISON_DATA.map((row, i) => (
+                            <div
+                                key={i}
+                                onMouseEnter={() => setHoveredRow(i)}
+                                onMouseLeave={() => setHoveredRow(null)}
+                                className="grid grid-cols-1 md:grid-cols-12 w-full border-b border-white/[0.03] group/row transition-all duration-700 ease-[0.16,1,0.3,1] hover:bg-white/[0.02]"
+                            >
+                                {/* Left Feature Description */}
+                                <div className="col-span-full md:col-span-4 p-8 md:p-16 border-b md:border-b-0 md:border-r border-white/5 space-y-4">
+                                    <h4 className="text-xl md:text-2xl font-black text-white uppercase group-hover/row:text-primary transition-colors duration-500">{row.feature}</h4>
+                                    <p className="text-sm text-zinc-500 font-sans font-light uppercase tracking-tight max-w-sm">{row.detail}</p>
+
+                                    <AnimatePresence>
+                                        {hoveredRow === i && (
                                             <motion.div
-                                                whileHover={{ scale: 1.05, rotate: [0, -1, 1, 0] }}
-                                                className="relative"
+                                                initial={{ opacity: 0, x: -10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                exit={{ opacity: 0, x: -10 }}
+                                                className="pt-4 flex items-start gap-3"
                                             >
-                                                <Image
-                                                    src="/logos/oraya-light.png"
-                                                    alt="Oraya"
-                                                    width={160}
-                                                    height={55}
-                                                    className="h-10 sm:h-14 w-auto object-contain brightness-150 grayscale invert"
-                                                    style={{ filter: "drop-shadow(0 0 15px rgba(240,180,41,0.4))" }}
-                                                />
+                                                <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
+                                                <p className="text-[10px] font-mono text-primary/60 uppercase tracking-widest leading-relaxed">
+                                                    {row.spec}
+                                                </p>
                                             </motion.div>
-                                            <div className="bg-[#F0B429] text-black px-4 py-1 rounded-sm text-[10px] font-mono font-black uppercase tracking-[0.4em] shadow-[0_0_20px_rgba(240,180,41,0.3)]">
-                                                Active_Kernel
-                                            </div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+
+                                {/* ORAYA DATA - THE MONOLITH CELL */}
+                                <div className="col-span-full md:col-span-3 relative p-10 md:p-0">
+                                    <div className="absolute inset-0 bg-surface-0 border-x border-primary/30 z-20 group-hover/row:bg-primary/[0.04] transition-all duration-700 ease-[0.16,1,0.3,1]" />
+                                    <div className="relative z-30 h-full flex flex-col items-center justify-center p-10 md:p-16 gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.2)]">
+                                            <Check className="text-primary" size={24} strokeWidth={4} />
                                         </div>
-                                    </th>
+                                        <span className="text-lg md:text-xl font-black text-primary uppercase text-center">{row.oraya}</span>
+                                    </div>
+                                </div>
 
-                                    <th className="p-8 sm:p-12 text-center w-[13.33%] sm:w-[13.33%]">
-                                        <div className="space-y-4">
-                                            <span className="text-[11px] font-mono font-black text-zinc-600 uppercase tracking-widest block">Model_01</span>
-                                            <span className="text-[13px] sm:text-[16px] font-black text-white/40 uppercase tracking-tighter">GPT-4o</span>
-                                        </div>
-                                    </th>
+                                {/* COMPETITOR DATA CELLS */}
+                                <div className="col-span-full md:col-span-5 grid grid-cols-3">
+                                    <CompetitorCell value={row.chatgpt} />
+                                    <CompetitorCell value={row.cursor} border />
+                                    <CompetitorCell value={row.claude} border />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
 
-                                    <th className="p-8 sm:p-12 text-center w-[13.33%] sm:w-[13.33%]">
-                                        <div className="space-y-4">
-                                            <span className="text-[11px] font-mono font-black text-zinc-600 uppercase tracking-widest block">Spec_02</span>
-                                            <span className="text-[13px] sm:text-[16px] font-black text-white/40 uppercase tracking-tighter">CURSOR</span>
-                                        </div>
-                                    </th>
-
-                                    <th className="hidden sm:table-cell p-8 sm:p-12 text-center w-[13.33%]">
-                                        <div className="space-y-4">
-                                            <span className="text-[11px] font-mono font-black text-zinc-600 uppercase tracking-widest block">Node_03</span>
-                                            <span className="text-[13px] sm:text-[16px] font-black text-white/40 uppercase tracking-tighter">CLAUDE</span>
-                                        </div>
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {COMPARISON_DATA.map((row, i) => (
-                                    <motion.tr
-                                        key={i}
-                                        onMouseEnter={() => setHoveredRow(i)}
-                                        onMouseLeave={() => setHoveredRow(null)}
-                                        className="border-b border-white/[0.03] hover:bg-white/[0.01] transition-all duration-300 group/row"
-                                    >
-                                        <td className="p-10 sm:p-14 relative overflow-hidden">
-                                            <div className="relative z-10 space-y-3">
-                                                <h4 className="text-[16px] sm:text-[20px] font-black text-white uppercase tracking-tight group-hover/row:text-[#F0B429] transition-colors leading-none">{row.feature}</h4>
-                                                <p className="text-[12px] sm:text-[14px] text-zinc-500 font-sans font-light leading-snug group-hover/row:text-zinc-300 transition-all uppercase tracking-tight max-w-[280px]">{row.detail}</p>
-                                            </div>
-
-                                            {/* Spec Details on Hover */}
-                                            <AnimatePresence>
-                                                {hoveredRow === i && (
-                                                    <motion.div
-                                                        initial={{ opacity: 0, x: -10 }}
-                                                        animate={{ opacity: 1, x: 0 }}
-                                                        exit={{ opacity: 0, x: -10 }}
-                                                        className="absolute bottom-4 left-14 text-[9px] font-mono text-[#F0B429] uppercase tracking-widest max-w-[250px]"
-                                                    >
-                                                        {`>> ${row.spec}`}
-                                                    </motion.div>
-                                                )}
-                                            </AnimatePresence>
-                                        </td>
-
-                                        {/* ORAYA DATA - THE GOLD STANDARD */}
-                                        <td className="p-0 relative">
-                                            <div className={cn(
-                                                "relative z-20 p-10 sm:p-14 flex flex-col items-center justify-center transition-all duration-500 h-full border-x-[1px] border-white/5",
-                                                hoveredRow === i ? "bg-[#F0B429]/10 shadow-[inset_0_0_60px_rgba(240,180,41,0.15)]" : ""
-                                            )}>
-                                                <div className="relative">
-                                                    <Check size={32} className="text-[#F0B429] mb-4" strokeWidth={5} />
-                                                    <div className="absolute inset-0 blur-[15px] bg-[#F0B429]/50 animate-pulse" />
-                                                </div>
-                                                <span className="text-[15px] sm:text-[18px] font-black text-[#F0B429] uppercase tracking-tight text-center leading-tight drop-shadow-2xl">{row.oraya}</span>
-                                            </div>
-                                        </td>
-
-                                        <td className="p-8 sm:p-14 text-center opacity-40 group-hover/row:opacity-80 transition-all duration-500">
-                                            <div className="flex flex-col items-center gap-4">
-                                                <X size={20} className="text-zinc-800" strokeWidth={4} />
-                                                <span className="text-[14px] sm:text-[16px] font-black text-white uppercase tracking-tighter leading-tight">{row.chatgpt}</span>
-                                            </div>
-                                        </td>
-
-                                        <td className="p-8 sm:p-14 text-center opacity-40 group-hover/row:opacity-100 transition-all duration-500 border-l border-white/[0.03]">
-                                            <div className="flex flex-col items-center gap-4">
-                                                <X size={20} className="text-zinc-800" strokeWidth={4} />
-                                                <span className="text-[14px] sm:text-[16px] font-black text-white uppercase tracking-tighter leading-tight">{row.cursor}</span>
-                                            </div>
-                                        </td>
-
-                                        <td className="hidden sm:table-cell p-8 sm:p-14 text-center opacity-40 group-hover/row:opacity-100 transition-all duration-500 border-l border-white/[0.03]">
-                                            <div className="flex flex-col items-center gap-4">
-                                                <X size={20} className="text-zinc-800" strokeWidth={4} />
-                                                <span className="text-[14px] sm:text-[16px] font-black text-white uppercase tracking-tighter leading-tight">{row.claude}</span>
-                                            </div>
-                                        </td>
-                                    </motion.tr>
-                                ))}
-                            </tbody>
-                        </table>
+                    {/* The Monolith Base (Bottom Rounding) */}
+                    <div className="grid grid-cols-1 md:grid-cols-12 w-full">
+                        <div className="col-span-full md:col-start-5 md:col-span-3 relative h-12">
+                            <div className="absolute inset-0 bg-surface-0 border-x border-b border-primary/30 rounded-b-[48px] z-20 shadow-[0_45px_100px_rgba(0,0,0,0.8)]" />
+                        </div>
                     </div>
                 </div>
 
-                {/* Status Ribbons - Premium Tactical Hardware */}
-                <div className="mt-32 grid grid-cols-1 md:grid-cols-3 gap-10">
-                    <StatusMetric icon={HardDrive} label="NATIVE_DRIVE" value="Kernel_Lvl" desc="Zero proxy layer between LLM and hardware." color="#F0B429" />
-                    <StatusMetric icon={ShieldAlert} label="ISO_VAULT" value="Biological" desc="Proprietary local-only weight distribution." color="#F0B429" />
-                    <StatusMetric icon={Terminal} label="AUTO_DOMINION" value="God Mode" desc="100% control over terminal and file-ops." color="#F0B429" />
+                {/* ─── FOOTER: THE METRICS ───────────────────────────────── */}
+                <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-10">
+                    <StatusMetric icon={HardDrive} label="NATIVE_DRIVE" value="Kernel_Lvl" desc="Zero proxy layer between LLM and hardware." />
+                    <StatusMetric icon={ShieldAlert} label="ISO_VAULT" value="Biological" desc="Proprietary local-only weight distribution." />
+                    <StatusMetric icon={Terminal} label="AUTO_DOMINION" value="God Mode" desc="100% control over terminal and file-ops." />
                 </div>
             </div>
         </section>
     );
 }
 
-function StatusMetric({ icon: Icon, label, value, desc, color }: { icon: any, label: string, value: string, desc: string, color: string }) {
+function CompetitorHeader({ model, label }: { model: string, label: string }) {
     return (
-        <div className="group p-10 rounded-[40px] border border-white/5 bg-white/[0.01] flex items-center gap-8 hover:bg-white/[0.03] hover:border-white/10 transition-all duration-700 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                <Icon size={120} strokeWidth={0.5} style={{ color }} />
-            </div>
+        <div className="p-8 md:p-14 flex flex-col items-center justify-center border-l border-white/5 opacity-40">
+            <span className="text-[10px] font-mono font-black text-zinc-700 uppercase tracking-widest block mb-4">{label}</span>
+            <span className="text-base md:text-lg font-black text-white/40 uppercase">{model}</span>
+        </div>
+    );
+}
 
-            <div className="w-20 h-20 shrink-0 rounded-3xl bg-black flex items-center justify-center text-zinc-800 group-hover:text-white border border-white/5 group-hover:border-[#F0B429]/40 transition-all shadow-[inset_0_0_20px_rgba(0,0,0,0.8)] relative z-10">
-                <Icon size={40} strokeWidth={1} />
-            </div>
+function CompetitorCell({ value, border }: { value: string, border?: boolean }) {
+    return (
+        <div className={cn(
+            "p-10 md:p-16 flex flex-col items-center justify-center gap-6 opacity-20 transition-all duration-700 group-hover/row:opacity-100",
+            border && "border-l border-white/5"
+        )}>
+            <X className="text-zinc-800" size={20} strokeWidth={3} />
+            <span className="text-sm md:text-base font-black text-white uppercase italic text-center leading-tight">{value}</span>
+        </div>
+    );
+}
 
-            <div className="relative z-10">
-                <div className="text-[11px] font-mono text-zinc-600 uppercase tracking-[0.4em] mb-2">{label}</div>
-                <div className="text-[24px] font-sans font-black text-white uppercase tracking-tight mb-1 group-hover:text-[#F0B429] transition-colors">{value}</div>
-                <div className="text-[13px] font-sans text-zinc-500 leading-snug font-light uppercase tracking-tighter">{desc}</div>
+function StatusMetric({ icon: Icon, label, value, desc }: { icon: any, label: string, value: string, desc: string }) {
+    return (
+        <div className="group p-10 rounded-[48px] border border-white/5 bg-[#0A0A0A] hover:bg-white/[0.03] transition-all duration-700 relative overflow-hidden">
+            <div className="absolute -top-10 -right-10 opacity-5 group-hover:opacity-10 transition-opacity">
+                <Icon size={160} strokeWidth={0.5} className="text-primary" />
+            </div>
+            <div className="relative z-10 space-y-6">
+                <div className="w-16 h-16 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-center text-zinc-700 group-hover:text-primary transition-all duration-500">
+                    <Icon size={32} strokeWidth={1} />
+                </div>
+                <div>
+                    <div className="text-[10px] font-mono text-zinc-600 uppercase tracking-[0.4em] mb-2">{label}</div>
+                    <div className="text-2xl font-black text-white uppercase mb-2 group-hover:text-primary transition-colors">{value}</div>
+                    <p className="text-sm text-zinc-500 font-light uppercase leading-snug">{desc}</p>
+                </div>
             </div>
         </div>
     );

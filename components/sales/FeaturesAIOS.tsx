@@ -12,6 +12,23 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { createPortal } from "react-dom";
 
+// Simple performance-optimized typewriter effect
+function Typewriter({ text, delay = 20 }: { text: string; delay?: number }) {
+    const [displayText, setDisplayText] = useState("");
+
+    React.useEffect(() => {
+        let i = 0;
+        const interval = setInterval(() => {
+            setDisplayText(text.slice(0, i));
+            i++;
+            if (i > text.length) clearInterval(interval);
+        }, delay);
+        return () => clearInterval(interval);
+    }, [text, delay]);
+
+    return <span>{displayText}</span>;
+}
+
 // Helper Portal component for Lightbox decoupling
 function FeaturePortal({ children }: { children: React.ReactNode }) {
     const [mounted, setMounted] = React.useState(false);
@@ -26,53 +43,57 @@ const BENTO_FEATURES = [
     {
         id: "indexing",
         size: "large",
-        title: "Neural Recall",
-        headline: "Total Knowledge Recall.",
+        title: "Total Knowledge Persistence",
+        headline: "Context Eternal.",
         desc: "Oraya builds a living semantic graph across your entire stack. It never forgets context.",
         icon: Database,
-        color: "#00F0FF",
+        color: "var(--primary)",
         visual: "/assets/screenshots/ss2.png",
         stats: "12.4M Nodes",
         telemetry: ["2M+ Tokens", "Sub-2ms Lookup", "Neural Persistence"],
+        code: `await oraya.persistence.persist({\n  depth: "SEMANTIC_GRAPH",\n  mode: "SOVEREIGN_RECALL",\n  isolation: true\n});`,
         payload: "Advanced vector-embedding engine using local Rust-based models for semantic graph construction.",
         edge: "Everything you've ever typed, coded, or researched is indexed locally. You don't search for code; you recall it with zero latency."
     },
     {
         id: "execution",
         size: "medium",
-        title: "Native Kernel",
+        title: "Atomic Execution Kernel",
         headline: "Direct Hardware Hooks.",
         desc: "Bypass the proxy layer. Direct terminal and filesystem dominance.",
         icon: Workflow,
-        color: "#FF00AA",
+        color: "#10B981", // Emerald
         stats: "Sub-12ms",
         telemetry: ["0.2ms RPC", "Direct Syscall", "L5 Dominion"],
+        code: `oraya --execute "refactor --atomic" \\\n      --direct-kernel-hooks \\\n      --mode=ABSOLUTE`,
         payload: "Native execution kernel with state-aware recovery protocols and environment sensing.",
         edge: "Oraya doesn't just fail and stop. It analyzes the error, modifies the code, and re-executes until the mission is successful."
     },
     {
         id: "privacy",
         size: "medium",
-        title: "Hardware Shield",
+        title: "Sovereign Isolation Matrix",
         headline: "Biological Isolation.",
         desc: "100% on-device weights. Your data stays in RAM.",
         icon: Shield,
-        color: "#10B981",
-        stats: "E2EE",
+        color: "#D97706", // Copper
+        stats: "E2EE_ACTIVE",
         telemetry: ["Zero Cloud I/O", "HSM Isolation", "AES-256 GCM"],
+        code: `const vault = new SovereignVault({\n  enclave: "HSM_L5",\n  zeroOutbound: true\n});\nvault.lock(process.env.IP_SECRET);`,
         payload: "Secure enclave weight distribution with zero cloud-outbound traffic for logic processing.",
         edge: "Your IP is your edge. Oraya ensures it never touches a cloud server, preventing training leakage and corporate espionage."
     },
     {
         id: "dominion",
         size: "wide",
-        title: "Sovereign Swarm",
+        title: "Parallel Architectural Dominion",
         headline: "God Mode for Architects.",
         desc: "Spawn specialists like Ora, Ova, and Mara to execute parallel refactors.",
         icon: Terminal,
-        color: "#F0B429",
-        visual: "/assets/screenshots/ss6.png",
+        color: "#10B981", // Emerald
+        stats: "L5_CLEARED",
         telemetry: ["5+ Parallel Agents", "Shared Context Relay", "Root Tunnel"],
+        code: `trigger swarm(Ora, Ova) {\n  task: "REFRESH_ARCHITECTURE",\n  mode: "PARALLEL_DOMINION"\n}`,
         payload: "Multi-agent orchestration layer managing ephemeral sub-agents based on task complexity.",
         edge: "Stop being a coder and start being a commander. Trigger a 5-agent parallel refactor while you focus on the $18M vision."
     }
@@ -83,7 +104,9 @@ const secondaryFeatures = [
         icon: Users,
         label: "L5 Task Orchestration",
         desc: "Complex delegation of power across specialized sub-systems.",
-        color: "#FF00AA",
+        color: "#00F0FF",
+        stats: "LEVEL_5_ENABLED",
+        code: `const swarm = await Oraya.spawnSwarm("L5");\nswarm.delegate(task.refactor);`,
         payload: "Orchestration layer managing ephemeral sub-agents based on task complexity analysis.",
         edge: "You stop being a coder and start being a commander. Trigger a 5-agent parallel refactor while you watch."
     },
@@ -91,7 +114,9 @@ const secondaryFeatures = [
         icon: MessageSquare,
         label: "Neuro-Link Relay",
         desc: "Command your agents via secure satellite relay while off the grid.",
-        color: "#00F0FF",
+        color: "#F0B429",
+        stats: "RELAY_ENCRYPTED",
+        code: `relay.connect({ \n  key: AUTH_SHARD, \n  ephemeral: true \n});`,
         payload: "Secure bi-directional relay between Oraya Core and the encrypted bot API.",
         edge: "Your AI shouldn't have a leash. Command builds, check status, and get proactive alerts from your phone. Anytime. Anywhere."
     },
@@ -100,6 +125,8 @@ const secondaryFeatures = [
         label: "Ghost Persistence",
         desc: "Dual-layer encrypted storage for absolute 24/7 sovereignty.",
         color: "#10B981",
+        stats: "GHOST_ACTIVE",
+        code: `persistence.layerMode("DUAL");\npersistence.encryptAll();`,
         payload: "Dual-layer storage with E2EE. Local for privacy, secure relay for 24/7 autonomous persistence.",
         edge: "The privacy of a ghost, the power of a cluster. Research runs 24/7 on the cloud, but your IP stays on your disk."
     },
@@ -108,6 +135,8 @@ const secondaryFeatures = [
         label: "Self-Healing Kernel",
         desc: "Background loops that fix technical debt while you sleep.",
         color: "#F0B429",
+        stats: "HEALING_ENABLED",
+        code: `while (sleeping) {\n  kernel.scanDebt();\n  kernel.applyPatch();\n}`,
         payload: "System event-hooks and cron-loops for background context optimization and self-healing.",
         edge: "Most AIs wait for you. Oraya doesn't. He researches your new dependencies and has a plan ready before you wake up."
     }
@@ -130,36 +159,59 @@ export default function FeaturesAIOS() {
     }, [selectedFeature]);
 
     return (
-        <section className="py-24 md:py-48 bg-black relative overflow-hidden noise-overlay" id="aios-features">
-            <div className="scanline" />
-
+        <section className="py-12 bg-transparent relative overflow-hidden" id="aios-features">
             <div className="max-w-[1400px] mx-auto px-6 relative z-10">
                 {/* ACT HEADER: Architectural Subsystems */}
-                <div className="mb-32 space-y-10">
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-                        <div className="space-y-6">
+                <div className="mb-12 space-y-12">
+                    <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-16">
+                        <div className="flex flex-col md:flex-row gap-12 items-start">
                             <motion.div
-                                initial={{ opacity: 0, x: -20 }}
-                                whileInView={{ opacity: 1, x: 0 }}
+                                initial={{ opacity: 0, scale: 0.98 }}
+                                whileInView={{ opacity: 1, scale: 1 }}
                                 viewport={{ once: true }}
-                                className="inline-flex items-center gap-3 px-4 py-1.5 bg-white/[0.03] border border-white/10 rounded-full font-mono text-[10px] font-black uppercase tracking-[0.4em] text-[#00F0FF]"
+                                className="w-full md:w-64 aspect-[4/5] relative rounded-[48px] overflow-hidden border border-white/[0.05] group bg-surface-50 shadow-2xl shrink-0"
                             >
-                                <ScanLine size={14} className="animate-pulse" />
-                                SYSTEM_ORCHESTRATION_V2.04
+                                <Image
+                                    src="/architect_authentic_likeness.png"
+                                    alt="The Architect of Oraya"
+                                    fill
+                                    className="object-cover grayscale brightness-75 hover:brightness-100 transition-all duration-1000 scale-105 group-hover:scale-100"
+                                    priority
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-surface-0 via-transparent to-transparent opacity-80" />
+
+                                {/* ID Badge HUD */}
+                                <div className="absolute bottom-6 left-6 right-6 p-5 rounded-[24px] border border-white/[0.08] bg-black/40 backdrop-blur-2xl space-y-2 z-10">
+                                    <p className="text-[9px] font-mono font-black text-primary/60 tracking-[0.4em] uppercase">// ARCHITECT_VERIFIED</p>
+                                    <p className="text-base font-display font-black text-white uppercase tracking-tight">Anwesh Rath</p>
+                                    <p className="text-[8px] font-mono text-zinc-600 tracking-[0.2em] uppercase">ID: 4192.BF.F0 // OS: v1.2</p>
+                                </div>
                             </motion.div>
 
-                            <h2 className="text-5xl md:text-8xl font-sans font-black text-white tracking-tighter leading-[0.85] uppercase">
-                                The First <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white/50 to-white/10">Sovereign OS.</span>
-                            </h2>
+                            <div className="space-y-10">
+                                <motion.div
+                                    initial={{ opacity: 0, x: -20 }}
+                                    whileInView={{ opacity: 1, x: 0 }}
+                                    viewport={{ once: true }}
+                                    className="inline-flex items-center gap-4 px-7 py-2.5 bg-white/[0.02] border border-white/[0.08] rounded-full font-mono text-[10px] font-black uppercase tracking-[0.6em] text-white/40 shadow-2xl"
+                                >
+                                    <ScanLine size={14} className="text-secondary/40" />
+                                    SOVEREIGN_SUBSYSTEM_AUDIT
+                                </motion.div>
+
+                                <h2 className="text-[clamp(2.6rem,6vw,6rem)] font-display font-black text-white leading-[0.95] uppercase">
+                                    The First <br />
+                                    <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white/40 to-white/10">Sovereign OS.</span>
+                                </h2>
+                            </div>
                         </div>
 
-                        <div className="max-w-md space-y-4">
-                            <p className="text-zinc-500 font-light text-lg uppercase tracking-tighter">
-                                Unlike &quot;AI Tools&quot; that live in a tab, Oraya is a <span className="text-white">Resident Intelligence</span> that owns the machine.
+                        <div className="max-w-md space-y-6 lg:pb-8">
+                            <p className="text-zinc-500 font-extralight text-xl uppercase leading-snug">
+                                Unlike modular &quot;AI Tools&quot; that live in a browser tab, Oraya is a <span className="text-white/60 italic font-normal">Resident Intelligence</span> that owns the machine motor cortex.
                             </p>
-                            <div className="flex gap-4 font-mono text-[9px] text-[#00F0FF]/40 uppercase tracking-[0.2em]">
-                                <span>$ grep -r &quot;sovereignty&quot; /core</span>
+                            <div className="flex gap-4 font-mono text-[9px] text-primary/30 uppercase tracking-[0.4em]">
+                                <span>$ grep -p &quot;sovereignty&quot; /kernel</span>
                                 <span className="animate-pulse">_</span>
                             </div>
                         </div>
@@ -167,7 +219,7 @@ export default function FeaturesAIOS() {
                 </div>
 
                 {/* THE BENTO GRID - HIGH DENSITY */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {BENTO_FEATURES.map((item) => {
                         const uniqueId = `bento-${item.id}`;
                         return (
@@ -184,16 +236,26 @@ export default function FeaturesAIOS() {
                     })}
                 </div>
 
-                {/* THE SUB-FEATURES GRID - 16 MODULES (REPLICATING ORIGINAL HIGH COUNT) */}
-                <div className="mt-32 space-y-16">
-                    <div className="flex items-center gap-8">
-                        <h3 className="text-3xl md:text-5xl font-sans font-black text-white uppercase tracking-tighter shrink-0">
-                            Tactical <span className="text-[#00F0FF]">Augmentations.</span>
-                        </h3>
-                        <div className="h-[1px] w-full bg-gradient-to-r from-white/10 to-transparent" />
+                {/* THE SUB-FEATURES GRID - REFINED ACCENTS */}
+                <div className="mt-56 space-y-24">
+                    <div className="text-center mb-40 space-y-10">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            whileInView={{ opacity: 1, scale: 1 }}
+                            viewport={{ once: true }}
+                            className="inline-flex items-center gap-4 px-7 py-2.5 bg-white/[0.02] border border-white/[0.08] rounded-full font-mono text-[10px] font-black uppercase tracking-[0.6em] text-white/40 shadow-2xl"
+                        >
+                            <Layers size={14} className="text-primary/40" />
+                            TACTICAL_KERNEL_EXTENSIONS
+                        </motion.div>
+
+                        <h2 className="text-[clamp(2.25rem,4.5vw,4.5rem)] font-display font-black text-white uppercase leading-[0.95] uppercase">
+                            Deep <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white/40 to-white/10">Augmentations.</span>
+                        </h2>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                         {[...secondaryFeatures, ...secondaryFeatures].map((item, i) => {
                             const uniqueId = `small-feat-${i}`;
                             return (
@@ -228,18 +290,17 @@ export default function FeaturesAIOS() {
                                 className="relative w-full max-w-5xl bg-[#050505] border border-white/10 rounded-[48px] overflow-hidden shadow-[0_60px_120px_rgba(0,0,0,1)] flex flex-col md:flex-row z-10"
                             >
                                 <div className="w-full md:w-[45%] aspect-square flex items-center justify-center relative p-16 md:p-24 overflow-hidden border-r border-white/5">
-                                    {/* Subtle Grid Background in Modal */}
-                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:32px_32px]" />
+                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(217,119,6,0.05)_1px,transparent_1px)] bg-[size:32px_32px]" />
                                     {(() => {
                                         const FeatureIcon = selectedFeature.icon;
-                                        return <FeatureIcon size={160} strokeWidth={0.5} style={{ color: selectedFeature.color }} className="relative z-10 drop-shadow-[0_0_40px_rgba(255,255,255,0.1)]" />;
+                                        return <FeatureIcon size={160} strokeWidth={0.5} style={{ color: selectedFeature.color }} className="relative z-10 drop-shadow-[0_0_40px_rgba(217,119,6,0.2)]" />;
                                     })()}
                                     <div className="absolute bottom-12 left-12 right-12 font-mono text-[9px] text-zinc-800 uppercase tracking-[0.5em] text-center">
-                                        Hardware_ID: 0x{Math.floor(Math.random() * 10000000).toString(16)} // TYPE: SOVEREIGN
+                                        Subsystem_ID: {selectedFeature.tag} // ARCHITECT_ONLY
                                     </div>
                                 </div>
 
-                                <div className="flex-1 p-10 md:p-20 space-y-12 relative overflow-y-auto max-h-[90vh]">
+                                <div className="flex-1 p-10 md:p-16 space-y-10 relative overflow-hidden">
                                     <button onClick={() => setSelectedFeature(null)} className="absolute top-10 right-10 text-zinc-700 hover:text-white transition-colors">
                                         <X size={28} />
                                     </button>
@@ -247,30 +308,32 @@ export default function FeaturesAIOS() {
                                     <div className="space-y-4">
                                         <div className="inline-flex items-center gap-2 text-[11px] font-mono font-black uppercase tracking-[0.5em]" style={{ color: selectedFeature.color }}>
                                             <Activity size={12} className="animate-pulse" />
-                                            Subsystem_Report_3.02
+                                            Subsystem_Report_v4.02
                                         </div>
-                                        <h2 className="text-4xl md:text-6xl font-sans font-black text-white uppercase tracking-tighter leading-none">{selectedFeature.title || selectedFeature.label}</h2>
-                                        {selectedFeature.headline && <p className="text-2xl text-zinc-500 font-light tracking-tight">{selectedFeature.headline}</p>}
+                                        <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase tracking-tight leading-none">{selectedFeature.title}</h2>
                                     </div>
 
                                     <div className="space-y-12">
                                         <div className="space-y-4">
-                                            <div className="text-[10px] font-mono font-black text-zinc-600 uppercase tracking-[0.6em]">System_Guts</div>
+                                            <div className="text-[10px] font-mono font-black text-zinc-600 uppercase tracking-[0.6em]">Core_Rationale</div>
                                             <div className="p-8 rounded-[32px] bg-white/[0.02] border border-white/5 relative overflow-hidden group">
-                                                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                                                    {(() => {
-                                                        const FeatureIcon = selectedFeature.icon;
-                                                        return <FeatureIcon size={80} />;
-                                                    })()}
-                                                </div>
-                                                <p className="text-zinc-300 text-xl leading-relaxed italic font-light relative z-10">&quot;{selectedFeature.payload}&quot;</p>
+                                                <p className="text-zinc-300 text-xl leading-relaxed italic font-light relative z-10">&quot;{selectedFeature.desc}&quot;</p>
                                             </div>
                                         </div>
 
                                         <div className="space-y-4">
-                                            <div className="text-[10px] font-mono font-black text-[#00F0FF] uppercase tracking-[0.6em]">The_Edge</div>
-                                            <div className="p-8 rounded-[32px] bg-[#00F0FF]/5 border border-[#00F0FF]/10">
-                                                <p className="text-zinc-100 text-xl leading-relaxed font-normal">{selectedFeature.edge}</p>
+                                            <div className="text-[10px] font-mono font-black text-secondary uppercase tracking-[0.6em]">Technical_Nucleus // Execution</div>
+                                            <div className="p-8 rounded-[32px] bg-secondary/5 border border-secondary/10 relative overflow-hidden">
+                                                <div className="absolute top-0 right-0 p-4 opacity-10">
+                                                    <Terminal size={40} className="text-secondary" />
+                                                </div>
+                                                <pre className="text-secondary text-sm md:text-base font-mono leading-relaxed font-black whitespace-pre-wrap min-h-[4em]">
+                                                    <code><Typewriter text={selectedFeature.code || `oraya --status ${selectedFeature.id?.toUpperCase() || 'CORE'}`} /></code>
+                                                </pre>
+                                                <div className="mt-8 pt-6 border-t border-secondary/10 flex items-center justify-between">
+                                                    <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">{selectedFeature.stats || "LOAD_NOMINAL"}</span>
+                                                    <span className="text-[10px] font-mono text-secondary/40 font-black">X_RECV_099</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -281,12 +344,8 @@ export default function FeaturesAIOS() {
                                                 <div className="text-[9px] font-mono text-zinc-700 uppercase tracking-widest">Clearance</div>
                                                 <div className="text-[11px] font-mono text-white">SOVEREIGN_L5</div>
                                             </div>
-                                            <div className="space-y-1">
-                                                <div className="text-[9px] font-mono text-zinc-700 uppercase tracking-widest">Origin</div>
-                                                <div className="text-[11px] font-mono text-white">ORAYA_CORE_v4</div>
-                                            </div>
                                         </div>
-                                        <button onClick={() => setSelectedFeature(null)} className="px-8 py-3 bg-white text-black font-mono font-black text-xs uppercase tracking-widest hover:bg-[#F0B429] transition-colors rounded-xl">Terminate_Module</button>
+                                        <button onClick={() => setSelectedFeature(null)} className="px-8 py-3 bg-primary text-black font-mono font-black text-xs uppercase tracking-widest hover:bg-white transition-colors rounded-xl shadow-[0_10px_30px_var(--primary-glow)]">Terminate_Report</button>
                                     </div>
                                 </div>
                             </motion.div>

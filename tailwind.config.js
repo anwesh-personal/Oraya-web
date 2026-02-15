@@ -42,7 +42,7 @@ module.exports = {
             },
             fontFamily: {
                 sans: ['var(--font-primary)', 'Inter', 'system-ui', 'sans-serif'],
-                display: ['var(--font-primary)', 'Inter', 'system-ui', 'sans-serif'],
+                display: ['var(--font-display)', 'Outfit', 'system-ui', 'sans-serif'],
                 mono: ['var(--font-mono)', 'JetBrains Mono', 'Consolas', 'monospace'],
             },
             animation: {

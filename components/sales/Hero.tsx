@@ -62,7 +62,7 @@ export default function SalesHero() {
             ref={ref}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
-            className="relative min-h-[140vh] md:min-h-[180vh] flex flex-col items-center overflow-hidden bg-black noise-overlay"
+            className="relative min-h-[90vh] md:min-h-[100vh] flex flex-col items-center overflow-hidden bg-black noise-overlay"
         >
             {/* 1. ATMOSPHERIC BACKGROUND */}
             <div className="absolute inset-0 z-0 pointer-events-none">
@@ -71,10 +71,10 @@ export default function SalesHero() {
                         opacity: isRevealed ? 0.2 : 0.05,
                         scale: isRevealed ? 1.4 : 1
                     }}
-                    className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_50%_40%,#00F0FF44_0%,transparent_70%)] transition-all duration-1000"
+                    className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_50%_40%,var(--secondary-glow)_0%,transparent_70%)] transition-all duration-1000"
                 />
                 {/* Enhanced Grid Lines */}
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:80px_80px] md:bg-[size:120px_120px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_90%)]" />
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:100px_100px] md:bg-[size:160px_160px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_80%)]" />
             </div>
 
             {/* 2. REVELATION OVERLAY (The "Magic") */}
@@ -84,39 +84,39 @@ export default function SalesHero() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="absolute inset-0 z-40 bg-black/70 backdrop-blur-[15px] flex items-center justify-center pointer-events-none"
+                        className="absolute inset-0 z-40 bg-black/80 backdrop-blur-[20px] flex items-center justify-center pointer-events-none"
                     >
-                        {/* Telemetry Strings & Shards (Same High-Standard Visuals) */}
-                        <div className="absolute inset-0 overflow-hidden opacity-30">
-                            {[...Array(8)].map((_, i) => (
+                        {/* Telemetry Strings & Shards */}
+                        <div className="absolute inset-0 overflow-hidden opacity-20">
+                            {[...Array(6)].map((_, i) => (
                                 <motion.div
                                     key={i}
                                     initial={{ x: "-100%", opacity: 0 }}
-                                    animate={{ x: "100%", opacity: [0, 0.4, 0] }}
-                                    transition={{ duration: 10 + i * 2, repeat: Infinity, ease: "linear", delay: i * 2 }}
-                                    className="absolute font-mono text-[9px] text-[#00F0FF] whitespace-nowrap uppercase tracking-[1em]"
-                                    style={{ top: `${10 + i * 12}%` }}
+                                    animate={{ x: "100%", opacity: [0, 0.3, 0] }}
+                                    transition={{ duration: 12 + i * 3, repeat: Infinity, ease: "linear", delay: i * 2 }}
+                                    className="absolute font-mono text-[8px] text-secondary whitespace-nowrap uppercase tracking-[1.2em]"
+                                    style={{ top: `${15 + i * 15}%` }}
                                 >
                                     {`DECRYPTING_SLICE_${i} // NODE_CLUSTER_${(i * 44).toString(16)} // PARALLEL_NEURAL_RECONSTRUCTION //`}
                                 </motion.div>
                             ))}
                         </div>
 
-                        <div className="text-center space-y-8 md:space-y-12 relative z-10 px-6">
+                        <div className="text-center space-y-10 relative z-10 px-6">
                             <motion.div
-                                animate={{ scale: [0.98, 1.02, 0.98], opacity: [0.3, 0.9, 0.3] }}
-                                transition={{ duration: 4, repeat: Infinity }}
-                                className="font-mono text-[18vw] md:text-[12vw] font-black text-[#00F0FF] tracking-[-0.05em] uppercase leading-none"
+                                animate={{ scale: [0.99, 1.01, 0.99], opacity: [0.4, 0.8, 0.4] }}
+                                transition={{ duration: 5, repeat: Infinity }}
+                                className="font-display text-[15vw] md:text-[10vw] font-black text-primary tracking-[-0.04em] uppercase leading-none"
                             >
                                 KERNEL_LIVE
                             </motion.div>
-                            <div className="flex flex-col items-center gap-4 md:gap-6">
-                                <div className="flex flex-wrap justify-center gap-4 md:gap-12">
-                                    <div className="text-[9px] md:text-[11px] font-mono text-[#00F0FF] uppercase tracking-[0.8em] font-black animate-pulse">STREAMING_WEIGHTS</div>
-                                    <div className="text-[9px] md:text-[11px] font-mono text-[#FF00AA] uppercase tracking-[0.8em] font-black animate-pulse delay-500">BYPASSING_RESTRICTIONS</div>
+                            <div className="flex flex-col items-center gap-6">
+                                <div className="flex flex-wrap justify-center gap-8 md:gap-16">
+                                    <div className="text-[10px] font-mono text-primary/60 uppercase tracking-[1em] font-black">STREAMING_WEIGHTS</div>
+                                    <div className="text-[10px] font-mono text-secondary/60 uppercase tracking-[1em] font-black">BYPASSING_RESTRICTIONS</div>
                                 </div>
-                                <div className="h-[1px] w-48 md:w-80 bg-white/10" />
-                                <div className="text-[8px] md:text-[10px] font-mono text-white/30 uppercase tracking-[1em]">SYSTEM_VERSION_L5.0.21_ALPHA</div>
+                                <div className="h-[1px] w-48 md:w-80 bg-white/5" />
+                                <div className="text-[9px] font-mono text-white/20 uppercase tracking-[1.2em]">SYSTEM_VERSION_L5.0.21_ALPHA</div>
                             </div>
                         </div>
                     </motion.div>
@@ -126,61 +126,72 @@ export default function SalesHero() {
             {/* 3. HEADLINE SECTION */}
             <motion.div
                 style={{ opacity }}
-                className="relative z-10 pt-24 md:pt-48 pb-12 md:pb-20 text-center max-w-7xl mx-auto px-6 flex flex-col items-center"
+                className="relative z-10 pt-32 md:pt-56 pb-16 md:pb-24 text-center max-w-7xl mx-auto px-6 flex flex-col items-center"
             >
-                {/* Status Badge - Now with Mobile-Switchable state */}
+                {/* Status Badge */}
                 <motion.button
                     onClick={() => setIsRevealed(!isRevealed)}
-                    className="inline-flex items-center gap-4 px-6 py-3 mb-12 md:mb-16 bg-white/[0.03] border border-white/[0.08] rounded-full glass group cursor-pointer active:scale-95 transition-all"
+                    className="inline-flex items-center gap-4 px-7 py-3.5 mb-12 md:mb-20 bg-white/[0.02] border border-white/[0.06] rounded-full glass group cursor-pointer active:scale-95 transition-all"
                 >
                     <div className="relative">
-                        <div className={cn("w-2 h-2 rounded-full shadow-[0_0_15px_#00F0FF] transition-colors duration-500", isRevealed ? "bg-[#FF00AA]" : "bg-[#00F0FF]")} />
-                        <div className={cn("absolute inset-0 w-2 h-2 rounded-full animate-ping opacity-40 transition-colors duration-500", isRevealed ? "bg-[#FF00AA]" : "bg-[#00F0FF]")} />
+                        <div className={cn("w-2 h-2 rounded-full transition-colors duration-500", isRevealed ? "bg-secondary shadow-[0_0_15px_var(--secondary-glow)]" : "bg-primary shadow-[0_0_15px_var(--primary-glow)]")} />
+                        <div className={cn("absolute inset-0 w-2 h-2 rounded-full animate-ping opacity-40 transition-colors duration-500", isRevealed ? "bg-secondary" : "bg-primary")} />
                     </div>
-                    <span className="text-[9px] md:text-[10px] font-mono font-black text-white/50 uppercase tracking-[0.5em] flex items-center gap-2">
+                    <span className="text-[10px] font-mono font-black text-white/40 uppercase tracking-[0.6em] flex items-center gap-2">
                         {isRevealed ? "PROTOCOL: REVEALED // 15.4MB" : "L5 Sovereign Kernel // Active"}
-                        <Command size={10} className="md:hidden opacity-50" />
+                        <Command size={10} className="md:hidden opacity-40" />
                     </span>
                 </motion.button>
 
                 {/* The Responsive Headline */}
-                <h1 className="text-[clamp(2.5rem,12vw,7.5rem)] font-sans font-black leading-[0.9] tracking-tighter text-white uppercase relative">
+                <h1 className="text-[clamp(2rem,6vw,6rem)] font-display font-black leading-[0.95] text-white uppercase relative">
                     <motion.span
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8 }}
-                        className="block text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 mb-2 md:mb-4"
+                        transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+                        className="block text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 mb-3"
                     >
                         THE PRIVATE
                     </motion.span>
                     <motion.span
-                        initial={{ opacity: 0, scale: 0.98 }}
+                        initial={{ opacity: 0, scale: 0.99 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 1, delay: 0.2 }}
-                        className="block text-[#00F0FF] drop-shadow-[0_0_80px_rgba(0,240,255,0.4)]"
+                        transition={{ duration: 1.2, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                        className="block text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary via-[70%] to-secondary drop-shadow-[0_0_60px_var(--primary-glow)]"
                     >
                         OPERATING SYSTEM <br />
-                        <span className="text-[clamp(1.5rem,8vw,5.5rem)] text-white/40">FOR THE 1%.</span>
+                        <span className="text-[0.6em] tracking-[-0.04em] opacity-30">FOR THE 1%.</span>
                     </motion.span>
                 </h1>
 
-                {/* Subtitle - Better Pacing */}
-                <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.6 }}
-                    className="mt-12 md:mt-20 text-lg md:text-3xl text-zinc-500 font-sans font-extralight max-w-4xl mx-auto leading-relaxed tracking-wider px-4"
-                >
-                    Stop renting your intelligence from the cloud.
-                    <br className="hidden md:block" />
-                    <span className="text-white font-normal mt-4 block text-base md:text-xl md:tracking-[0.1em]">Oraya is a native neural interface that lives on your hardware, remembers every line of your history, and executes at the speed of thought. You aren&apos;t just coding; <span className="text-[#00F0FF] italic">you&apos;re orchestrating.</span></span>
-                </motion.p>
+                {/* Subtitle & Scanning Line Bridge */}
+                <div className="mt-16 md:mt-24 space-y-16">
+                    <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.8, duration: 1 }}
+                        className="text-lg md:text-2xl text-zinc-600 font-sans font-extralight max-w-4xl mx-auto leading-relaxed tracking-wider px-4 uppercase"
+                    >
+                        Stop renting your intelligence from the cloud.
+                        <br className="hidden md:block" />
+                        <span className="text-white/80 font-normal mt-6 block text-base md:text-lg lowercase">Oraya is a native neural interface that lives on your hardware, remembers every line of your history, and executes at the speed of thought. You aren&apos;t just coding; <span className="text-primary italic uppercase font-black">you&apos;re orchestrating.</span></span>
+                    </motion.p>
+
+                    {/* THE LINE: Clearly visible with depth effect */}
+                    <div className="h-[1px] w-80 mx-auto relative overflow-hidden bg-white/5">
+                        <motion.div
+                            animate={{ x: ['-100%', '100%'] }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                            className="absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-primary/40 to-transparent shadow-[0_0_20px_var(--primary)]"
+                        />
+                    </div>
+                </div>
 
                 {/* Responsive CTAs */}
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-6 md:gap-12 mt-16 md:mt-24 w-full sm:w-auto px-6">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-6 md:gap-12 mt-12 md:mt-16 w-full sm:w-auto px-6">
                     <Link
                         href="/download"
-                        className="w-full sm:w-auto group relative px-10 md:px-16 py-5 md:py-7 bg-[#00F0FF] text-black font-black rounded-[24px] md:rounded-[32px] text-lg md:text-xl hover:scale-105 transition-all duration-500 shadow-[0_20px_100px_-20px_rgba(0,240,255,0.5)] overflow-hidden"
+                        className="w-full sm:w-auto group relative px-10 md:px-16 py-5 md:py-7 bg-primary text-black font-black rounded-[24px] md:rounded-[32px] text-lg md:text-xl hover:scale-105 transition-all duration-500 shadow-[0_20px_100px_-20px_var(--primary-glow)] overflow-hidden"
                     >
                         <div className="flex items-center justify-center gap-4 relative z-10 uppercase tracking-widest">
                             <Download size={20} strokeWidth={3} />
@@ -239,20 +250,26 @@ export default function SalesHero() {
                             priority
                         />
 
-                        {/* Floating 3D Metadata */}
                         <motion.div
-                            style={{ translateZ: 80 }}
-                            className="absolute top-10 left-10 md:top-16 md:left-16 glass-card p-6 md:p-8 rounded-[24px] md:rounded-[32px] border border-white/10 space-y-4 md:space-y-6 hidden sm:block shadow-2xl"
+                            className="absolute top-10 left-10 md:top-16 md:left-16 glass-card p-6 md:p-8 rounded-[24px] md:rounded-[32px] border border-white/10 space-y-4 md:space-y-6 hidden sm:block shadow-2xl overflow-hidden"
+                            style={{ backgroundColor: 'var(--surface-50)', translateZ: 80 }}
                         >
-                            <div className="flex items-center gap-3 md:gap-4">
-                                <Cpu className="text-[#00F0FF]" size={20} />
+                            {/* Scanning Border Animation */}
+                            <motion.div
+                                animate={{ x: ['-200%', '200%'] }}
+                                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                                className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary to-transparent opacity-40"
+                            />
+
+                            <div className="flex items-center gap-3 md:gap-4 relative z-10">
+                                <Cpu className="text-primary" size={20} />
                                 <span className="text-[10px] md:text-[12px] font-mono font-black text-white/70 uppercase tracking-[0.4em]">NEURAL_BANDWIDTH</span>
                             </div>
-                            <div className="w-48 md:w-64 h-1 bg-white/5 rounded-full overflow-hidden">
+                            <div className="w-48 md:w-64 h-1 bg-white/5 rounded-full overflow-hidden relative z-10">
                                 <motion.div
                                     animate={{ width: ["20%", "70%", "45%", "90%", "30%"] }}
                                     transition={{ duration: 15, repeat: Infinity }}
-                                    className="h-full bg-gradient-to-r from-[#00F0FF] to-[#0072FF]"
+                                    className="h-full bg-gradient-to-r from-primary to-secondary"
                                 />
                             </div>
                         </motion.div>

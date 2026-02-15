@@ -51,7 +51,7 @@ export default function SalesNavbar() {
                                 alt="Oraya"
                                 className="h-10 md:h-12 w-auto object-contain transition-all duration-700 group-hover:scale-105 brightness-0 invert"
                             />
-                            <div className="absolute -top-1 -right-1 w-2 h-2 bg-[#00F0FF] rounded-full border border-black animate-pulse shadow-[0_0_15px_#00F0FF]" />
+                            <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full border border-black animate-pulse shadow-[0_0_15px_var(--primary-glow)]" />
                         </div>
                         <div className="hidden lg:flex flex-col border-l border-white/10 pl-6 space-y-0.5">
                             <span className="text-[9px] font-mono text-white font-black uppercase tracking-[0.4em]">SOVEREIGN_CORE</span>
@@ -65,7 +65,7 @@ export default function SalesNavbar() {
                             <a
                                 key={link.label}
                                 href={link.href}
-                                className="px-6 py-2 text-[10px] font-mono font-black text-zinc-500 hover:text-white transition-all hover:bg-white/[0.03] rounded-full tracking-[0.3em] uppercase"
+                                className="px-6 py-2 text-[10px] font-mono font-black text-zinc-500 hover:text-primary transition-all hover:bg-white/[0.03] rounded-full tracking-[0.3em] uppercase"
                             >
                                 {link.label}
                             </a>
@@ -80,7 +80,7 @@ export default function SalesNavbar() {
 
                         <Link
                             href="/download"
-                            className="group relative px-8 py-3 bg-white text-black font-mono font-black text-[10px] uppercase tracking-[0.3em] rounded-xl hover:bg-[#00F0FF] transition-all flex items-center gap-4 overflow-hidden shadow-[0_15px_30px_rgba(0,0,0,0.5)]"
+                            className="group relative px-8 py-3 bg-white text-black font-mono font-black text-[10px] uppercase tracking-[0.3em] rounded-xl hover:bg-primary transition-all flex items-center gap-4 overflow-hidden shadow-[0_15px_30px_rgba(0,0,0,0.5)]"
                         >
                             <span className="relative z-10">Deploy_Kernel</span>
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
@@ -107,7 +107,7 @@ export default function SalesNavbar() {
                         className="fixed inset-0 z-[90] bg-black/98 backdrop-blur-3xl flex flex-col justify-center px-10 xl:hidden"
                     >
                         <div className="space-y-12">
-                            <div className="text-[10px] font-mono text-[#00F0FF] uppercase tracking-[0.6em] mb-12 flex items-center gap-3">
+                            <div className="text-[10px] font-mono text-primary uppercase tracking-[0.6em] mb-12 flex items-center gap-3">
                                 <Network size={14} className="animate-pulse" />
                                 SYSTEM_NODE_ACTIVE
                             </div>
@@ -121,7 +121,7 @@ export default function SalesNavbar() {
                                         animate={{ x: 0, opacity: 1 }}
                                         transition={{ delay: i * 0.1 }}
                                         onClick={() => setMobileOpen(false)}
-                                        className="text-4xl font-black text-white hover:text-[#00F0FF] transition-all uppercase tracking-tighter"
+                                        className="text-4xl font-display font-black text-white hover:text-primary transition-all uppercase tracking-tighter"
                                     >
                                         {link.label.split('_')[1]}
                                     </motion.a>

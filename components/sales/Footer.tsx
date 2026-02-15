@@ -5,20 +5,21 @@ import { Github, Twitter, Linkedin, Mail } from "lucide-react";
 
 export default function Footer() {
     return (
-        <footer className="bg-black border-t border-white/5 py-16">
+        <footer className="bg-black border-t border-white/5 py-12">
             <div className="max-w-7xl mx-auto px-6">
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-12 mb-16">
 
                     {/* Brand */}
                     <div className="col-span-2 md:col-span-1 space-y-4">
                         <Link href="/" className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00F0FF] to-[#FF00AA] flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-[0_4px_20px_var(--primary-glow)]">
                                 <span className="text-black font-black text-sm font-display">O</span>
                             </div>
                             <span className="font-display font-bold text-lg text-white">Oraya</span>
                         </Link>
-                        <p className="text-sm text-gray-600 leading-relaxed uppercase tracking-tighter">
-                            The Sovereign OS for the 1%. <br />Native. Local. Absolute.
+                        <p className="text-xs text-zinc-500 leading-relaxed uppercase tracking-[0.2em] font-black">
+                            // NATIVE. LOCAL. ABSOLUTE. <br />
+                            THE SOVEREIGN OS FOR THE 1%.
                         </p>
                     </div>
 

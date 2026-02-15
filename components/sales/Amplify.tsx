@@ -33,14 +33,14 @@ export default function AmplifySection() {
                                 System Critical
                             </div>
 
-                            <h2 className="text-5xl md:text-7xl font-display font-black leading-[0.9] tracking-tighter">
-                                Cognitive <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">
-                                    Dissonance.
+                            <h2 className="text-5xl md:text-8xl font-display font-black leading-[0.95] uppercase">
+                                Architectural <br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-orange-500 to-red-400 animate-gradient-x">
+                                    Amnesia.
                                 </span>
                             </h2>
 
-                            <p className="text-xl md:text-2xl text-gray-400 font-light leading-relaxed">
+                            <p className="text-xl md:text-2xl text-zinc-400 font-light leading-relaxed">
                                 You lose <span className="text-white font-bold">20 minutes</span> of flow every time you context-switch. Your current tools are designed for simple tasks, not for building empires.
                             </p>
                         </div>
@@ -48,17 +48,17 @@ export default function AmplifySection() {
                         <div className="space-y-6">
                             <PainPoint
                                 title="The Context Tax"
-                                desc="LLM wrappers forget your architecture the second you open a new tab. We fixed that with Neural Persistence."
+                                desc="Your tools forget your architecture the second you open a new tab. We stopped the leak with Neural Persistence."
                                 delay={0.2}
                             />
                             <PainPoint
-                                title="Broadcast Exposure"
-                                desc="Current tools broadcast your proprietary logic to cloud observers on rented land."
+                                title="Cloud Obsolescence"
+                                desc="Broadcasting your proprietary logic to rented land is a strategic failure. Reclaim your hardware motor cortex."
                                 delay={0.4}
                             />
                             <PainPoint
-                                title="Fragmented Intelligence"
-                                desc="Your code logic is isolated from your deployment telemetry. Oraya unifies the entire stack."
+                                title="Fragmented Logic"
+                                desc="Your deployment telemetry is isolated from your engineering brain. Oraya unifies the entire stack into one nervous system."
                                 delay={0.6}
                             />
                         </div>
@@ -106,7 +106,7 @@ function PainPoint({ title, desc, delay }: { title: string, desc: string, delay:
             <div className="w-1 h-12 bg-white/10 rounded-full group-hover:bg-red-500 transition-colors" />
             <div>
                 <h3 className="text-xl font-bold text-white group-hover:text-red-400 transition-colors">{title}</h3>
-                <p className="text-gray-500 mt-2 text-base leading-relaxed group-hover:text-gray-300 transition-colors">{desc}</p>
+                <p className="text-zinc-400 mt-2 text-base leading-relaxed group-hover:text-zinc-200 transition-colors">{desc}</p>
             </div>
         </motion.div>
     );
@@ -120,10 +120,10 @@ function FloatingFragment({ icon: Icon, label, x, y, delay, yAnim }: { icon: any
                 top: `calc(50% + ${y})`,
                 y: yAnim
             }}
-            className="absolute p-4 rounded-xl bg-[#111] border border-white/10 shadow-2xl flex items-center gap-3 backdrop-blur-md z-20"
+            className="absolute p-4 rounded-xl bg-[#111] border border-white/10 shadow-2xl flex items-center gap-3 z-20"
         >
-            <Icon size={20} className="text-gray-400" />
-            <span className="font-mono text-xs text-gray-300 font-bold">{label}</span>
+            <Icon size={20} className="text-zinc-400" />
+            <span className="font-mono text-xs text-zinc-300 font-bold">{label}</span>
         </motion.div>
     );
 }

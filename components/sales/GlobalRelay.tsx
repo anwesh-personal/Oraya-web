@@ -6,35 +6,35 @@ import { Radio, Zap, Shield, Activity, Globe, Cpu, Server, Network } from "lucid
 import { useState } from "react";
 
 const nodes = [
-    { city: "San Francisco", status: "Nominal", color: "#00F0FF", top: "35%", left: "12%", latency: "12ms" },
-    { city: "London", status: "Secure", color: "#00F0FF", top: "25%", left: "44%", latency: "28ms" },
-    { city: "Tokyo", status: "Active", color: "#00F0FF", top: "32%", left: "84%", latency: "42ms" },
-    { city: "Berlin", status: "Optimal", color: "#FF00AA", top: "28%", left: "49%", latency: "31ms" },
-    { city: "Bangalore", status: "Active", color: "#FF00AA", top: "52%", left: "68%", latency: "48ms" },
-    { city: "Sydney", status: "Nominal", color: "#00F0FF", top: "72%", left: "85%", latency: "56ms" },
-    { city: "São Paulo", status: "Secure", color: "#FF00AA", top: "65%", left: "28%", latency: "39ms" },
-    { city: "Singapore", status: "Syncing", color: "#00F0FF", top: "58%", left: "75%", latency: "15ms" },
+    { city: "San Francisco", status: "Nominal", color: "#F0B429", top: "35%", left: "12%", latency: "12ms" },
+    { city: "London", status: "Secure", color: "#F0B429", top: "25%", left: "44%", latency: "28ms" },
+    { city: "Tokyo", status: "Active", color: "#F0B429", top: "32%", left: "84%", latency: "42ms" },
+    { city: "Berlin", status: "Optimal", color: "#00F0FF", top: "28%", left: "49%", latency: "31ms" },
+    { city: "Bangalore", status: "Active", color: "#00F0FF", top: "52%", left: "68%", latency: "48ms" },
+    { city: "Sydney", status: "Nominal", color: "#F0B429", top: "72%", left: "85%", latency: "56ms" },
+    { city: "São Paulo", status: "Secure", color: "#00F0FF", top: "65%", left: "28%", latency: "39ms" },
+    { city: "Singapore", status: "Syncing", color: "#F0B429", top: "58%", left: "75%", latency: "15ms" },
 ];
 
 export default function GlobalRelay() {
     const [hoveredNode, setHoveredNode] = useState<number | null>(null);
 
     return (
-        <section className="py-24 md:py-40 bg-black relative overflow-hidden noise-overlay">
+        <section className="py-12 md:py-16 bg-black relative overflow-hidden noise-overlay">
             {/* Deep Atmospheric Backdrop */}
             <div className="absolute inset-0 z-0 pointer-events-none">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[100%] bg-[radial-gradient(circle_at_center,#00F0FF05_0%,transparent_60%)]" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[100%] bg-[radial-gradient(circle_at_center,var(--primary-glow)_0%,transparent_60%)] opacity-5" />
                 <div className="absolute bottom-0 left-0 w-full h-[50%] bg-gradient-to-t from-black via-transparent to-transparent" />
             </div>
 
             <div className="max-w-7xl mx-auto px-10 relative z-10 text-center">
                 {/* Header Section with breathing space */}
-                <div className="space-y-8 mb-20 max-w-5xl mx-auto">
+                <div className="space-y-8 mb-12 max-w-5xl mx-auto">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         whileInView={{ opacity: 1, scale: 1 }}
                         viewport={{ once: true }}
-                        className="inline-flex items-center gap-4 px-6 py-2.5 bg-white/[0.02] border border-white/[0.08] rounded-full font-mono text-[10px] font-black uppercase tracking-[0.6em] text-[#00F0FF] glass shadow-2xl"
+                        className="inline-flex items-center gap-4 px-6 py-2.5 bg-white/[0.02] border border-white/[0.08] rounded-full font-mono text-[10px] font-black uppercase tracking-[0.6em] text-primary glass shadow-2xl"
                     >
                         <Radio size={14} className="animate-pulse" />
                         Intelligence_Sovereignty_Relay
@@ -45,10 +45,10 @@ export default function GlobalRelay() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.2 }}
-                        className="text-5xl md:text-6xl font-sans font-black text-white tracking-tight leading-[1.05] uppercase"
+                        className="text-5xl md:text-8xl font-display font-black text-white tracking-tighter leading-[0.85] uppercase"
                     >
                         Global. <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white/40 to-white/10">Infrastructures.</span>
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-primary to-white/10">Infrastructure.</span>
                     </motion.h2>
 
                     <motion.p
@@ -96,15 +96,15 @@ export default function GlobalRelay() {
                                 <motion.div
                                     animate={{ scale: [1, 4], opacity: [0.4, 0] }}
                                     transition={{ duration: 3, repeat: Infinity, delay: i * 0.2 }}
-                                    className="absolute -inset-6 rounded-full border border-[#00F0FF]/30"
+                                    className="absolute -inset-6 rounded-full border border-primary/30"
                                 />
 
                                 {/* Core Dot */}
                                 <div className="relative">
                                     <div
-                                        className="w-3 h-3 rounded-full bg-[#00F0FF] shadow-[0_0_20px_#00F0FF] group-hover/node:scale-150 transition-transform duration-300"
+                                        className="w-3 h-3 rounded-full bg-primary shadow-[0_0_20px_var(--primary-glow)] group-hover/node:scale-150 transition-transform duration-300"
                                     />
-                                    <div className="absolute inset-0 w-3 h-3 rounded-full bg-[#00F0FF] animate-ping opacity-40" />
+                                    <div className="absolute inset-0 w-3 h-3 rounded-full bg-primary animate-ping opacity-40" />
                                 </div>
 
                                 {/* Premium Tactical Tooltip */}
@@ -118,7 +118,7 @@ export default function GlobalRelay() {
                                         >
                                             <div className="bg-black/80 backdrop-blur-2xl border border-white/10 p-5 rounded-2xl shadow-3xl">
                                                 <div className="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
-                                                    <span className="text-[10px] font-mono font-black text-[#00F0FF] uppercase tracking-widest">{node.city}</span>
+                                                    <span className="text-[10px] font-mono font-black text-primary uppercase tracking-widest">{node.city}</span>
                                                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10B981]" />
                                                 </div>
                                                 <div className="space-y-2">
@@ -148,7 +148,7 @@ export default function GlobalRelay() {
                                 <p className="text-emerald-500/60">[08:44:12] Handshake complete sf_1</p>
                                 <p>[08:44:13] Context shard sync: 14%</p>
                                 <p>[08:44:15] Global relay resonance active</p>
-                                <p className="text-[#00F0FF]">[ALERT] Tokyo node throughput peak</p>
+                                <p className="text-secondary">[ALERT] Tokyo node throughput peak</p>
                             </div>
                         </div>
 
@@ -160,7 +160,7 @@ export default function GlobalRelay() {
                             </div>
                             <div className="w-px h-8 bg-white/10" />
                             <div className="flex flex-col items-end gap-1">
-                                <span className="text-[#00F0FF] font-black">99.999%</span>
+                                <span className="text-primary font-black">99.999%</span>
                                 <span>SOVEREIGN_UPTIME</span>
                             </div>
                         </div>
@@ -168,7 +168,7 @@ export default function GlobalRelay() {
                 </motion.div>
 
                 {/* CAPABILITY TILES - Simplified for Breathing room */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mt-40 text-left">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mt-16 text-left">
                     <CapabilityItem
                         icon={Server}
                         title="Decentralized Shards"
@@ -199,9 +199,9 @@ function CapabilityItem({ icon: Icon, title, desc }: { icon: any; title: string;
     return (
         <motion.div
             whileHover={{ y: -10 }}
-            className="p-10 rounded-[40px] border border-white/5 bg-white/[0.01] hover:bg-white/[0.02] hover:border-[#00F0FF]/30 transition-all duration-500 group"
+            className="p-10 rounded-[40px] border border-white/5 bg-white/[0.01] hover:bg-white/[0.02] hover:border-primary/30 transition-all duration-500 group"
         >
-            <div className="w-16 h-16 rounded-3xl bg-white/5 border border-white/5 flex items-center justify-center text-[#00F0FF] group-hover:bg-[#00F0FF] group-hover:text-black transition-all duration-500 mb-8">
+            <div className="w-16 h-16 rounded-3xl bg-white/5 border border-white/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-black transition-all duration-500 mb-8">
                 <Icon size={24} strokeWidth={1.5} />
             </div>
             <h4 className="text-white font-black text-xl mb-4 tracking-tight uppercase">{title}</h4>

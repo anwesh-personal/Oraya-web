@@ -1,11 +1,17 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Outfit } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 
 const inter = Inter({
     subsets: ["latin"],
     variable: "--font-primary",
+    display: "swap",
+});
+
+const outfit = Outfit({
+    subsets: ["latin"],
+    variable: "--font-display",
     display: "swap",
 });
 
@@ -18,9 +24,9 @@ const jetbrains = JetBrains_Mono({
 export const metadata: Metadata = {
     title: {
         template: "%s | Oraya",
-        default: "Oraya — The AI Operating System",
+        default: "Oraya — The Personal Sovereign Operating System",
     },
-    description: "The intelligence layer for developers. Unify your code, docs, and context into a single, self-healing neural interface. Local-first. Cross-platform. Free.",
+    description: "The private intelligence kernel for the 1%. Unify high-intensity logic with absolute hardware privacy. Engineered for the architect, not the masses.",
     metadataBase: new URL("https://oraya.dev"),
     openGraph: {
         type: "website",
@@ -42,13 +48,13 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="en" suppressHydrationWarning className="scroll-smooth">
+        <html lang="en" suppressHydrationWarning>
             <head>
                 <link rel="icon" href="/favicon.ico" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <meta name="theme-color" content="#000000" />
             </head>
-            <body className={`${inter.variable} ${jetbrains.variable} font-sans antialiased`}>
+            <body className={`${inter.variable} ${outfit.variable} ${jetbrains.variable} font-sans antialiased`}>
                 <ThemeProvider>
                     {children}
                 </ThemeProvider>

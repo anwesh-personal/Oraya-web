@@ -33,9 +33,9 @@ const mappings = [
 
 export default function NeuralArchitecture() {
     return (
-        <section className="py-40 bg-[var(--surface-0)] relative overflow-hidden transition-colors duration-500">
-            {/* Subtle Gradient Overlays */}
-            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-[var(--surface-0)] via-transparent to-[var(--surface-0)] z-10 pointer-events-none" />
+        <section className="py-16 bg-[#020202] relative overflow-hidden border-y border-white/5">
+            {/* Ambient Background UI elements */}
+            <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/[0.03] rounded-full blur-[150px] pointer-events-none" />
 
             <div className="max-w-7xl mx-auto px-6 relative z-20">
                 <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
@@ -48,41 +48,51 @@ export default function NeuralArchitecture() {
                         transition={{ duration: 1 }}
                         className="flex-1 relative aspect-square w-full max-w-xl group"
                     >
-                        <div className="absolute inset-0 bg-[var(--primary)]/5 rounded-full blur-[100px] opacity-20 group-hover:opacity-40 transition-opacity duration-1000" />
-                        <div className="relative h-full w-full rounded-[40px] overflow-hidden border border-[var(--surface-200)] bg-[var(--surface-50)]">
+                        <div className="absolute inset-0 bg-primary/5 rounded-full blur-[100px] opacity-20 group-hover:opacity-40 transition-opacity duration-1000" />
+                        <div className="relative h-full w-full rounded-[60px] overflow-hidden border border-white/10 bg-black/50 backdrop-blur-3xl">
                             <Image
                                 src="/assets/branding/neural_nervous_bridge.png"
                                 alt="Neural to Digital Bridge"
                                 fill
                                 sizes="(max-width: 768px) 100vw, 50vw"
-                                className="object-cover opacity-80 group-hover:scale-110 transition-transform duration-[2s] mix-blend-luminosity hover:mix-blend-normal"
+                                className="object-cover opacity-60 grayscale group-hover:scale-105 transition-transform duration-[2s] hover:grayscale-0"
                             />
                         </div>
 
                         {/* Floating Labels */}
-                        <div className="absolute top-1/4 -left-8 bg-[var(--surface-0)]/80 backdrop-blur-md p-4 rounded-xl border border-[var(--surface-200)] shadow-2xl">
-                            <p className="text-[10px] font-mono text-[var(--primary)] uppercase tracking-widest font-bold">Biological</p>
-                            <p className="text-[var(--surface-900)] font-display font-medium italic">Sentience</p>
+                        <div className="absolute top-1/4 -left-8 bg-black/40 backdrop-blur-3xl p-6 rounded-3xl border border-white/10 shadow-2xl space-y-1">
+                            <p className="text-[9px] font-mono text-primary uppercase tracking-[0.4em] font-black">BIOLOGICAL</p>
+                            <p className="text-white font-display font-black uppercase text-xl tracking-tight">Sentience</p>
                         </div>
-                        <div className="absolute bottom-1/4 -right-8 bg-[var(--surface-0)]/80 backdrop-blur-md p-4 rounded-xl border border-[var(--surface-200)] shadow-2xl text-right">
-                            <p className="text-[10px] font-mono text-[var(--secondary)] uppercase tracking-widest font-bold">Digital</p>
-                            <p className="text-[var(--surface-900)] font-display font-medium italic">Sovereignty</p>
+                        <div className="absolute bottom-1/4 -right-8 bg-black/40 backdrop-blur-3xl p-6 rounded-3xl border border-white/10 shadow-2xl text-right space-y-1">
+                            <p className="text-[9px] font-mono text-secondary uppercase tracking-[0.4em] font-black">DIGITAL</p>
+                            <p className="text-white font-display font-black uppercase text-xl tracking-tight">Sovereignty</p>
                         </div>
                     </motion.div>
 
                     {/* Content Side */}
                     <div className="flex-1 space-y-12">
-                        <div className="space-y-6">
-                            <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-black text-[var(--surface-900)] leading-[0.9] tracking-tighter">
-                                Your AI Never Had a <br />
-                                <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'var(--gradient-accent)' }}>
+                        <div className="space-y-8">
+                            <motion.div
+                                initial={{ opacity: 0, x: -20 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                className="inline-flex items-center gap-3 px-4 py-1.5 bg-white/5 border border-white/10 rounded-full font-mono text-[9px] font-black uppercase tracking-[0.4em] text-primary"
+                            >
+                                <Radio size={12} className="animate-pulse" />
+                                System_Evolution_Spec
+                            </motion.div>
+
+                            <h2 className="text-5xl md:text-8xl font-display font-black text-white leading-[0.85] tracking-tighter uppercase">
+                                Your AI Never <br />
+                                Had a <br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-white to-primary/40 animate-gradient-x bg-[length:200%_auto]">
                                     Nervous System.
                                 </span>
                             </h2>
-                            <p className="text-xl text-[var(--surface-500)] font-light leading-relaxed">
+                            <p className="text-xl text-zinc-500 font-sans font-extralight leading-relaxed tracking-tight max-w-xl">
                                 Traditional AI is a brain in a jar — disconnected, abstract, and slow.
                                 We gave Oraya a body. Direct kernel access. Native terminal. Full sovereignty.
-                                <span className="text-[var(--surface-900)] italic"> It doesn&apos;t just think. It executes.</span>
+                                <span className="text-white font-medium"> It doesn&apos;t just think. It executes.</span>
                             </p>
                         </div>
 
@@ -94,21 +104,21 @@ export default function NeuralArchitecture() {
                                     whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true }}
                                     transition={{ delay: i * 0.1, duration: 0.5 }}
-                                    className="space-y-3 group"
+                                    className="space-y-4 group p-6 rounded-3xl border border-white/5 bg-white/[0.01] hover:border-primary/20 transition-all duration-500"
                                 >
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-[var(--surface-50)] border border-[var(--surface-200)] group-hover:border-[var(--primary)] transition-colors">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 rounded-xl bg-white/5 border border-white/10 group-hover:border-primary/30 transition-colors">
                                             {(() => {
                                                 const Icon = item.icon;
-                                                return <Icon size={18} className="text-[var(--primary)]" />;
+                                                return <Icon size={20} className="text-primary" />;
                                             })()}
                                         </div>
-                                        <h4 className="font-mono text-[10px] uppercase font-bold text-[var(--surface-400)] tracking-widest">
+                                        <h4 className="font-mono text-[9px] uppercase font-black text-zinc-600 tracking-[0.3em] group-hover:text-primary/70 transition-colors">
                                             {item.biological}
                                         </h4>
                                     </div>
-                                    <h3 className="text-[var(--surface-900)] font-bold text-lg">{item.digital}</h3>
-                                    <p className="text-sm text-[var(--surface-500)] leading-relaxed font-light line-clamp-3 group-hover:text-[var(--surface-600)] transition-colors">
+                                    <h3 className="text-white font-display font-black text-xl uppercase tracking-tight">{item.digital}</h3>
+                                    <p className="text-sm text-zinc-500 leading-relaxed font-sans font-extralight group-hover:text-zinc-400 transition-colors">
                                         {item.desc}
                                     </p>
                                 </motion.div>

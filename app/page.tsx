@@ -1,4 +1,6 @@
+"use client";
 
+import { useEffect } from "react";
 import SalesNavbar from "@/components/sales/Navbar";
 import SalesHero from "@/components/sales/Hero";
 import FeaturesAIOS from "@/components/sales/FeaturesAIOS";
@@ -19,6 +21,7 @@ import MultiWorkspace from "@/components/sales/MultiWorkspace";
 import ModesShowcase from "@/components/sales/ModesShowcase";
 import SecurityVault from "@/components/sales/SecurityVault";
 import ResearchMemory from "@/components/sales/ResearchMemory";
+import { CursorGlow } from "@/components/sales/CursorGlow";
 
 import Manifesto from "@/components/sales/Manifesto";
 import NeuralArchitecture from "@/components/sales/NeuralArchitecture";
@@ -26,15 +29,19 @@ import SovereigntyScorecard from "@/components/sales/SovereigntyScorecard";
 import GlobalRelay from "@/components/sales/GlobalRelay";
 
 // ─── Cinematic Section Divider ─────────────────────────────────
-function Divider({ accent }: { accent?: "cyan" | "magenta" | "gold" | "none" }) {
-    const glowColor = accent === "cyan" ? "#00F0FF" : accent === "magenta" ? "#FF00AA" : accent === "gold" ? "#F0B429" : undefined;
+function Divider({ accent }: { accent?: "primary" | "secondary" | "white" | "none" }) {
+    const glowColor = accent === "primary" ? "var(--primary)" : accent === "secondary" ? "var(--secondary)" : accent === "white" ? "#FFFFFF" : undefined;
+    if (accent === "none") return <div className="h-2 md:h-4" />;
     return (
-        <div className="relative h-20 overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black to-transparent" />
+        <div className="relative h-2 md:h-4 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-transparent" />
             {glowColor && (
                 <div
-                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[300px] h-[1px] opacity-10"
-                    style={{ boxShadow: `0 0 40px 10px ${glowColor}`, backgroundColor: glowColor }}
+                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[200px] h-[1px] opacity-20"
+                    style={{
+                        boxShadow: `0 0 30px 5px ${accent === 'white' ? '#FFFFFF' : accent === 'primary' ? 'var(--primary-glow)' : 'var(--secondary-glow)'}`,
+                        backgroundColor: glowColor
+                    }}
                 />
             )}
         </div>
@@ -42,96 +49,85 @@ function Divider({ accent }: { accent?: "cyan" | "magenta" | "gold" | "none" }) 
 }
 
 export default function LandingPage() {
+    useEffect(() => {
+        // Enforce top-start on refresh
+        if ('scrollRestoration' in window.history) {
+            window.history.scrollRestoration = 'manual';
+        }
+        window.scrollTo(0, 0);
+    }, []);
+
     return (
-        <main className="sales-page-dark min-h-screen bg-black text-white selection:bg-[#00F0FF] selection:text-black overflow-x-hidden relative">
-            {/* Global Effects */}
-            <SalesNavbar />
-            <NeuralBackground />
-            <SpotlightCursor />
+        <main className="sales-page-dark min-h-screen bg-surface-0 text-white selection:bg-primary selection:text-black overflow-x-hidden relative font-sans antialiased">
+            {/* ─── GLOBAL ATMOSPHERIC LAYER ───────────────────────────────── */}
+            <div className="fixed inset-0 pointer-events-none z-[40] bg-[radial-gradient(circle_at_50%_0%,rgba(245,158,11,0.15)_0%,transparent_80%)]" />
 
-            {/* ━━━ ACT I — THE PROMISE ━━━━━━━━━━━━━━━━━━━━━━━━ */}
-            {/* Hook them with the vision */}
-            <SalesHero />
-
-            {/* Social credibility strip */}
-            <SocialProof />
-
-            <Divider accent="cyan" />
-
-            {/* ━━━ ACT II — THE PAIN ━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-            {/* Amplify what's broken */}
-            <ProblemSection />
-
-            {/* The Founder's raw story — "I built this because I had to" */}
-            <Manifesto />
-
-            <Divider accent="magenta" />
-
-            {/* ━━━ ACT III — THE SOLUTION ━━━━━━━━━━━━━━━━━━━━━ */}
-            {/* Visually prove the difference: before/after */}
-            <TransformationSection />
-
-            {/* Show the terminal — "This is what power looks like" */}
-            <TerminalDemo />
-
-            <Divider accent="cyan" />
-
-            {/* ━━━ ACT IV — THE PROOF ━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-            {/* Head-to-head comparison table */}
-            <SovereigntyScorecard />
-
-            {/* The Numbers */}
-            <StatsCounter />
-
-            <Divider accent="gold" />
-
-            {/* ━━━ ACT V — THE DEPTH ━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-            {/* Multi-Agent System */}
-            <AgentEcosystem />
-
-            {/* Neural Architecture — how the brain actually works */}
-            <NeuralArchitecture />
-
-            {/* Cognitive Modes — Assistant, Brainstorm, War Room, Ghost */}
-            <ModesShowcase />
-
-            <Divider accent="cyan" />
-
-            {/* Core Features Zig-Zag — indexing, execution, control, voice */}
-            <FeaturesAIOS />
-
-            {/* Multi-Workspace Intelligence */}
-            <MultiWorkspace />
-
-            {/* Security Vault — Fort Knox */}
-            <SecurityVault />
-
-            {/* 24/7 Research + Memory */}
-            <ResearchMemory />
+            {/* ─── VERTICAL SPINE (Continuity) ────────────────────────────── */}
+            <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[1px] bg-gradient-to-b from-primary/40 via-white/10 to-transparent pointer-events-none z-10 hidden md:block opacity-50" />
 
             {/* Global Infrastructure */}
-            <GlobalRelay />
+            <SalesNavbar />
+            <NeuralBackground />
+            <CursorGlow />
 
-            <Divider accent="magenta" />
+            {/* ACT I — THE PRELUDE */}
+            <div className="relative pt-0">
+                <SalesHero />
+                <SocialProof />
+            </div>
 
-            {/* ━━━ ACT VI — THE VALUE ━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-            {/* Everything you get — Grand Offer stack */}
-            <GrandOffer />
+            {/* ACT II — THE VOID */}
+            <div className="relative bg-surface-0 border-y border-white/[0.03]">
+                <ProblemSection />
+                <Manifesto />
+            </div>
 
-            {/* Pricing */}
-            <PricingSection />
+            <Divider accent="primary" />
 
-            <Divider accent="none" />
+            {/* ACT III — THE KERNEL */}
+            <div className="relative space-y-12 md:space-y-0">
+                <TransformationSection />
+                <TerminalDemo />
+            </div>
 
-            {/* ━━━ ACT VII — THE CLOSE ━━━━━━━━━━━━━━━━━━━━━━━━ */}
-            {/* FAQ */}
-            <FAQSection />
+            <Divider accent="secondary" />
 
-            {/* Final CTA */}
-            <FinalCTA />
+            {/* ACT IV — THE METRICS */}
+            <div className="relative py-8 md:py-16 bg-surface-50">
+                <SovereigntyScorecard />
+                <StatsCounter />
+            </div>
 
-            {/* Footer */}
-            <Footer />
+            <Divider accent="primary" />
+
+            {/* ACT V — THE DEPTH */}
+            <div className="relative">
+                <div className="space-y-4 md:space-y-8">
+                    <AgentEcosystem />
+                    <NeuralArchitecture />
+                    <ModesShowcase />
+                    <FeaturesAIOS />
+                    <MultiWorkspace />
+                    <SecurityVault />
+                    <ResearchMemory />
+                    <GlobalRelay />
+                </div>
+            </div>
+
+            <Divider accent="primary" />
+
+            {/* ACT VI — THE VALUE */}
+            <div className="relative py-8 md:py-16 bg-surface-0 border-t border-white/[0.03]">
+                <GrandOffer />
+                <PricingSection />
+            </div>
+
+            {/* ACT VII — THE EPILOGUE */}
+            <div className="relative bg-surface-50/50">
+                <FAQSection />
+                <FinalCTA />
+                <Footer />
+            </div>
         </main>
     );
 }
