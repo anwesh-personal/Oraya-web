@@ -242,7 +242,7 @@ export default function SelfHealingUI() {
     );
 
     const desktopView = (
-        <div className="relative bg-[#050505] rounded-[47px] overflow-hidden border border-white/5 min-h-[700px] flex flex-col">
+        <div className="relative bg-[#050505] rounded-[47px] overflow-hidden border border-white/5 h-[800px] flex flex-col">
             <AnimatePresence>
                 {phase === "DREAMING" && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-0">

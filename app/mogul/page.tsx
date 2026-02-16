@@ -2,39 +2,42 @@
 
 import { useEffect } from "react";
 import SalesNavbar from "@/components/sales/Navbar";
-import SalesHero from "@/components/sales/Hero";
-import FeaturesAIOS from "@/components/sales/FeaturesAIOS";
-import ProblemSection from "@/components/sales/Problem";
-import GrandOffer from "@/components/sales/GrandOffer";
-import NeuralBackground from "@/components/sales/NeuralBackground";
-import SpotlightCursor from "@/components/sales/SpotlightCursor";
-import SocialProof from "@/components/sales/SocialProof";
-import TerminalDemo from "@/components/sales/TerminalDemo";
-import StatsCounter from "@/components/sales/StatsCounter";
-import FAQSection from "@/components/sales/FAQSection";
-import FinalCTA from "@/components/sales/FinalCTA";
-import TransformationSection from "@/components/sales/Transformation";
-import PricingSection from "@/components/sales/Pricing";
-import Footer from "@/components/sales/Footer";
+import MogulHero from "@/components/sales/mogul/MogulHero";
+import MogulStory from "@/components/sales/mogul/MogulStory";
+import MogulProblem from "@/components/sales/mogul/MogulProblem";
+import MogulTerminal from "@/components/sales/mogul/MogulTerminal";
+import MogulTransformation from "@/components/sales/mogul/MogulTransformation";
+import MogulDemoVideos from "@/components/sales/mogul/MogulDemoVideos";
+import MogulComparison from "@/components/sales/mogul/MogulComparison";
+import MogulStats from "@/components/sales/mogul/MogulStats";
+import MogulBonuses from "@/components/sales/mogul/MogulBonuses";
+import MogulPricingComparison from "@/components/sales/mogul/MogulPricingComparison";
+import MogulFinalCTA from "@/components/sales/mogul/MogulFinalCTA";
+
 import AgentEcosystem from "@/components/sales/AgentEcosystem";
 import AgentOrchestration from "@/components/sales/AgentOrchestration";
-import MultiWorkspace from "@/components/sales/MultiWorkspace";
-import ModesShowcase from "@/components/sales/ModesShowcase";
-import SecurityVault from "@/components/sales/SecurityVault";
-import ResearchMemory from "@/components/sales/ResearchMemory";
-import SelfHealingUI from "@/components/sales/SelfHealingUI";
+import GrandOffer from "@/components/sales/GrandOffer";
+import NeuralBackground from "@/components/sales/NeuralBackground";
+import SocialProof from "@/components/sales/SocialProof";
+import FAQSection from "@/components/sales/FAQSection";
+import PricingSection from "@/components/sales/Pricing";
+import Footer from "@/components/sales/Footer";
 import { CursorGlow } from "@/components/sales/CursorGlow";
-
 import Manifesto from "@/components/sales/Manifesto";
-import NeuralArchitecture from "@/components/sales/NeuralArchitecture";
 import SovereigntyScorecard from "@/components/sales/SovereigntyScorecard";
-import GlobalRelay from "@/components/sales/GlobalRelay";
-
 import IntelligenceMantle from "@/components/sales/IntelligenceMantle";
+import NeuralArchitecture from "@/components/sales/NeuralArchitecture";
 import PerimeterMap from "@/components/sales/PerimeterMap";
 import EntropyAudit from "@/components/sales/EntropyAudit";
 import RawDirectives from "@/components/sales/RawDirectives";
 import SwarmLogs from "@/components/sales/SwarmLogs";
+import SecurityVault from "@/components/sales/SecurityVault";
+import MultiWorkspace from "@/components/sales/MultiWorkspace";
+import ModesShowcase from "@/components/sales/ModesShowcase";
+import SelfHealingUI from "@/components/sales/SelfHealingUI";
+import ResearchMemory from "@/components/sales/ResearchMemory";
+import GlobalRelay from "@/components/sales/GlobalRelay";
+import FeaturesAIOS from "@/components/sales/FeaturesAIOS";
 
 // ─── Cinematic Section Divider ─────────────────────────────────
 function Divider({ accent }: { accent?: "primary" | "secondary" | "white" | "none" }) {
@@ -56,9 +59,8 @@ function Divider({ accent }: { accent?: "primary" | "secondary" | "white" | "non
     );
 }
 
-export default function LandingPage() {
+export default function MogulLandingPage() {
     useEffect(() => {
-        // Enforce top-start on refresh
         if ('scrollRestoration' in window.history) {
             window.history.scrollRestoration = 'manual';
         }
@@ -70,60 +72,67 @@ export default function LandingPage() {
             {/* ─── GLOBAL ATMOSPHERIC LAYER ───────────────────────────────── */}
             <div className="fixed inset-0 pointer-events-none z-[40] bg-[radial-gradient(circle_at_50%_0%,rgba(245,158,11,0.15)_0%,transparent_80%)]" />
 
-            {/* ─── VERTICAL SPINE (Continuity) ────────────────────────────── */}
-            <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[1px] bg-gradient-to-b from-primary/40 via-white/10 to-transparent pointer-events-none z-10 hidden md:block opacity-50" />
-
             {/* Global Infrastructure */}
             <SalesNavbar />
             <NeuralBackground />
             <CursorGlow />
 
-            {/* ACT I — THE PRELUDE */}
+            {/* ACT I — THE PICTURE (Aspiration & Heart) */}
             <div className="relative pt-0">
-                <SalesHero />
+                <MogulHero />
                 <SocialProof />
+                <MogulStory />
             </div>
 
-            {/* ACT II — THE VOID */}
+            <Divider accent="secondary" />
+
+            {/* ACT II — THE PROBLEM (The Business Void) */}
             <div className="relative bg-surface-0 border-y border-white/[0.03]">
-                <ProblemSection />
+                <MogulProblem />
+                <MogulTerminal />
                 <Manifesto />
             </div>
 
             <Divider accent="primary" />
 
-            {/* ACT III — THE KERNEL */}
-            <div className="relative space-y-12 md:space-y-0">
-                <TransformationSection />
-                <TerminalDemo />
+            {/* ACT III — THE PROMISE (The Output Engine) */}
+            <div className="relative">
+                <MogulTransformation />
+                <IntelligenceMantle />
+                <Divider accent="none" />
+                <SovereigntyScorecard />
+                <Divider accent="secondary" />
+                <EntropyAudit />
             </div>
 
             <Divider accent="secondary" />
 
-            {/* ACT IV — THE METRICS */}
-            <div className="relative py-8 md:py-16 bg-surface-50">
-                <SovereigntyScorecard />
-                <Divider accent="secondary" />
-                <EntropyAudit />
-                <StatsCounter />
-            </div>
-
-            <Divider accent="primary" />
-
-            {/* ACT V — THE DEPTH */}
+            {/* ACT IV — THE PROOF (Heavy Technical Artillery) */}
             <div className="relative">
-                <div className="space-y-4 md:space-y-8">
+                <div className="space-y-4 md:space-y-12">
+                    {/* Cinematic Proof Suite */}
+                    <MogulDemoVideos />
+                    <SwarmLogs />
+                    <MogulComparison />
+
+                    <Divider accent="primary" />
+
+                    {/* The Architecture of Dominion */}
+                    <MogulStats />
                     <AgentEcosystem />
                     <AgentOrchestration />
-                    <SwarmLogs />
-                    <Divider accent="secondary" />
                     <NeuralArchitecture />
+
+                    {/* Operating Systems */}
                     <RawDirectives />
                     <ModesShowcase />
-                    <div className="py-12">
+                    <div className="py-24">
                         <SelfHealingUI />
                     </div>
-                    <IntelligenceMantle />
+
+                    <Divider accent="white" />
+
+                    {/* Security & Infrastructure */}
                     <FeaturesAIOS />
                     <MultiWorkspace />
                     <SecurityVault />
@@ -135,16 +144,24 @@ export default function LandingPage() {
 
             <Divider accent="primary" />
 
-            {/* ACT VI — THE VALUE */}
-            <div className="relative py-8 md:py-16 bg-surface-0 border-t border-white/[0.03]">
+            {/* ACT V — THE OFFER (Aggressive Value Stack) */}
+            <div className="relative py-24 bg-surface-0 border-t border-white/[0.03] space-y-40">
                 <GrandOffer />
+                <MogulBonuses />
+            </div>
+
+            <Divider accent="secondary" />
+
+            {/* ACT VI — THE RESPONSE (ROI & Asset Ownership) */}
+            <div className="relative space-y-24">
+                <MogulPricingComparison />
                 <PricingSection />
             </div>
 
-            {/* ACT VII — THE EPILOGUE */}
+            {/* ACT VII — THE PUSH (Empire Initialization) */}
             <div className="relative bg-surface-50/50">
                 <FAQSection />
-                <FinalCTA />
+                <MogulFinalCTA />
                 <Footer />
             </div>
         </main>
