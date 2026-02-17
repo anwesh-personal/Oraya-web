@@ -268,8 +268,25 @@ export async function POST(request: NextRequest) {
 
         // ── Step 10: Fetch managed AI claims (if applicable) ──
         let managedAi: ManagedAiClaims | undefined;
-        if (license.plan.features.includes("managed_ai")) {
+        const hasManaged = license.plan.features.includes("managed_ai") || license.plan.features.includes("everything");
+        if (hasManaged) {
             managedAi = await buildManagedAiClaims(supabase, userId, license);
+        }
+
+        // ── Step 10b: Resolve effective limits (org overrides plan) ──
+        let effectiveMaxAgents = license.plan.maxAgents;
+        let effectiveMaxDevices = license.plan.maxDevices;
+        if (team?.teamId) {
+            const { data: teamRow } = await (supabase.from("teams") as any)
+                .select("max_agents, max_members")
+                .eq("id", team.teamId)
+                .single();
+            if (teamRow) {
+                // Org limits override plan limits when set to a positive value
+                if (teamRow.max_agents != null && teamRow.max_agents > 0) {
+                    effectiveMaxAgents = teamRow.max_agents;
+                }
+            }
         }
 
         // ── Step 11: Sign license token ──
@@ -286,8 +303,8 @@ export async function POST(request: NextRequest) {
             planName: license.plan.name,
             planFeatures: license.plan.features,
 
-            maxAgents: license.plan.maxAgents,
-            maxDevices: license.plan.maxDevices,
+            maxAgents: effectiveMaxAgents,
+            maxDevices: effectiveMaxDevices,
             maxAiCalls: license.plan.maxAiCallsPerMonth,
             maxTokens: license.plan.maxTokenUsagePerMonth,
 
@@ -340,15 +357,15 @@ export async function POST(request: NextRequest) {
                 license_key: license.licenseKey,
                 features: license.plan.features,
                 limits: {
-                    max_agents: license.plan.maxAgents,
-                    max_devices: license.plan.maxDevices,
+                    max_agents: effectiveMaxAgents,
+                    max_devices: effectiveMaxDevices,
                     max_ai_calls: license.plan.maxAiCallsPerMonth,
                     max_tokens: license.plan.maxTokenUsagePerMonth,
                 },
                 expires_at: license.currentPeriodEnd,
                 is_trial: license.billingCycle === "trial",
                 devices_active: activeDeviceCount,
-                devices_max: license.plan.maxDevices,
+                devices_max: effectiveMaxDevices,
                 team_inherited: isTeamInherited,
             },
             config,

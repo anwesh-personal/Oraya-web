@@ -232,8 +232,22 @@ export async function POST(request: NextRequest) {
 
         // ── Step 8: Build managed AI claims ──
         let managedAi: ManagedAiClaims | undefined;
-        if (license.plan.features.includes("managed_ai")) {
+        const hasManaged = license.plan.features.includes("managed_ai") || license.plan.features.includes("everything");
+        if (hasManaged) {
             managedAi = await buildManagedAiClaims(supabase, userId, license);
+        }
+
+        // ── Step 8b: Resolve effective limits (org overrides plan) ──
+        let effectiveMaxAgents = license.plan.maxAgents;
+        let effectiveMaxDevices = license.plan.maxDevices;
+        if (team?.teamId) {
+            const { data: teamRow } = await (supabase.from("teams") as any)
+                .select("max_agents")
+                .eq("id", team.teamId)
+                .single();
+            if (teamRow?.max_agents != null && teamRow.max_agents > 0) {
+                effectiveMaxAgents = teamRow.max_agents;
+            }
         }
 
         // ── Step 9: Sign fresh license token ──
@@ -248,8 +262,8 @@ export async function POST(request: NextRequest) {
             planName: license.plan.name,
             planFeatures: license.plan.features,
 
-            maxAgents: license.plan.maxAgents,
-            maxDevices: license.plan.maxDevices,
+            maxAgents: effectiveMaxAgents,
+            maxDevices: effectiveMaxDevices,
             maxAiCalls: license.plan.maxAiCallsPerMonth,
             maxTokens: license.plan.maxTokenUsagePerMonth,
 
