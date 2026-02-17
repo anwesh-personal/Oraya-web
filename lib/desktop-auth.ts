@@ -602,15 +602,13 @@ export async function buildManagedAiClaims(
         const allowedProviders = [...new Set(aiKeys.map((k: any) => k.provider))] as string[];
         const allowedModels = aiKeys.flatMap((k: any) => k.model_ids || []) as string[];
 
-        // Calculate remaining quotas
-        const remainingAiCalls = Math.max(
-            0,
-            license.plan.maxAiCallsPerMonth - (license.aiCallsUsed || 0)
-        );
-        const remainingTokens = Math.max(
-            0,
-            license.plan.maxTokenUsagePerMonth - (license.tokensUsed || 0)
-        );
+        // Calculate remaining quotas (-1 = unlimited)
+        const remainingAiCalls = license.plan.maxAiCallsPerMonth === -1
+            ? Number.MAX_SAFE_INTEGER
+            : Math.max(0, license.plan.maxAiCallsPerMonth - (license.aiCallsUsed || 0));
+        const remainingTokens = license.plan.maxTokenUsagePerMonth === -1
+            ? Number.MAX_SAFE_INTEGER
+            : Math.max(0, license.plan.maxTokenUsagePerMonth - (license.tokensUsed || 0));
 
         return {
             enabled: true,
@@ -649,7 +647,7 @@ export function getServerConfig() {
             process.env.LICENSE_HEARTBEAT_INTERVAL_SECONDS || "3600",
             10
         ),
-        min_app_version: process.env.DESKTOP_API_MIN_APP_VERSION || "1.0.0",
+        min_app_version: process.env.DESKTOP_API_MIN_APP_VERSION || "0.1.0",
         latest_app_version:
             process.env.DESKTOP_API_LATEST_APP_VERSION || "1.0.0",
         update_url:

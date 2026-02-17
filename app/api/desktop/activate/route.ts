@@ -193,9 +193,9 @@ export async function POST(request: NextRequest) {
         );
 
         if (!existingActivation) {
-            // New device — check max_devices limit
+            // New device — check max_devices limit (-1 means unlimited)
             const activeCount = await countActiveDevices(supabase, licenseIdForActivation);
-            if (activeCount >= license.plan.maxDevices) {
+            if (license.plan.maxDevices !== -1 && activeCount >= license.plan.maxDevices) {
                 const { data: activeDevices } = await (
                     supabase.from("license_activations") as any
                 )
