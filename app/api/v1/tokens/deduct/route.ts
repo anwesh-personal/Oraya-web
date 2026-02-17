@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { authenticateBridge, hasScope, scopeError } from "@/lib/bridge/auth";
+import { PlanEnforcer } from "@/lib/plan-enforcer";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,24 @@ export async function POST(request: Request) {
         if (error) return error;
 
         if (!hasScope(auth, "use_tokens")) return scopeError("use_tokens");
+
+        // 1a. Plan enforcement: check feature + quota
+        const access = await PlanEnforcer.enforceAccess(
+            auth.supabase,
+            auth.user_id,
+            "managed_ai",
+            "ai_calls"
+        );
+        if (!access.allowed) {
+            return NextResponse.json(
+                {
+                    error: access.reason,
+                    code: "PLAN_LIMIT_REACHED",
+                    ...(access.usage ? { usage: access.usage } : {}),
+                },
+                { status: 403 }
+            );
+        }
 
         // 1. Parse body
         const body = await request.json();
@@ -129,20 +148,9 @@ export async function POST(request: Request) {
             );
         }
 
-        // 7. Also update license usage counter
-        if (auth.license_id) {
-            // Increment ai_calls_used atomically
-            const { error: rpcError } = await auth.supabase.rpc(
-                "increment_license_ai_calls",
-                { license_id_param: auth.license_id }
-            );
-            if (rpcError) {
-                console.warn(
-                    "Failed to increment license AI calls (non-critical):",
-                    rpcError.message
-                );
-            }
-        }
+        // 7. Update license usage counters via PlanEnforcer
+        await PlanEnforcer.incrementUsage(auth.supabase, auth.user_id, "ai_calls", 1);
+        await PlanEnforcer.incrementUsage(auth.supabase, auth.user_id, "tokens", tokens);
 
         return NextResponse.json({
             success: true,

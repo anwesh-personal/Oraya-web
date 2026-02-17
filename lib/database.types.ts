@@ -1160,6 +1160,278 @@ export interface Database {
                     created_at?: string;
                 };
             };
+
+            // ================================================
+            // DESKTOP LICENSE TOKENS (from 018_desktop_license_tokens.sql)
+            // ================================================
+            desktop_license_tokens: {
+                Row: {
+                    id: string;
+                    license_id: string;
+                    device_id: string;
+                    activation_id: string | null;
+                    token_jti: string;
+                    issued_at: string;
+                    expires_at: string;
+                    is_revoked: boolean;
+                    revoked_at: string | null;
+                    revoked_reason: string | null;
+                    ip_address: string | null;
+                    user_agent: string | null;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    license_id: string;
+                    device_id: string;
+                    activation_id?: string | null;
+                    token_jti: string;
+                    issued_at: string;
+                    expires_at: string;
+                    is_revoked?: boolean;
+                    revoked_at?: string | null;
+                    revoked_reason?: string | null;
+                    ip_address?: string | null;
+                    user_agent?: string | null;
+                    created_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    license_id?: string;
+                    device_id?: string;
+                    activation_id?: string | null;
+                    token_jti?: string;
+                    issued_at?: string;
+                    expires_at?: string;
+                    is_revoked?: boolean;
+                    revoked_at?: string | null;
+                    revoked_reason?: string | null;
+                    ip_address?: string | null;
+                    user_agent?: string | null;
+                    created_at?: string;
+                };
+            };
+
+            // ================================================
+            // USER AI PREFERENCES (from 006_managed_ai_service.sql)
+            // ================================================
+            user_ai_preferences: {
+                Row: {
+                    id: string;
+                    user_id: string;
+                    default_model: string;
+                    default_provider: string;
+                    fallback_model: string | null;
+                    fallback_provider: string | null;
+                    daily_spending_limit_usd: number | null;
+                    monthly_spending_limit_usd: number | null;
+                    per_request_limit_usd: number | null;
+                    usage_alerts_enabled: boolean;
+                    low_balance_alerts_enabled: boolean;
+                    high_spend_alerts_enabled: boolean;
+                    alert_email: string | null;
+                    alert_threshold_percentage: number;
+                    max_requests_per_hour: number | null;
+                    max_requests_per_day: number | null;
+                    temperature: number | null;
+                    max_tokens: number | null;
+                    streaming_enabled: boolean;
+                    image_generation_enabled: boolean;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    user_id: string;
+                    default_model?: string;
+                    default_provider?: string;
+                    fallback_model?: string | null;
+                    fallback_provider?: string | null;
+                    daily_spending_limit_usd?: number | null;
+                    monthly_spending_limit_usd?: number | null;
+                    per_request_limit_usd?: number | null;
+                    usage_alerts_enabled?: boolean;
+                    low_balance_alerts_enabled?: boolean;
+                    high_spend_alerts_enabled?: boolean;
+                    alert_email?: string | null;
+                    alert_threshold_percentage?: number;
+                    max_requests_per_hour?: number | null;
+                    max_requests_per_day?: number | null;
+                    temperature?: number | null;
+                    max_tokens?: number | null;
+                    streaming_enabled?: boolean;
+                    image_generation_enabled?: boolean;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    user_id?: string;
+                    default_model?: string;
+                    default_provider?: string;
+                    fallback_model?: string | null;
+                    fallback_provider?: string | null;
+                    daily_spending_limit_usd?: number | null;
+                    monthly_spending_limit_usd?: number | null;
+                    per_request_limit_usd?: number | null;
+                    usage_alerts_enabled?: boolean;
+                    low_balance_alerts_enabled?: boolean;
+                    high_spend_alerts_enabled?: boolean;
+                    alert_email?: string | null;
+                    alert_threshold_percentage?: number;
+                    max_requests_per_hour?: number | null;
+                    max_requests_per_day?: number | null;
+                    temperature?: number | null;
+                    max_tokens?: number | null;
+                    streaming_enabled?: boolean;
+                    image_generation_enabled?: boolean;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+            };
+
+            // ================================================
+            // TEAMS (from 007_teams_collaboration.sql)
+            // ================================================
+            teams: {
+                Row: {
+                    id: string;
+                    name: string;
+                    slug: string;
+                    description: string | null;
+                    avatar_url: string | null;
+                    owner_id: string;
+                    plan_id: string | null;
+                    max_members: number;
+                    max_agents: number;
+                    max_shared_conversations: number;
+                    billing_email: string | null;
+                    billing_user_id: string | null;
+                    settings: Json;
+                    shared_token_pool: boolean;
+                    shared_ai_keys: boolean;
+                    member_can_invite: boolean;
+                    is_active: boolean;
+                    suspended_at: string | null;
+                    suspension_reason: string | null;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    name: string;
+                    slug: string;
+                    description?: string | null;
+                    avatar_url?: string | null;
+                    owner_id: string;
+                    plan_id?: string | null;
+                    max_members?: number;
+                    max_agents?: number;
+                    max_shared_conversations?: number;
+                    billing_email?: string | null;
+                    billing_user_id?: string | null;
+                    settings?: Json;
+                    shared_token_pool?: boolean;
+                    shared_ai_keys?: boolean;
+                    member_can_invite?: boolean;
+                    is_active?: boolean;
+                    suspended_at?: string | null;
+                    suspension_reason?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    name?: string;
+                    slug?: string;
+                    description?: string | null;
+                    avatar_url?: string | null;
+                    owner_id?: string;
+                    plan_id?: string | null;
+                    max_members?: number;
+                    max_agents?: number;
+                    max_shared_conversations?: number;
+                    billing_email?: string | null;
+                    billing_user_id?: string | null;
+                    settings?: Json;
+                    shared_token_pool?: boolean;
+                    shared_ai_keys?: boolean;
+                    member_can_invite?: boolean;
+                    is_active?: boolean;
+                    suspended_at?: string | null;
+                    suspension_reason?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+            };
+            team_members: {
+                Row: {
+                    id: string;
+                    team_id: string;
+                    user_id: string;
+                    role: "owner" | "admin" | "member" | "guest";
+                    can_manage_members: boolean;
+                    can_manage_billing: boolean;
+                    can_create_agents: boolean;
+                    can_share_conversations: boolean;
+                    can_use_team_tokens: boolean;
+                    custom_permissions: Json;
+                    status: "invited" | "active" | "suspended" | "left";
+                    invited_by: string | null;
+                    invitation_token: string | null;
+                    invitation_sent_at: string | null;
+                    invitation_accepted_at: string | null;
+                    invitation_expires_at: string | null;
+                    last_active_at: string | null;
+                    joined_at: string | null;
+                    left_at: string | null;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    team_id: string;
+                    user_id: string;
+                    role?: "owner" | "admin" | "member" | "guest";
+                    can_manage_members?: boolean;
+                    can_manage_billing?: boolean;
+                    can_create_agents?: boolean;
+                    can_share_conversations?: boolean;
+                    can_use_team_tokens?: boolean;
+                    custom_permissions?: Json;
+                    status?: "invited" | "active" | "suspended" | "left";
+                    invited_by?: string | null;
+                    invitation_token?: string | null;
+                    invitation_sent_at?: string | null;
+                    invitation_accepted_at?: string | null;
+                    invitation_expires_at?: string | null;
+                    last_active_at?: string | null;
+                    joined_at?: string | null;
+                    left_at?: string | null;
+                    created_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    team_id?: string;
+                    user_id?: string;
+                    role?: "owner" | "admin" | "member" | "guest";
+                    can_manage_members?: boolean;
+                    can_manage_billing?: boolean;
+                    can_create_agents?: boolean;
+                    can_share_conversations?: boolean;
+                    can_use_team_tokens?: boolean;
+                    custom_permissions?: Json;
+                    status?: "invited" | "active" | "suspended" | "left";
+                    invited_by?: string | null;
+                    invitation_token?: string | null;
+                    invitation_sent_at?: string | null;
+                    invitation_accepted_at?: string | null;
+                    invitation_expires_at?: string | null;
+                    last_active_at?: string | null;
+                    joined_at?: string | null;
+                    left_at?: string | null;
+                    created_at?: string;
+                };
+            };
         };
         Views: {
             [_ in never]: never;
@@ -1205,3 +1477,7 @@ export type TokenPackage = Tables<"token_packages">;
 export type StripeCustomer = Tables<"stripe_customers">;
 export type ManagedAIKey = Tables<"managed_ai_keys">;
 export type AIUsageLog = Tables<"ai_usage_logs">;
+export type DesktopLicenseToken = Tables<"desktop_license_tokens">;
+export type UserAIPreferences = Tables<"user_ai_preferences">;
+export type Team = Tables<"teams">;
+export type TeamMember = Tables<"team_members">;

@@ -120,7 +120,7 @@ export async function PUT(request: NextRequest) {
                         category: setting.category || "general",
                         description: setting.description || null,
                         is_sensitive: setting.is_sensitive || false,
-                        updated_by: authResult.session?.id || null,
+                        updated_by: authResult.session?.adminId || null,
                         updated_at: new Date().toISOString(),
                     },
                     { onConflict: "key" }

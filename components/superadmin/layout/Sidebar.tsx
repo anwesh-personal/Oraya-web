@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import {
     LayoutDashboard,
     Building2,
@@ -18,6 +19,8 @@ import {
     HelpCircle,
     ChevronRight,
     Boxes,
+    Menu,
+    X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
@@ -67,12 +70,13 @@ const navigation = [
 export function Sidebar({ session }: SidebarProps) {
     const pathname = usePathname();
     const { mode } = useThemeStore();
+    const [mobileOpen, setMobileOpen] = useState(false);
 
-    return (
-        <aside className="fixed left-0 top-0 bottom-0 w-[var(--sidebar-width)] bg-[var(--surface-50)] border-r border-[var(--surface-300)] flex flex-col z-40">
+    const sidebarContent = (
+        <>
             {/* Logo */}
-            <div className="h-[var(--header-height)] flex items-center px-6 border-b border-[var(--surface-300)]">
-                <Link href="/superadmin/overview" className="flex items-center gap-3">
+            <div className="h-16 flex items-center px-6 border-b border-[var(--surface-300)] shrink-0">
+                <Link href="/superadmin/overview" className="flex items-center gap-3" onClick={() => setMobileOpen(false)}>
                     <Image
                         src={mode === 'dark' ? '/logos/oraya-light.png' : '/logos/oraya-dark.png'}
                         alt="Oraya"
@@ -101,6 +105,7 @@ export function Sidebar({ session }: SidebarProps) {
                                     <li key={item.name}>
                                         <Link
                                             href={item.href}
+                                            onClick={() => setMobileOpen(false)}
                                             className={cn(
                                                 "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                                                 isActive
@@ -110,7 +115,7 @@ export function Sidebar({ session }: SidebarProps) {
                                         >
                                             <item.icon
                                                 className={cn(
-                                                    "w-5 h-5",
+                                                    "w-5 h-5 shrink-0",
                                                     isActive ? "text-[var(--primary)]" : "text-[var(--surface-500)]"
                                                 )}
                                             />
@@ -128,8 +133,7 @@ export function Sidebar({ session }: SidebarProps) {
             </nav>
 
             {/* Footer */}
-            <div className="p-4 border-t border-[var(--surface-300)]">
-                {/* Theme Switcher */}
+            <div className="p-4 border-t border-[var(--surface-300)] shrink-0">
                 <div className="flex items-center justify-between mb-3 px-3">
                     <span className="text-xs text-[var(--surface-500)]">Theme</span>
                     <ThemeSwitcher />
@@ -137,6 +141,7 @@ export function Sidebar({ session }: SidebarProps) {
 
                 <Link
                     href="/superadmin/help"
+                    onClick={() => setMobileOpen(false)}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[var(--surface-600)] hover:text-[var(--surface-800)] hover:bg-[var(--surface-100)] transition-colors"
                 >
                     <HelpCircle className="w-5 h-5" />
@@ -150,7 +155,49 @@ export function Sidebar({ session }: SidebarProps) {
                     </span>
                 </div>
             </div>
-        </aside>
+        </>
+    );
+
+    return (
+        <>
+            {/* Mobile hamburger button */}
+            <button
+                onClick={() => setMobileOpen(true)}
+                className="fixed top-4 left-4 z-50 lg:hidden p-2 rounded-xl bg-[var(--surface-100)] border border-[var(--surface-300)] shadow-lg"
+                aria-label="Open menu"
+            >
+                <Menu className="w-5 h-5 text-[var(--surface-700)]" />
+            </button>
+
+            {/* Mobile overlay */}
+            {mobileOpen && (
+                <div
+                    className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm lg:hidden"
+                    onClick={() => setMobileOpen(false)}
+                />
+            )}
+
+            {/* Mobile sidebar */}
+            <aside
+                className={cn(
+                    "fixed left-0 top-0 bottom-0 w-72 bg-[var(--surface-50)] border-r border-[var(--surface-300)] flex flex-col z-[60] transition-transform duration-300 lg:hidden",
+                    mobileOpen ? "translate-x-0" : "-translate-x-full"
+                )}
+            >
+                {/* Close button */}
+                <button
+                    onClick={() => setMobileOpen(false)}
+                    className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-[var(--surface-200)] transition-colors"
+                >
+                    <X className="w-5 h-5 text-[var(--surface-500)]" />
+                </button>
+                {sidebarContent}
+            </aside>
+
+            {/* Desktop sidebar */}
+            <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-72 bg-[var(--surface-50)] border-r border-[var(--surface-300)] flex-col z-40">
+                {sidebarContent}
+            </aside>
+        </>
     );
 }
-

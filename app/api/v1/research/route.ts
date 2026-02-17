@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { authenticateBridge, hasScope, scopeError } from "@/lib/bridge/auth";
+import { PlanEnforcer } from "@/lib/plan-enforcer";
 
 export const dynamic = "force-dynamic";
 
@@ -135,6 +136,19 @@ export async function POST(request: Request) {
                     return NextResponse.json(
                         { error: "name and query are required" },
                         { status: 400 }
+                    );
+                }
+
+                // Feature gate: research requires managed_ai
+                const access = await PlanEnforcer.enforceAccess(
+                    auth.supabase,
+                    auth.user_id,
+                    "managed_ai"
+                );
+                if (!access.allowed) {
+                    return NextResponse.json(
+                        { error: access.reason, code: "PLAN_FEATURE_REQUIRED" },
+                        { status: 403 }
                     );
                 }
 

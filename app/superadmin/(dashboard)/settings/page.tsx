@@ -6,7 +6,8 @@ import { AdminsSettings } from "@/components/superadmin/settings/AdminsSettings"
 import { BillingSettings } from "@/components/superadmin/settings/BillingSettings";
 import { SecuritySettings } from "@/components/superadmin/settings/SecuritySettings";
 import { ThemeSettings } from "@/components/superadmin/settings/ThemeSettings";
-import { Settings, Flag, CreditCard, Shield, Users, Package, Palette } from "lucide-react";
+import { EmailSettings } from "@/components/superadmin/settings/EmailSettings";
+import { Settings, Flag, CreditCard, Shield, Users, Package, Palette, Mail } from "lucide-react";
 
 export default function SettingsPage() {
     return (
@@ -69,6 +70,13 @@ export default function SettingsPage() {
                         <Shield className="w-4 h-4 mr-2" />
                         Security
                     </TabsTrigger>
+                    <TabsTrigger
+                        value="email"
+                        className="data-[state=active]:bg-[var(--primary)] data-[state=active]:text-[var(--primary-foreground)] rounded-lg px-4 py-2 text-[var(--surface-600)]"
+                    >
+                        <Mail className="w-4 h-4 mr-2" />
+                        Email / SMTP
+                    </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="theme">
@@ -97,6 +105,10 @@ export default function SettingsPage() {
 
                 <TabsContent value="security">
                     <SecuritySettings />
+                </TabsContent>
+
+                <TabsContent value="email">
+                    <EmailSettings />
                 </TabsContent>
             </Tabs>
         </div>
