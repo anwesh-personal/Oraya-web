@@ -34,6 +34,7 @@ interface ProfileData {
     bio: string | null;
     timezone: string | null;
     locale: string | null;
+    ora_key: string | null;
     referral_code: string | null;
     created_at: string;
 }
@@ -304,6 +305,33 @@ export default function SettingsPage() {
                                                 </option>
                                             ))}
                                         </select>
+                                    </div>
+
+                                    {/* ORA Key (read-only) */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-[var(--surface-700)] mb-1.5 flex items-center justify-between">
+                                            <span>ORA Key</span>
+                                            <span className="text-[10px] uppercase tracking-wider text-[var(--primary)] font-bold bg-[var(--primary)]/10 px-1.5 py-0.5 rounded">Primary Credential</span>
+                                        </label>
+                                        <div className="flex items-center gap-2 px-4 py-2.5 bg-[var(--surface-100)] rounded-xl border border-[var(--surface-200)] text-[var(--surface-800)] font-mono text-xs">
+                                            <Key className="w-4 h-4 text-[var(--primary)]" />
+                                            <span>{profile?.ora_key || "Generating..."}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (profile?.ora_key) {
+                                                        navigator.clipboard.writeText(profile.ora_key);
+                                                        // Could add a toast here if available
+                                                    }
+                                                }}
+                                                className="ml-auto text-[var(--primary)] hover:underline font-medium"
+                                            >
+                                                Copy
+                                            </button>
+                                        </div>
+                                        <p className="text-[10px] text-[var(--surface-500)] mt-1.5">
+                                            Use this key to activate Oraya Desktop and for API access. Keep it secure.
+                                        </p>
                                     </div>
 
                                     {/* Referral Code (read-only) */}

@@ -27,9 +27,9 @@ export async function GET(request: NextRequest) {
         const supabase = createServiceRoleClient();
 
         // Fetch profile
-        const { data: profile } = await supabase
-            .from("user_profiles")
-            .select("*")
+        const { data: profile } = await (supabase
+            .from("user_profiles") as any)
+            .select("*, ora_key")
             .eq("id", userId)
             .single();
 
@@ -60,6 +60,7 @@ export async function GET(request: NextRequest) {
                 language: profile?.language || "en",
                 theme: profile?.theme || "dark",
                 account_status: profile?.account_status || "active",
+                ora_key: profile?.ora_key || null,
                 onboarding_completed: profile?.onboarding_completed || false,
                 last_seen_at: profile?.last_seen_at || null,
                 referral_code: profile?.referral_code || null,

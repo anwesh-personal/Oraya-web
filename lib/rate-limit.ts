@@ -131,6 +131,8 @@ export function checkRateLimit(
 export const RATE_LIMITS = {
     /** Activation: 5 per minute per IP (creating DB rows) */
     activate: { limit: 5, windowSeconds: 60 } as RateLimitConfig,
+    /** ORA Key Device Activation: 10 per minute per IP */
+    "activate-device": { limit: 10, windowSeconds: 60 } as RateLimitConfig,
     /** Refresh: 30 per minute per IP (token renewal) */
     refresh: { limit: 30, windowSeconds: 60 } as RateLimitConfig,
     /** Heartbeat: 60 per minute per IP (lightweight ping) */

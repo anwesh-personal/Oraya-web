@@ -38,6 +38,7 @@ const navigation = [
     {
         label: "AI Management",
         items: [
+            { name: "Agent Templates", href: "/agent-templates", icon: Bot },
             { name: "Agents", href: "/agents", icon: Bot },
             { name: "Engines", href: "/engines", icon: Server },
             { name: "AI Providers", href: "/ai-providers", icon: Cpu },

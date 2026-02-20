@@ -250,6 +250,12 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        // ── Step 8c: Fetch ORA Key from profile ──
+        const { data: profileRow } = await (supabase.from("user_profiles") as any)
+            .select("ora_key")
+            .eq("id", userId)
+            .single();
+
         // ── Step 9: Sign fresh license token ──
         const licenseToken = await createLicenseToken({
             userId,
@@ -257,7 +263,7 @@ export async function POST(request: NextRequest) {
             orgId: team?.teamId,
 
             licenseId: activationLicenseId,
-            licenseKey: license.licenseKey || "",
+            oraKey: profileRow?.ora_key || "",
             planId: license.planId,
             planName: license.plan.name,
             planFeatures: license.plan.features,

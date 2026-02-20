@@ -34,8 +34,8 @@ export interface LicenseTokenClaims {
     // ── License ──
     /** user_licenses.id */
     lic_id: string;
-    /** License key (e.g. "ORA-A1B2C3D4E5F6...") */
-    lic_key: string;
+    /** ORA Key (e.g. "ORA-XXXX-XXXX-XXXX-XXXX") */
+    ora_key: string;
     /** Plan ID (e.g. "free", "pro", "team", "enterprise") */
     plan: string;
     /** Plan display name */
@@ -103,7 +103,7 @@ export interface CreateTokenInput {
 
     // License
     licenseId: string;
-    licenseKey: string;
+    oraKey: string;
     planId: string;
     planName: string;
     planFeatures: string[];
@@ -224,7 +224,7 @@ export async function createLicenseToken(input: CreateTokenInput): Promise<strin
 
         // License
         lic_id: input.licenseId,
-        lic_key: input.licenseKey,
+        ora_key: input.oraKey,
         plan: input.planId,
         plan_name: input.planName,
         plan_features: input.planFeatures,

@@ -289,6 +289,12 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        // ── Step 10c: Fetch user profile (need ora_key for token) ──
+        const { data: profile } = await (supabase.from("user_profiles") as any)
+            .select("full_name, avatar_url, ora_key")
+            .eq("id", userId)
+            .single();
+
         // ── Step 11: Sign license token ──
         const activeDeviceCount = await countActiveDevices(supabase, licenseIdForActivation);
 
@@ -298,7 +304,7 @@ export async function POST(request: NextRequest) {
             orgId: team?.teamId,
 
             licenseId: licenseIdForActivation,
-            licenseKey: license.licenseKey || "",
+            oraKey: profile?.ora_key || "",
             planId: license.planId,
             planName: license.plan.name,
             planFeatures: license.plan.features,
@@ -334,12 +340,6 @@ export async function POST(request: NextRequest) {
             userAgent,
         });
 
-        // ── Step 13: Fetch user profile for response ──
-        const { data: profile } = await supabase.from("user_profiles")
-            .select("full_name, avatar_url")
-            .eq("id", userId)
-            .single();
-
         // ── Step 14: Build response ──
         return NextResponse.json({
             license_token: licenseToken,
@@ -354,7 +354,7 @@ export async function POST(request: NextRequest) {
                 plan_id: license.planId,
                 plan_name: license.plan.name,
                 status: license.status,
-                license_key: license.licenseKey,
+                ora_key: profile?.ora_key || null,
                 features: license.plan.features,
                 limits: {
                     max_agents: effectiveMaxAgents,

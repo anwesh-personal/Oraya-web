@@ -55,6 +55,7 @@ interface LicenseData {
     plan_name: string;
     status: string;
     license_key: string | null;
+    ora_key: string | null;
     billing_cycle: string | null;
     next_billing_date: string | null;
     current_period_start: string | null;
@@ -144,9 +145,9 @@ export default function LicensePage() {
         fetchLicense();
     }, [fetchLicense]);
 
-    const copyLicenseKey = async () => {
-        if (!license?.license_key) return;
-        await navigator.clipboard.writeText(license.license_key);
+    const copyOraKey = async () => {
+        if (!license?.ora_key) return;
+        await navigator.clipboard.writeText(license.ora_key);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
@@ -267,23 +268,23 @@ export default function LicensePage() {
                     </div>
                 </div>
 
-                {/* License Key */}
-                {license?.license_key && (
-                    <div className="p-4 rounded-xl bg-[var(--surface-100)] border border-[var(--surface-200)]">
+                {/* ORA Key (Primary Credential) */}
+                {license?.ora_key && (
+                    <div className="p-4 rounded-xl bg-[var(--primary)]/5 border border-[var(--primary)]/20 shadow-sm">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <Key className="w-4 h-4 text-[var(--surface-500)]" />
+                                <Key className="w-4 h-4 text-[var(--primary)]" />
                                 <div>
-                                    <p className="text-xs text-[var(--surface-500)] mb-0.5">License Key</p>
+                                    <p className="text-[10px] font-bold text-[var(--primary)] uppercase tracking-wider mb-0.5">Primary Activation Key (ORA Key)</p>
                                     <p className="text-sm font-mono font-medium text-[var(--surface-800)]">
-                                        {showKey ? license.license_key : maskedKey(license.license_key)}
+                                        {showKey ? license.ora_key : maskedKey(license.ora_key)}
                                     </p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => setShowKey(!showKey)}
-                                    className="p-2 rounded-lg hover:bg-[var(--surface-200)] text-[var(--surface-500)] transition-colors"
+                                    className="p-2 rounded-lg hover:bg-[var(--primary)]/10 text-[var(--primary)] transition-colors"
                                     title={showKey ? "Hide key" : "Show key"}
                                 >
                                     {showKey ? (
@@ -293,9 +294,9 @@ export default function LicensePage() {
                                     )}
                                 </button>
                                 <button
-                                    onClick={copyLicenseKey}
-                                    className="p-2 rounded-lg hover:bg-[var(--surface-200)] text-[var(--surface-500)] transition-colors"
-                                    title="Copy license key"
+                                    onClick={copyOraKey}
+                                    className="p-2 rounded-lg hover:bg-[var(--primary)]/10 text-[var(--primary)] transition-colors"
+                                    title="Copy activation key"
                                 >
                                     {copied ? (
                                         <Check className="w-4 h-4 text-[var(--success)]" />
@@ -305,6 +306,9 @@ export default function LicensePage() {
                                 </button>
                             </div>
                         </div>
+                        <p className="text-[10px] text-[var(--surface-500)] mt-2 italic">
+                            Use this key to activate Oraya Desktop without needing to sign in with your password every time.
+                        </p>
                     </div>
                 )}
             </div>

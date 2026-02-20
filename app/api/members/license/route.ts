@@ -27,6 +27,13 @@ export async function GET() {
             );
         }
 
+        // Fetch user profile for ORA Key
+        const { data: profile } = await supabase
+            .from("user_profiles")
+            .select("ora_key")
+            .eq("id", user.id)
+            .single();
+
         // Fetch user license with plan details
         const { data: license, error: licenseError } = await (supabase
             .from("user_licenses") as any)
@@ -53,6 +60,7 @@ export async function GET() {
                     plan_name: "Free",
                     status: "active",
                     license_key: null,
+                    ora_key: profile?.ora_key || null,
                     billing_cycle: null,
                     devices: [],
                     usage: {
@@ -96,6 +104,7 @@ export async function GET() {
                 plan_name: plan?.name || license.plan_id,
                 status: license.status,
                 license_key: license.license_key,
+                ora_key: profile?.ora_key || null,
                 billing_cycle: license.billing_cycle,
                 next_billing_date: license.next_billing_date,
                 current_period_start: license.current_period_start,
