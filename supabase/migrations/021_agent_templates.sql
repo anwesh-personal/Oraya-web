@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS agent_templates (
     -- Identity
     name            TEXT NOT NULL,
     emoji           TEXT NOT NULL DEFAULT '🤖',
-    role            TEXT NOT NULL DEFAULT 'assistant',
+    role            TEXT NOT NULL DEFAULT 'assistant' CHECK (role IN ('admin', 'supervisor', 'assistant')),
     tagline         TEXT,
     description     TEXT,
     
@@ -37,13 +37,6 @@ CREATE TABLE IF NOT EXISTS agent_templates (
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
--- Fix any existing rows with old 'agent' role BEFORE re-adding the constraint
-UPDATE agent_templates SET role = 'assistant' WHERE role NOT IN ('admin', 'supervisor', 'assistant');
-
--- Ensure role CHECK constraint is correct (idempotent: works on fresh and existing DBs)
-ALTER TABLE agent_templates DROP CONSTRAINT IF EXISTS agent_templates_role_check;
-ALTER TABLE agent_templates ADD CONSTRAINT agent_templates_role_check CHECK (role IN ('admin', 'supervisor', 'assistant'));
 
 -- Index for the primary gallery query: active templates filtered by tier
 CREATE INDEX IF NOT EXISTS idx_agent_templates_active_tier 
