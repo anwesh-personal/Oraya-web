@@ -51,11 +51,13 @@ CREATE INDEX IF NOT EXISTS idx_agent_templates_category
 -- RLS: Anyone can read active templates (public gallery)
 ALTER TABLE agent_templates ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "agent_templates_public_read" ON agent_templates;
 CREATE POLICY "agent_templates_public_read" ON agent_templates
     FOR SELECT
     USING (is_active = true);
 
 -- Only service_role can insert/update/delete (admin-managed)
+DROP POLICY IF EXISTS "agent_templates_service_write" ON agent_templates;
 CREATE POLICY "agent_templates_service_write" ON agent_templates
     FOR ALL
     USING (auth.role() = 'service_role')
