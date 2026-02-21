@@ -56,6 +56,8 @@ export default function SettingsPage() {
     const [organization, setOrganization] = useState("");
     const [bio, setBio] = useState("");
     const [timezone, setTimezone] = useState("");
+    const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
 
     // Password form
     const [currentPassword, setCurrentPassword] = useState("");
@@ -77,6 +79,8 @@ export default function SettingsPage() {
                 setOrganization(data.profile.organization || "");
                 setBio(data.profile.bio || "");
                 setTimezone(data.profile.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone);
+                setAvatarUrl(data.profile.avatar_url || null);
+
             }
         } catch (err) {
             console.error("Failed to fetch profile:", err);
@@ -88,6 +92,30 @@ export default function SettingsPage() {
     useEffect(() => {
         fetchProfile();
     }, [fetchProfile]);
+
+    // Resize + compress image to 256x256 via canvas, returns base64
+    const handleAvatarFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement("canvas");
+                canvas.width = 256;
+                canvas.height = 256;
+                const ctx = canvas.getContext("2d")!;
+                // Center-crop to square
+                const size = Math.min(img.width, img.height);
+                const sx = (img.width - size) / 2;
+                const sy = (img.height - size) / 2;
+                ctx.drawImage(img, sx, sy, size, size, 0, 0, 256, 256);
+                setAvatarUrl(canvas.toDataURL("image/jpeg", 0.85));
+            };
+            img.src = ev.target?.result as string;
+        };
+        reader.readAsDataURL(file);
+    };
 
     const handleSaveProfile = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -103,8 +131,10 @@ export default function SettingsPage() {
                     organization: organization,
                     bio: bio,
                     timezone: timezone,
+                    ...(avatarUrl !== profile?.avatar_url && { avatar_url: avatarUrl }),
                 }),
             });
+
             if (res.ok) {
                 setSaved(true);
                 setTimeout(() => setSaved(false), 3000);
@@ -219,7 +249,47 @@ export default function SettingsPage() {
                                 </h2>
 
                                 <div className="space-y-5">
+                                    {/* Avatar */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-[var(--surface-700)] mb-3">
+                                            Profile Picture
+                                        </label>
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[var(--primary)]/40 flex-shrink-0 bg-[var(--primary)]/10 flex items-center justify-center">
+                                                {avatarUrl ? (
+                                                    <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <User className="w-7 h-7 text-[var(--primary)]/50" />
+                                                )}
+                                            </div>
+                                            <div className="flex flex-col gap-2">
+                                                <label className="cursor-pointer flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--surface-300)] text-sm text-[var(--surface-700)] hover:bg-[var(--surface-100)] transition-colors">
+                                                    <Save className="w-4 h-4" />
+                                                    Upload Photo
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        className="hidden"
+                                                        onChange={handleAvatarFile}
+                                                    />
+                                                </label>
+                                                {avatarUrl && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setAvatarUrl(null)}
+                                                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--error)]/30 text-sm text-[var(--error)] hover:bg-[var(--error)]/5 transition-colors"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                        Remove
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <p className="text-[10px] text-[var(--surface-400)] mt-2">Syncs to desktop app. Max 2MB. Cropped to square.</p>
+                                    </div>
+
                                     {/* Email (read-only) */}
+
                                     <div>
                                         <label className="block text-sm font-medium text-[var(--surface-700)] mb-1.5">
                                             Email
