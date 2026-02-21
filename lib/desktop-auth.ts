@@ -12,7 +12,6 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
-import { randomBytes } from "crypto";
 import type { ManagedAiClaims } from "@/lib/license-signing";
 
 // =============================================================================
@@ -780,7 +779,8 @@ export async function ensureFreeLicense(
  */
 function generateLicenseKey(): string {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // No I, O, 0, 1 to avoid confusion
-    const bytes = randomBytes(16); // 16 random bytes
+    const bytes = new Uint8Array(16);
+    globalThis.crypto.getRandomValues(bytes); // Web Crypto API — works in Edge + Node
     const segments: string[] = [];
     for (let s = 0; s < 4; s++) {
         let segment = "";

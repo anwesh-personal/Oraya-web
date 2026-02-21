@@ -38,8 +38,8 @@ export async function POST(request: NextRequest) {
 
         // Step 2: Validate ORA Key and get user info
         // We use the RPC helper defined in 019_ora_key.sql
-        const { data: user, error: userError } = await supabase
-            .rpc("get_user_by_ora_key", { p_ora_key: ora_key })
+        const { data: user, error: userError } = await (supabase
+            .rpc("get_user_by_ora_key", { p_ora_key: ora_key }) as any)
             .single();
 
         if (userError || !user) {
@@ -65,8 +65,8 @@ export async function POST(request: NextRequest) {
             "unknown";
         const user_agent = request.headers.get("user-agent") || "unknown";
 
-        const { data: activation, error: activationError } = await supabase
-            .from("device_activations")
+        const { data: activation, error: activationError } = await (supabase
+            .from("device_activations") as any)
             .upsert({
                 user_id: user.user_id,
                 ora_key: ora_key,

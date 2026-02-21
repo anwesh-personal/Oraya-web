@@ -256,7 +256,7 @@ export async function POST(request: NextRequest) {
         }
 
         // ── Step 9: Update user profile ──
-        await supabase.from("user_profiles")
+        await (supabase.from("user_profiles") as any)
             .upsert(
                 {
                     id: userId,

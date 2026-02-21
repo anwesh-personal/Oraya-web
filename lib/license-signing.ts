@@ -14,7 +14,6 @@
  */
 
 import { SignJWT, importPKCS8, type KeyLike } from "jose";
-import { randomUUID } from "crypto";
 import { GRACE_MODE_FEATURES } from "@/lib/desktop-auth";
 
 // =============================================================================
@@ -213,7 +212,7 @@ export async function createLicenseToken(input: CreateTokenInput): Promise<strin
         ? Math.floor(input.planExpiresAt.getTime() / 1000)
         : expiresAt;
 
-    const jti = randomUUID();
+    const jti = globalThis.crypto.randomUUID();
 
     // Build claims payload — iat and exp are set by SignJWT methods below
     const claims: Record<string, unknown> = {
