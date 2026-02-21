@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
 
         // Try direct license lookup first (personal license)
         if (license && !isTeamInherited) {
-            const { data, error } = await supabase.from("license_activations")
+            const { data, error } = await (supabase.from("license_activations") as any)
                 .update({
                     is_active: false,
                     deactivated_at: new Date().toISOString(),
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
             const licenseIds = await getUserLicenseIds(supabase, userId);
 
             if (licenseIds.length > 0) {
-                const { data, error } = await supabase.from("license_activations")
+                const { data, error } = await (supabase.from("license_activations") as any)
                     .update({
                         is_active: false,
                         deactivated_at: new Date().toISOString(),
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
             // Revoke any active tokens for this device
             try {
                 if (licenseIds.length > 0) {
-                    await supabase.from("desktop_license_tokens")
+                    await (supabase.from("desktop_license_tokens") as any)
                         .update({
                             is_revoked: true,
                             revoked_at: new Date().toISOString(),
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
                         : licenseIds[0] || null;
 
                 if (eventLicenseId) {
-                    await supabase.from("license_usage_events")
+                    await (supabase.from("license_usage_events") as any)
                         .insert({
                             license_id: eventLicenseId,
                             device_id: deviceId,

@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
         const isTeamInherited = license?.source === "team_inherited";
 
         if (license && !isTeamInherited) {
-            await supabase.from("license_activations")
+            await (supabase.from("license_activations") as any)
                 .update({
                     last_seen_at: new Date().toISOString(),
                     ...(appVersion && { app_version: appVersion }),
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
             // Team-inherited or no personal license: find activation by device_id
             const activation = await fetchDeviceActivationByUser(supabase, userId, deviceId);
             if (activation) {
-                await supabase.from("license_activations")
+                await (supabase.from("license_activations") as any)
                     .update({
                         last_seen_at: new Date().toISOString(),
                         ...(appVersion && { app_version: appVersion }),
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
         }
 
         // ── Update user_profiles.last_seen_at ──
-        await supabase.from("user_profiles")
+        await (supabase.from("user_profiles") as any)
             .update({
                 last_seen_at: new Date().toISOString(),
                 ...(appVersion && { desktop_app_version: appVersion }),
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
 
                 // Only insert if we have a valid license_id (column is NOT NULL)
                 if (eventLicenseId) {
-                    await supabase.from("license_usage_events")
+                    await (supabase.from("license_usage_events") as any)
                         .insert({
                             license_id: eventLicenseId,
                             device_id: deviceId,

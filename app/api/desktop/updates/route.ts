@@ -25,8 +25,8 @@ import { logger } from "@/lib/logger";
  */
 function getUpdateInfo() {
     return {
-        latest_version: process.env.DESKTOP_API_LATEST_APP_VERSION || "1.0.0",
-        min_version: process.env.DESKTOP_API_MIN_APP_VERSION || "1.0.0",
+        latest_version: process.env.DESKTOP_API_LATEST_APP_VERSION || "3.0.2",
+        min_version: process.env.DESKTOP_API_MIN_APP_VERSION || "3.0.2",
         release_notes: process.env.DESKTOP_API_RELEASE_NOTES || "",
         release_date: process.env.DESKTOP_API_RELEASE_DATE || new Date().toISOString(),
         is_critical: process.env.DESKTOP_API_UPDATE_CRITICAL === "true",

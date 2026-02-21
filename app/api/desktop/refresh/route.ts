@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
         const activationLicenseId: string = activation.license_id || activation.licenseId;
 
         // ── Step 6: Update last_seen_at and app_version ──
-        await supabase.from("license_activations")
+        await (supabase.from("license_activations") as any)
             .update({
                 last_seen_at: new Date().toISOString(),
                 app_version: req.app_version,

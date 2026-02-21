@@ -646,9 +646,9 @@ export function getServerConfig() {
             process.env.LICENSE_HEARTBEAT_INTERVAL_SECONDS || "3600",
             10
         ),
-        min_app_version: process.env.DESKTOP_API_MIN_APP_VERSION || "0.1.0",
+        min_app_version: process.env.DESKTOP_API_MIN_APP_VERSION || "3.0.2",
         latest_app_version:
-            process.env.DESKTOP_API_LATEST_APP_VERSION || "1.0.0",
+            process.env.DESKTOP_API_LATEST_APP_VERSION || "3.0.2",
         update_url:
             process.env.DESKTOP_API_UPDATE_URL || "https://oraya.app/download",
         update_required: false,

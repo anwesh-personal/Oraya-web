@@ -12,7 +12,7 @@ const nextConfig = {
     // Environment variables available at build time
     env: {
         NEXT_PUBLIC_APP_NAME: 'Oraya Platform',
-        NEXT_PUBLIC_APP_VERSION: '1.0.0',
+        NEXT_PUBLIC_APP_VERSION: '3.0.2',
     },
 
     // Production optimizations

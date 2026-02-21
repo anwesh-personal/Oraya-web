@@ -34,15 +34,15 @@ export async function GET(request: NextRequest) {
             .single();
 
         // Fetch preferences
-        const { data: preferences } = await supabase
-            .from("user_preferences")
+        const { data: preferences } = await (supabase
+            .from("user_preferences") as any)
             .select("*")
             .eq("user_id", userId)
             .single();
 
         // Get org membership info
-        const { data: orgMembership } = await supabase
-            .from("organization_members")
+        const { data: orgMembership } = await (supabase
+            .from("organization_members") as any)
             .select("organization_id, role, organizations(name, slug)")
             .eq("user_id", userId)
             .limit(1)
@@ -67,10 +67,10 @@ export async function GET(request: NextRequest) {
                 created_at: profile?.created_at || null,
                 organization: orgMembership
                     ? {
-                        id: orgMembership.organization_id,
-                        name: (orgMembership.organizations as any)?.name || null,
-                        slug: (orgMembership.organizations as any)?.slug || null,
-                        role: orgMembership.role,
+                        id: (orgMembership as any).organization_id,
+                        name: ((orgMembership as any).organizations as any)?.name || null,
+                        slug: ((orgMembership as any).organizations as any)?.slug || null,
+                        role: (orgMembership as any).role,
                     }
                     : null,
             },
@@ -132,8 +132,8 @@ export async function PATCH(request: NextRequest) {
         }
 
         if (Object.keys(profileUpdates).length > 0) {
-            const { error } = await supabase
-                .from("user_profiles")
+            const { error } = await (supabase
+                .from("user_profiles") as any)
                 .update(profileUpdates)
                 .eq("id", userId);
 
@@ -170,8 +170,8 @@ export async function PATCH(request: NextRequest) {
         }
 
         if (Object.keys(prefsUpdates).length > 0) {
-            const { error } = await supabase
-                .from("user_preferences")
+            const { error } = await (supabase
+                .from("user_preferences") as any)
                 .update(prefsUpdates)
                 .eq("user_id", userId);
 

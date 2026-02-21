@@ -116,7 +116,7 @@ export default function SalesHero() {
                                     <div className="text-[10px] font-mono text-secondary/60 uppercase tracking-[1em] font-black">BYPASSING_RESTRICTIONS</div>
                                 </div>
                                 <div className="h-[1px] w-48 md:w-80 bg-white/5" />
-                                <div className="text-[9px] font-mono text-white/20 uppercase tracking-[1.2em]">SYSTEM_VERSION_L5.0.21_ALPHA</div>
+                                <div className="text-[9px] font-mono text-white/20 uppercase tracking-[1.2em]">SYSTEM_VERSION_3.0.2</div>
                             </div>
                         </div>
                     </motion.div>
