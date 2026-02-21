@@ -47,14 +47,27 @@ export default function DashboardLayout({
     useEffect(() => {
         async function loadUserData() {
             try {
-                // Fetch user profile
-                const userRes = await fetch("/api/auth/me");
-                if (!userRes.ok) {
+                // Fetch auth user + profile in parallel
+                const [userRes, profileRes] = await Promise.allSettled([
+                    fetch("/api/auth/me"),
+                    fetch("/api/members/profile"),
+                ]);
+
+                if (userRes.status !== "fulfilled" || !userRes.value.ok) {
                     router.replace("/login");
                     return;
                 }
-                const userData = await userRes.json();
-                setUser(userData.user);
+                const userData = await userRes.value.json();
+
+                // avatar_url lives in user_profiles, not auth metadata
+                const profileData = profileRes.status === "fulfilled" && profileRes.value.ok
+                    ? await profileRes.value.json()
+                    : null;
+
+                setUser({
+                    ...userData.user,
+                    avatar_url: profileData?.profile?.avatar_url || userData.user.avatar_url || null,
+                });
 
                 // Fetch license and token data in parallel
                 const [licenseRes, tokenRes] = await Promise.allSettled([
