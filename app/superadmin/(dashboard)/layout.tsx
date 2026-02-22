@@ -17,9 +17,9 @@ export default async function SuperadminDashboardLayout({
     return (
         <div className="min-h-screen bg-[var(--surface-0)]" data-portal="superadmin">
             <Sidebar session={session} />
-            <div className="lg:ml-72 flex flex-col min-h-screen">
+            <div className="lg:ml-72 flex flex-col h-screen overflow-hidden">
                 <Header session={session} />
-                <main className="flex-1 p-4 pt-16 sm:p-6 lg:pt-8 lg:p-8">
+                <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
                     {children}
                 </main>
             </div>

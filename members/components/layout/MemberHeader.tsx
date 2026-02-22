@@ -7,7 +7,7 @@ export function MemberHeader() {
     const [showUserMenu, setShowUserMenu] = useState(false);
 
     return (
-        <header className="h-16 border-b border-[var(--surface-300)] bg-[var(--surface-50)]/50 flex items-center justify-between px-6">
+        <header className="sticky top-0 z-20 shrink-0 h-16 border-b border-[var(--surface-300)] bg-[var(--surface-50)]/80 backdrop-blur-xl flex items-center justify-between px-6">
             {/* Search */}
             <div className="relative w-96">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--surface-400)]" />

@@ -30,7 +30,7 @@ export function Header({ session }: HeaderProps) {
     };
 
     return (
-        <header className="fixed top-0 right-0 left-[var(--sidebar-width)] h-[var(--header-height)] bg-surface-50/80 backdrop-blur-xl border-b border-surface-300 z-30">
+        <header className="sticky top-0 shrink-0 h-[var(--header-height)] bg-surface-50/80 backdrop-blur-xl border-b border-surface-300 z-30">
             <div className="h-full px-6 flex items-center justify-between">
                 {/* Search */}
                 <div className="flex-1 max-w-xl">
