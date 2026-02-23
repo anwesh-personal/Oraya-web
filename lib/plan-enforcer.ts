@@ -30,6 +30,13 @@ interface PlanRow {
     max_conversations_per_month: number;
     max_ai_calls_per_month: number;
     max_token_usage_per_month: number;
+    allow_local_inference: boolean;
+    allow_ollama: boolean;
+    allow_vps_endpoints: boolean;
+    max_vps_endpoints: number;
+    allow_remote_agents: boolean;
+    autonomous_orchestration: boolean;
+    max_concurrent_spawns: number;
     features: string[];
     requires_organization: boolean;
     is_active: boolean;

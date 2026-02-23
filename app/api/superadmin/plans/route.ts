@@ -61,6 +61,13 @@ export async function POST(request: NextRequest) {
         requires_organization,
         allowed_template_ids,
         max_members_default,
+        allow_local_inference,
+        allow_ollama,
+        allow_vps_endpoints,
+        max_vps_endpoints,
+        allow_remote_agents,
+        autonomous_orchestration,
+        max_concurrent_spawns,
     } = body;
 
     if (!id || !name) {
@@ -102,6 +109,13 @@ export async function POST(request: NextRequest) {
                 requires_organization: requires_organization ?? false,
                 allowed_template_ids: allowed_template_ids || [],
                 max_members_default: max_members_default ?? 5,
+                allow_local_inference: allow_local_inference ?? false,
+                allow_ollama: allow_ollama ?? false,
+                allow_vps_endpoints: allow_vps_endpoints ?? false,
+                max_vps_endpoints: max_vps_endpoints ?? 0,
+                allow_remote_agents: allow_remote_agents ?? false,
+                autonomous_orchestration: autonomous_orchestration ?? false,
+                max_concurrent_spawns: max_concurrent_spawns ?? 0,
             })
             .select()
             .single();
@@ -161,6 +175,9 @@ export async function PATCH(request: NextRequest) {
             "max_token_usage_per_month", "max_devices", "features",
             "is_active", "is_public", "display_order", "badge", "requires_organization",
             "allowed_template_ids", "max_members_default",
+            "allow_local_inference", "allow_ollama", "allow_vps_endpoints",
+            "max_vps_endpoints", "allow_remote_agents",
+            "autonomous_orchestration", "max_concurrent_spawns",
         ];
 
         const safeUpdates: Record<string, any> = {};

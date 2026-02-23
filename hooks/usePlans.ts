@@ -24,6 +24,13 @@ export interface Plan {
     requires_organization: boolean;
     allowed_template_ids: string[];
     max_members_default: number;
+    allow_local_inference: boolean;
+    allow_ollama: boolean;
+    allow_vps_endpoints: boolean;
+    max_vps_endpoints: number;
+    allow_remote_agents: boolean;
+    autonomous_orchestration: boolean;
+    max_concurrent_spawns: number;
     created_at: string;
     updated_at: string;
 }

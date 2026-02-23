@@ -53,6 +53,13 @@ const blankPlan = {
     requires_organization: false,
     allowed_template_ids: [] as string[],
     max_members_default: 5,
+    allow_local_inference: false,
+    allow_ollama: false,
+    allow_vps_endpoints: false,
+    max_vps_endpoints: 0,
+    allow_remote_agents: false,
+    autonomous_orchestration: false,
+    max_concurrent_spawns: 0,
 };
 
 type PlanForm = typeof blankPlan;
@@ -114,6 +121,13 @@ export function PlansSettings() {
             requires_organization: plan.requires_organization || false,
             allowed_template_ids: plan.allowed_template_ids || [],
             max_members_default: plan.max_members_default ?? 5,
+            allow_local_inference: plan.allow_local_inference ?? false,
+            allow_ollama: plan.allow_ollama ?? false,
+            allow_vps_endpoints: plan.allow_vps_endpoints ?? false,
+            max_vps_endpoints: plan.max_vps_endpoints ?? 0,
+            allow_remote_agents: plan.allow_remote_agents ?? false,
+            autonomous_orchestration: plan.autonomous_orchestration ?? false,
+            max_concurrent_spawns: plan.max_concurrent_spawns ?? 0,
         });
         setModalMode("edit");
         setModalError("");
@@ -790,6 +804,111 @@ export function PlansSettings() {
                                             <p className="text-[10px] text-[var(--surface-500)] mt-1">Must belong to a team.</p>
                                         </div>
                                     </label>
+                                </div>
+                            </div>
+
+                            {/* ─── Infrastructure Gates ── */}
+                            <div>
+                                <h4 className="text-sm font-semibold text-[var(--surface-700)] mb-3 uppercase tracking-wider flex items-center gap-2">
+                                    <Cpu className="w-4 h-4" /> Infrastructure Gates
+                                </h4>
+                                <div className="space-y-3">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <label className={cn(
+                                            "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all",
+                                            form.allow_local_inference ? "border-[var(--primary)]/30 bg-[var(--primary)]/5" : "border-[var(--surface-200)]"
+                                        )}>
+                                            <input
+                                                type="checkbox"
+                                                checked={form.allow_local_inference}
+                                                onChange={(e) => setForm({ ...form, allow_local_inference: e.target.checked })}
+                                                className="w-4 h-4 rounded border-[var(--surface-300)] text-[var(--primary)]"
+                                            />
+                                            <span className="text-sm font-medium text-[var(--surface-900)]">Local Inference</span>
+                                        </label>
+                                        <label className={cn(
+                                            "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all",
+                                            form.allow_ollama ? "border-[var(--primary)]/30 bg-[var(--primary)]/5" : "border-[var(--surface-200)]"
+                                        )}>
+                                            <input
+                                                type="checkbox"
+                                                checked={form.allow_ollama}
+                                                onChange={(e) => setForm({ ...form, allow_ollama: e.target.checked })}
+                                                className="w-4 h-4 rounded border-[var(--surface-300)] text-[var(--primary)]"
+                                            />
+                                            <span className="text-sm font-medium text-[var(--surface-900)]">Ollama Native</span>
+                                        </label>
+                                    </div>
+
+                                    <div className="p-4 rounded-xl border border-[var(--surface-200)] bg-[var(--surface-100)]/50 space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={form.allow_vps_endpoints}
+                                                    onChange={(e) => setForm({ ...form, allow_vps_endpoints: e.target.checked })}
+                                                    className="w-4 h-4 rounded border-[var(--surface-300)] text-[var(--primary)]"
+                                                />
+                                                <span className="text-sm font-medium text-[var(--surface-900)]">External VPS Endpoints</span>
+                                            </label>
+                                            {form.allow_vps_endpoints && (
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xs text-[var(--surface-500)]">Max:</span>
+                                                    <input
+                                                        type="number"
+                                                        min="-1"
+                                                        value={form.max_vps_endpoints}
+                                                        onChange={(e) => setForm({ ...form, max_vps_endpoints: parseInt(e.target.value) || 0 })}
+                                                        className="w-16 px-2 py-1 bg-white border border-[var(--surface-300)] rounded-lg text-sm text-[var(--surface-900)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30"
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={form.allow_remote_agents}
+                                                onChange={(e) => setForm({ ...form, allow_remote_agents: e.target.checked })}
+                                                className="w-4 h-4 rounded border-[var(--surface-300)] text-[var(--primary)]"
+                                            />
+                                            <span className="text-sm font-medium text-[var(--surface-900)]">Remote AI Agents (Sovereign Node)</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* ─── Orchestration ── */}
+                            <div>
+                                <h4 className="text-sm font-semibold text-[var(--surface-700)] mb-3 uppercase tracking-wider flex items-center gap-2">
+                                    <Zap className="w-4 h-4" /> Orchestration
+                                </h4>
+                                <div className="p-4 rounded-xl border border-[var(--surface-200)] bg-[var(--surface-100)]/50 space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={form.autonomous_orchestration}
+                                                onChange={(e) => setForm({ ...form, autonomous_orchestration: e.target.checked })}
+                                                className="w-4 h-4 rounded border-[var(--surface-300)] text-[var(--primary)]"
+                                            />
+                                            <span className="text-sm font-medium text-[var(--surface-900)]">Trinity Spawning Protocol</span>
+                                        </label>
+                                        {form.autonomous_orchestration && (
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs text-[var(--surface-500)]">Max Spawns:</span>
+                                                <input
+                                                    type="number"
+                                                    min="-1"
+                                                    value={form.max_concurrent_spawns}
+                                                    onChange={(e) => setForm({ ...form, max_concurrent_spawns: parseInt(e.target.value) || 0 })}
+                                                    className="w-16 px-2 py-1 bg-white border border-[var(--surface-300)] rounded-lg text-sm text-[var(--surface-900)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30"
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <p className="text-[10px] text-[var(--surface-500)]">
+                                        Enables agents to independently spawn sub-agents, delegate tasks, and harvest intelligence into shared memory.
+                                    </p>
                                 </div>
                             </div>
                         </div>
