@@ -148,7 +148,12 @@ export async function POST(request: NextRequest) {
         }
 
         // Exchange the hashed token for a real session
-        const { data: sessionData, error: sessionError } = await supabase.auth.verifyOtp({
+        // SECURITY FIX: We must use a SEPARATE client instance to verify the OTP.
+        // If we call verifyOtp on the main 'supabase' client, it attaches the user's
+        // session to the client, downgrading it from 'service_role' to 'authenticated',
+        // which causes Row-Level Security (RLS) policies to block subsequent db upserts.
+        const authExchangeClient = createServiceRoleClient();
+        const { data: sessionData, error: sessionError } = await authExchangeClient.auth.verifyOtp({
             token_hash: linkData.properties.hashed_token,
             type: "magiclink",
         });
