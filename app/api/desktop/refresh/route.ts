@@ -205,7 +205,7 @@ export async function POST(request: NextRequest) {
             }
 
             // Record usage event (uses activation's real license_id)
-            await supabase.from("license_usage_events")
+            await (supabase.from("license_usage_events") as any)
                 .insert({
                     license_id: activationLicenseId,
                     device_id: req.device_id,
