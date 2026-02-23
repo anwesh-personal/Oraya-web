@@ -166,12 +166,20 @@ async function getSigningKey(): Promise<KeyLike> {
     }
 
     // The env var can be either:
-    // 1. Raw PEM (with newlines)
-    // 2. Base64-encoded PEM (for environments that don't support newlines in env vars)
-    let pem = privateKeyPem;
+    // 1. Raw PEM (with newlines and -----BEGIN format)
+    // 2. Base64-encoded PEM (a single continuous string starting with LS0tLS)
+    // 3. Raw Base64 PKCS#8 key (just the inner key bytes, e.g. MC4CAQ...)
+    let pem = privateKeyPem.trim();
+
     if (!pem.includes("-----BEGIN")) {
-        // Assume base64-encoded PEM
-        pem = Buffer.from(pem, "base64").toString("utf-8");
+        if (pem.startsWith("LS0tLS")) {
+            // It's a Base64-encoded PEM block
+            pem = Buffer.from(pem, "base64").toString("utf-8");
+        } else {
+            // It's a raw Base64 PKCS#8 key without the PEM wrapper.
+            // Automatically format it into a proper PEM block.
+            pem = `-----BEGIN PRIVATE KEY-----\n${pem}\n-----END PRIVATE KEY-----`;
+        }
     }
 
     try {
