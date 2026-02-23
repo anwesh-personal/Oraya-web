@@ -1447,6 +1447,41 @@ export interface Database {
                 };
                 Returns: boolean;
             };
+            get_user_accessible_agents: {
+                Args: {
+                    p_user_id: string;
+                };
+                Returns: {
+                    template_id: string;
+                    template_name: string;
+                    template_emoji: string | null;
+                    template_tagline: string | null;
+                    template_description: string | null;
+                    template_category: string | null;
+                    template_plan_tier: string | null;
+                    template_version: number;
+                    template_tags: string[] | null;
+                    template_personality: Json | null;
+                    template_icon_url: string | null;
+                    config_overrides: Json | null;
+                    assignment_type: string;
+                    factory_version: number | null;
+                }[];
+            };
+            get_user_by_ora_key: {
+                Args: {
+                    p_ora_key: string;
+                };
+                Returns: {
+                    id: string;
+                    email: string | null;
+                    full_name: string | null;
+                    display_name: string | null;
+                    avatar_url: string | null;
+                    organization: string | null;
+                    ora_key: string | null;
+                }[];
+            };
         };
         Enums: {
             [_ in never]: never;

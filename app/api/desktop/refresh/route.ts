@@ -192,7 +192,7 @@ export async function POST(request: NextRequest) {
 
             // Update license usage counters
             if (summary.ai_calls && summary.ai_calls > 0) {
-                await (supabase.from("user_licenses") as any)
+                await supabase.from("user_licenses")
                     .update({
                         ai_calls_used: license.aiCallsUsed + summary.ai_calls,
                         tokens_used: license.tokensUsed + (summary.tokens_used || 0),
@@ -205,7 +205,7 @@ export async function POST(request: NextRequest) {
             }
 
             // Record usage event (uses activation's real license_id)
-            await (supabase.from("license_usage_events") as any)
+            await supabase.from("license_usage_events")
                 .insert({
                     license_id: activationLicenseId,
                     device_id: req.device_id,
@@ -224,7 +224,7 @@ export async function POST(request: NextRequest) {
 
             // Check if usage limit reached
             if (license.aiCallsUsed >= license.plan.maxAiCallsPerMonth && license.plan.maxAiCallsPerMonth > 0) {
-                await (supabase.from("user_licenses") as any)
+                await supabase.from("user_licenses")
                     .update({ usage_limit_reached: true })
                     .eq("id", activationLicenseId);
             }

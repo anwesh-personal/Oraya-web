@@ -652,6 +652,11 @@ export function getServerConfig() {
         update_url:
             process.env.DESKTOP_API_UPDATE_URL || "https://oraya.app/download",
         update_required: false,
+        // Canonical SaaS base URL — desktop clients use this to self-heal
+        // if the backend moves to a new domain. The client persists this
+        // and uses it for all subsequent API calls.
+        saas_base_url:
+            process.env.DESKTOP_API_BASE_URL || "https://oraya.dev",
     };
 }
 

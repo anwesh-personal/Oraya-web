@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
         const supabase = createServiceRoleClient();
 
         // Fetch agents available to this user (Push + Entitled based on Plan)
-        const { data, error } = await (supabase.rpc as any)("get_user_accessible_agents", {
+        const { data, error } = await supabase.rpc("get_user_accessible_agents", {
             p_user_id: userId,
         });
 
