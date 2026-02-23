@@ -316,7 +316,11 @@ export async function POST(request: NextRequest) {
         if (activationError) {
             logger.error("Device activation failed", activationError, { userId });
             return NextResponse.json(
-                { error: "Failed to activate device.", code: "ACTIVATION_FAILED" },
+                {
+                    error: "Failed to activate device.",
+                    code: "ACTIVATION_FAILED",
+                    debug_msg: activationError?.message || String(activationError)
+                },
                 { status: 500 }
             );
         }
