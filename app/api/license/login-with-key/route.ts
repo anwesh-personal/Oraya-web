@@ -149,8 +149,7 @@ export async function POST(request: NextRequest) {
 
         // Exchange the hashed token for a real session
         const { data: sessionData, error: sessionError } = await supabase.auth.verifyOtp({
-            email,
-            token: linkData.properties.hashed_token,
+            token_hash: linkData.properties.hashed_token,
             type: "magiclink",
         });
 
