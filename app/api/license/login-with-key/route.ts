@@ -243,12 +243,55 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // ── Step 7: Register device activation ──
+        // ── Step 7: Register device activation (with plan limit check) ──
         const ipAddress =
             request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
             request.headers.get("x-real-ip") ||
             "unknown";
         const userAgent = request.headers.get("user-agent") || "unknown";
+
+        // Check if this device is already activated (returning device = always allowed)
+        const { data: existingDevice } = await (supabase
+            .from("device_activations")
+            .select("id, is_active")
+            .eq("user_id", userId)
+            .eq("device_id", device_id)
+            .maybeSingle() as any);
+
+        if (!existingDevice) {
+            // New device — enforce plan limit (-1 = unlimited)
+            const maxDevices = license.plan.maxDevices;
+            if (maxDevices !== -1) {
+                const { count } = await (supabase
+                    .from("device_activations")
+                    .select("id", { count: "exact", head: true })
+                    .eq("user_id", userId)
+                    .eq("is_active", true) as any);
+
+                if ((count || 0) >= maxDevices) {
+                    const { data: activeDevices } = await (supabase
+                        .from("device_activations")
+                        .select("device_name, device_platform, last_seen_at")
+                        .eq("user_id", userId)
+                        .eq("is_active", true)
+                        .order("last_seen_at", { ascending: false }) as any);
+
+                    return NextResponse.json(
+                        {
+                            error: `Your plan allows ${maxDevices} device${maxDevices !== 1 ? "s" : ""}. Please deactivate a device first.`,
+                            code: "MAX_DEVICES_REACHED",
+                            max_devices: maxDevices,
+                            active_devices: (activeDevices || []).map((d: any) => ({
+                                device_name: d.device_name,
+                                platform: d.device_platform,
+                                last_seen: d.last_seen_at,
+                            })),
+                        },
+                        { status: 409 }
+                    );
+                }
+            }
+        }
 
         const { data: activation, error: activationError } = await (supabase.from("device_activations") as any)
             .upsert(
