@@ -373,7 +373,12 @@ export async function POST(request: NextRequest) {
     } catch (error) {
         logger.error("Activation failed", error, { endpoint: "activate" });
         return NextResponse.json(
-            { error: "Internal server error", code: "INTERNAL_ERROR" },
+            {
+                error: "Internal server error",
+                code: "INTERNAL_ERROR",
+                debug_msg: error instanceof Error ? error.message : String(error),
+                debug_stack: error instanceof Error ? error.stack : undefined
+            },
             { status: 500 }
         );
     }
