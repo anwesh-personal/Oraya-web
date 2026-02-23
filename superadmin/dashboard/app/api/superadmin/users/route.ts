@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
                 .from("user_licenses")
                 .insert({
                     user_id: userId,
-                    plan_id: plan_id || "free",
+                    plan_id: plan_id || "standard",
                     status: "active",
                     billing_cycle: billing_cycle || "monthly",
                     activated_at: new Date().toISOString(),

@@ -167,7 +167,7 @@ export async function POST(request: NextRequest) {
                 .from("user_licenses") as any)
                 .insert({
                     user_id: userId,
-                    plan_id: plan_id || "free",
+                    plan_id: plan_id || "standard",
                     status: "active",
                     billing_cycle: billing_cycle || "monthly",
                     activated_at: new Date().toISOString(),
@@ -321,7 +321,7 @@ export async function PATCH(request: NextRequest) {
                 const { error: insertErr } = await (supabase.from("user_licenses") as any)
                     .insert({
                         user_id,
-                        plan_id: updates.plan_id || "free",
+                        plan_id: updates.plan_id || "standard",
                         status: updates.license_status || "active",
                         billing_cycle: updates.billing_cycle || "monthly",
                         activated_at: new Date().toISOString(),

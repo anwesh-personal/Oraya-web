@@ -175,8 +175,8 @@ export default function BillingPage() {
         );
     }
 
-    const currentPlanId = license?.plan_id || "free";
-    const isSubscribed = currentPlanId !== "free";
+    const currentPlanId = license?.plan_id || "standard";
+    const isSubscribed = currentPlanId !== "standard";
 
     return (
         <div className="max-w-5xl mx-auto">
@@ -319,7 +319,7 @@ export default function BillingPage() {
                                     {formatMoney(price, plan.currency)}
                                 </p>
                                 <p className="text-xs text-[var(--surface-500)]">
-                                    {price === 0 ? "Free forever" : billingCycle === "monthly" ? "per month" : "per year"}
+                                    {price === 0 ? "Standard plan" : billingCycle === "monthly" ? "per month" : "per year"}
                                 </p>
                             </div>
 
@@ -359,12 +359,12 @@ export default function BillingPage() {
                                 >
                                     Contact Sales
                                 </a>
-                            ) : plan.id === "free" ? (
+                            ) : plan.id === "standard" ? (
                                 <button
                                     disabled
                                     className="w-full py-2.5 rounded-xl bg-[var(--surface-200)] text-[var(--surface-600)] text-sm font-medium cursor-not-allowed"
                                 >
-                                    Free Forever
+                                    Standard Plan
                                 </button>
                             ) : (
                                 <button
@@ -380,7 +380,7 @@ export default function BillingPage() {
                                     {subscribing === plan.id ? (
                                         <Loader2 className="w-4 h-4 animate-spin mx-auto" />
                                     ) : (
-                                        currentPlanId !== "free" ? "Switch Plan" : "Get Started"
+                                        currentPlanId !== "standard" ? "Switch Plan" : "Get Started"
                                     )}
                                 </button>
                             )}

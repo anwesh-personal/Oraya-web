@@ -52,12 +52,12 @@ export async function GET() {
             );
         }
 
-        // If no license, user is on free plan
+        // If no license, user is on standard plan
         if (!license) {
             return NextResponse.json({
                 license: {
-                    plan_id: "free",
-                    plan_name: "Free",
+                    plan_id: "standard",
+                    plan_name: "Standard",
                     status: "active",
                     license_key: null,
                     ora_key: profile?.ora_key || null,

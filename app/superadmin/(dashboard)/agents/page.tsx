@@ -16,8 +16,8 @@ async function getAgentStats() {
 
     const total = templates.length;
     const active = templates.filter((t: any) => t.is_active).length;
-    const free = templates.filter((t: any) => t.plan_tier === "free").length;
-    const pro = templates.filter((t: any) => t.plan_tier !== "free").length;
+    const free = templates.filter((t: any) => t.plan_tier === "standard").length;
+    const pro = templates.filter((t: any) => t.plan_tier !== "standard").length;
     const installs = templates.reduce((sum: number, t: any) => sum + (t.install_count || 0), 0);
 
     // Category distribution

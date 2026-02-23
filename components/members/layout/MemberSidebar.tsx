@@ -231,7 +231,7 @@ export function MemberSidebar({ user, license }: MemberSidebarProps) {
                             >
                                 {license.plan_name}
                             </p>
-                            {license.plan_id === "free" && (
+                            {license.plan_id === "standard" && (
                                 <Link
                                     href="/dashboard/billing"
                                     className="text-xs font-medium hover:underline mt-1 inline-block"

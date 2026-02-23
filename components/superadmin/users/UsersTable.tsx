@@ -88,7 +88,7 @@ export function UsersTable({ users, onRefresh }: UsersTableProps) {
 
     const handleEdit = (user: any) => {
         setEditUser(user);
-        setEditPlan(user.plan_id || "free");
+        setEditPlan(user.plan_id || "standard");
         setEditStatus(user.license_status || "active");
         setSelectedUser(null);
     };
@@ -352,8 +352,8 @@ export function UsersTable({ users, onRefresh }: UsersTableProps) {
                                         </div>
                                     </td>
                                     <td className="px-5 py-4">
-                                        <span className={cn("px-2.5 py-1 rounded-lg text-xs font-medium", getPlanBadge(user.plan_id || "free"))}>
-                                            {(user.plan_id || "free").charAt(0).toUpperCase() + (user.plan_id || "free").slice(1)}
+                                        <span className={cn("px-2.5 py-1 rounded-lg text-xs font-medium", getPlanBadge(user.plan_id || "standard"))}>
+                                            {(user.plan_id || "standard").charAt(0).toUpperCase() + (user.plan_id || "standard").slice(1)}
                                         </span>
                                     </td>
                                     <td className="px-5 py-4">
@@ -523,8 +523,8 @@ export function UsersTable({ users, onRefresh }: UsersTableProps) {
 
                             {/* Meta row */}
                             <div className="flex flex-wrap items-center gap-2">
-                                <span className={cn("px-2.5 py-1 rounded-lg text-xs font-medium", getPlanBadge(user.plan_id || "free"))}>
-                                    {(user.plan_id || "free").charAt(0).toUpperCase() + (user.plan_id || "free").slice(1)}
+                                <span className={cn("px-2.5 py-1 rounded-lg text-xs font-medium", getPlanBadge(user.plan_id || "standard"))}>
+                                    {(user.plan_id || "standard").charAt(0).toUpperCase() + (user.plan_id || "standard").slice(1)}
                                 </span>
                                 <span className={cn("px-2.5 py-1 rounded-lg text-xs font-medium capitalize", getStatusBadgeClass(user.license_status || user.account_status || "active"))}>
                                     {user.license_status || user.account_status || "active"}

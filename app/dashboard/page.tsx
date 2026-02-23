@@ -166,7 +166,7 @@ export default function DashboardOverview() {
         profile?.email?.split("@")[0] ||
         "there";
 
-    const isFreePlan = !license || license.plan_id === "free";
+    const isBasicPlan = !license || license.plan_id === "standard";
     const isTrialActive = license?.is_trial && license?.trial_ends_at &&
         new Date(license.trial_ends_at) > new Date();
 
@@ -256,7 +256,7 @@ export default function DashboardOverview() {
                     </div>
                     <p className="text-sm text-[var(--surface-500)] mb-1">License</p>
                     <p className="text-xl font-bold text-[var(--surface-900)] capitalize">
-                        {license?.plan_name || "Free"}
+                        {license?.plan_name || "Standard"}
                     </p>
                     <p className="text-xs text-[var(--surface-500)] mt-1">
                         {license?.status === "active" ? (
@@ -460,7 +460,7 @@ export default function DashboardOverview() {
             )}
 
             {/* ── Upgrade CTA (for free users) ── */}
-            {isFreePlan && (
+            {isBasicPlan && (
                 <div className="p-6 rounded-2xl bg-gradient-to-r from-[var(--primary)]/10 via-[var(--secondary)]/10 to-[var(--primary)]/5 border border-[var(--primary)]/20">
                     <div className="flex items-center justify-between flex-wrap gap-4">
                         <div>

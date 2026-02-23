@@ -110,7 +110,7 @@ const initialFlags: FeatureFlag[] = [
 export function FeatureFlagsSettings() {
     const [flags, setFlags] = useState<FeatureFlag[]>(initialFlags);
 
-    const toggleFlag = (flagId: string, tier: "free" | "byok" | "pro" | "enterprise") => {
+    const toggleFlag = (flagId: string, tier: "standard" | "byok" | "pro" | "enterprise") => {
         setFlags(flags.map((flag) =>
             flag.id === flagId ? { ...flag, [tier]: !flag[tier] } : flag
         ));
@@ -139,7 +139,7 @@ export function FeatureFlagsSettings() {
                         <thead>
                             <tr className="border-b border-white/10">
                                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Feature</th>
-                                <th className="px-4 py-3 text-center text-sm font-medium text-gray-400 w-24">Free</th>
+                                <th className="px-4 py-3 text-center text-sm font-medium text-gray-400 w-24">Standard</th>
                                 <th className="px-4 py-3 text-center text-sm font-medium text-gray-400 w-24">BYOK</th>
                                 <th className="px-4 py-3 text-center text-sm font-medium text-gray-400 w-24">Pro</th>
                                 <th className="px-4 py-3 text-center text-sm font-medium text-gray-400 w-24">Enterprise</th>
@@ -156,7 +156,7 @@ export function FeatureFlagsSettings() {
                                     </td>
                                     <td className="px-4 py-4 text-center">
                                         <button
-                                            onClick={() => toggleFlag(flag.id, "free")}
+                                            onClick={() => toggleFlag(flag.id, "standard")}
                                             className={cn(
                                                 "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
                                                 flag.free

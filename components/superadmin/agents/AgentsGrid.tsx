@@ -88,7 +88,7 @@ export function AgentsGrid() {
     // ── Tier badge ────────────────────────────────────────────────────────────
     const tierBadge = (tier: string) => {
         switch (tier) {
-            case "free": return { label: "FREE", cls: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25" };
+            case "standard": return { label: "STANDARD", cls: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25" };
             case "pro": return { label: "PRO", cls: "bg-amber-500/15 text-amber-400 border-amber-500/25" };
             case "team": return { label: "TEAM", cls: "bg-blue-500/15 text-blue-400 border-blue-500/25" };
             case "enterprise": return { label: "ENT", cls: "bg-purple-500/15 text-purple-400 border-purple-500/25" };
@@ -118,7 +118,7 @@ export function AgentsGrid() {
                     className="px-4 py-2.5 bg-[var(--surface-100)] border border-[var(--surface-300)] rounded-xl text-[var(--surface-900)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 text-sm"
                 >
                     <option value="all">All Tiers</option>
-                    <option value="free">Free</option>
+                    <option value="standard">Free</option>
                     <option value="pro">Pro</option>
                     <option value="team">Team</option>
                     <option value="enterprise">Enterprise</option>

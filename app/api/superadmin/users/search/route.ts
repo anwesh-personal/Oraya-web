@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
                 email: u.email || null,
                 full_name: profile?.full_name || u.user_metadata?.full_name || null,
                 avatar_url: profile?.avatar_url || null,
-                plan_id: license?.plan_id || "free",
+                plan_id: license?.plan_id || "standard",
             };
         });
 

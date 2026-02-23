@@ -12,27 +12,57 @@
 -- ============================================================================
 
 -- ─── 1. Update agent_templates that reference "free" tier ──────────────────
+-- Use a dynamic block to find and kill the old constraint, whatever it is named
+DO $$ 
+DECLARE 
+    constraint_name text;
+BEGIN 
+    FOR constraint_name IN 
+        SELECT conname 
+        FROM pg_constraint 
+        WHERE conrelid = 'agent_templates'::regclass 
+          AND confrelid = 0 
+          AND contype = 'c' 
+          AND conkey @> (SELECT array_agg(attnum) FROM pg_attribute WHERE attrelid = 'agent_templates'::regclass AND attname = 'plan_tier')
+    LOOP 
+        EXECUTE 'ALTER TABLE agent_templates DROP CONSTRAINT IF EXISTS ' || quote_ident(constraint_name);
+    END LOOP;
+END $$;
+
+-- Update the data to use standard (case-insensitive and trimmed for safety)
 UPDATE agent_templates
 SET plan_tier = 'standard'
-WHERE plan_tier = 'free';
+WHERE TRIM(LOWER(plan_tier)) = 'free';
 
--- ─── 2. Update user_licenses that reference "free" plan ────────────────────
+-- Add the new modernized constraint
+ALTER TABLE agent_templates ADD CONSTRAINT agent_templates_plan_tier_check 
+    CHECK (plan_tier IN ('standard', 'pro', 'team', 'enterprise'));
+
+-- ─── 2. Update Plans and Licenses (Avoiding FK Violations) ──────────────────
+-- Since user_licenses references plans(id) without CASCADE, we insert then move.
+
+-- A. Create the 'standard' row by copying 'free'
+INSERT INTO plans (
+    id, name, description, price_monthly, price_yearly, 
+    max_agents, max_devices, features, is_active, is_public, display_order
+)
+SELECT 
+    'standard', 'Standard', 'Everything you need to get started with Oraya', 
+    20.00, 197.00, 3, 2, '["local_ai_only", "multi_device", "basic_support"]', 
+    true, true, 1
+FROM plans WHERE id = 'free'
+ON CONFLICT (id) DO UPDATE SET
+    name = EXCLUDED.name,
+    price_monthly = EXCLUDED.price_monthly,
+    price_yearly = EXCLUDED.price_yearly;
+
+-- B. Move all licenses to 'standard'
 UPDATE user_licenses
 SET plan_id = 'standard'
 WHERE plan_id = 'free';
 
--- ─── 3. Rename the plan row (PK change) ───────────────────────────────────
--- Since plan_id is referenced as FK, we update the row in-place
-UPDATE plans SET
-    id = 'standard',
-    name = 'Standard',
-    description = 'Everything you need to get started with Oraya',
-    price_monthly = 20.00,
-    price_yearly = 197.00,
-    max_agents = 3,
-    max_devices = 2,
-    features = '["local_ai_only", "multi_device", "basic_support"]'
-WHERE id = 'free';
+-- C. Delete the old 'free' row
+DELETE FROM plans WHERE id = 'free';
 
 -- ─── 4. Update Pro plan pricing ───────────────────────────────────────────
 UPDATE plans SET
@@ -87,6 +117,7 @@ AS $$
 $$;
 
 -- ─── 9. Update get_user_accessible_agents to default to NULL not 'free' ───
+DROP FUNCTION IF EXISTS get_user_accessible_agents(UUID);
 CREATE OR REPLACE FUNCTION get_user_accessible_agents(p_user_id UUID)
 RETURNS TABLE (
     assignment_id       UUID,

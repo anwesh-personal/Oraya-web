@@ -198,7 +198,7 @@ export function CreateOrgModal({ isOpen, onClose, onSuccess }: CreateOrgModalPro
                                 onChange={(e) => setPlanId(e.target.value)}
                                 className="w-full px-3 py-2.5 bg-[var(--surface-100)] border border-[var(--surface-300)] rounded-xl text-[var(--surface-900)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 transition-all"
                             >
-                                <option value="free">Free</option>
+                                <option value="standard">Standard</option>
                                 <option value="pro">Pro</option>
                                 <option value="team">Team</option>
                                 <option value="enterprise">Enterprise</option>

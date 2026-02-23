@@ -30,7 +30,7 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalP
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [fullName, setFullName] = useState("");
-    const [planId, setPlanId] = useState("free");
+    const [planId, setPlanId] = useState("standard");
     const [billingCycle, setBillingCycle] = useState("monthly");
     const [organizationId, setOrganizationId] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -162,7 +162,7 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalP
         setEmail("");
         setPassword("");
         setFullName("");
-        setPlanId("free");
+        setPlanId("standard");
         setBillingCycle("monthly");
         setOrganizationId("");
         setCreatedUser(null);

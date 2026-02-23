@@ -22,6 +22,8 @@ export interface Plan {
     display_order: number;
     badge: string | null;
     requires_organization: boolean;
+    allowed_template_ids: string[];
+    max_members_default: number;
     created_at: string;
     updated_at: string;
 }

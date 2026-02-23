@@ -58,7 +58,7 @@ function UserAvatar({ user, size = "sm" }: { user: UserProfile; size?: "sm" | "m
 // ─── Assign Modal (user picker) ───────────────────────────────────────────────
 
 const PLAN_LABELS: Record<string, { label: string; color: string }> = {
-    free: { label: "Free", color: "bg-zinc-500/20 text-zinc-400 border-zinc-500/30" },
+    free: { label: "Standard", color: "bg-zinc-500/20 text-zinc-400 border-zinc-500/30" },
     pro: { label: "Pro", color: "bg-violet-500/20 text-violet-400 border-violet-500/30" },
     enterprise: { label: "Enterprise", color: "bg-amber-500/20 text-amber-400 border-amber-500/30" },
     starter: { label: "Starter", color: "bg-sky-500/20 text-sky-400 border-sky-500/30" },

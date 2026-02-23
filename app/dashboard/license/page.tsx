@@ -186,7 +186,7 @@ export default function LicensePage() {
         );
     }
 
-    const isFreePlan = !license || license.plan_id === "free";
+    const isBasicPlan = !license || license.plan_id === "standard";
     const activeDevices = license?.devices?.filter(d => d.is_active) || [];
     const inactiveDevices = license?.devices?.filter(d => !d.is_active) || [];
 
@@ -211,7 +211,7 @@ export default function LicensePage() {
                         </div>
                         <div>
                             <h2 className="text-xl font-bold text-[var(--surface-900)] capitalize">
-                                {license?.plan_name || "Free"} Plan
+                                {license?.plan_name || "Standard"} Plan
                             </h2>
                             <div className="flex items-center gap-2 mt-1">
                                 <span
@@ -314,7 +314,7 @@ export default function LicensePage() {
             </div>
 
             {/* ── Usage This Period ── */}
-            {!isFreePlan && (
+            {!isBasicPlan && (
                 <div className="mb-8">
                     <button
                         onClick={() => setShowUsageDetails(!showUsageDetails)}

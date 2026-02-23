@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Plus, Edit, Trash2, DollarSign, X, Loader2, Check,
     Shield, Cpu, Monitor, MessageSquare, Zap, Eye, EyeOff,
@@ -37,6 +37,8 @@ const blankPlan = {
     description: "",
     price_monthly: 0,
     price_yearly: 0,
+    price_monthly_byok: 0,
+    price_yearly_byok: 0,
     currency: "USD",
     max_agents: 1,
     max_conversations_per_month: 50,
@@ -49,6 +51,8 @@ const blankPlan = {
     display_order: 0,
     badge: "",
     requires_organization: false,
+    allowed_template_ids: [] as string[],
+    max_members_default: 5,
 };
 
 type PlanForm = typeof blankPlan;
@@ -65,6 +69,20 @@ export function PlansSettings() {
     // Delete confirmation
     const [deleteTarget, setDeleteTarget] = useState<Plan | null>(null);
     const [deleting, setDeleting] = useState(false);
+    const [templates, setTemplates] = useState<{ id: string; name: string; emoji: string; plan_tier: string }[]>([]);
+
+    useEffect(() => {
+        const fetchTemplates = async () => {
+            try {
+                const res = await fetch("/api/superadmin/agent-templates");
+                const data = await res.json();
+                if (res.ok) setTemplates(data.templates || []);
+            } catch (err) {
+                console.error("Failed to fetch templates", err);
+            }
+        };
+        fetchTemplates();
+    }, []);
 
     // ─── Handlers ─────────────────────────────────────────────────────────────
     const openCreate = () => {
@@ -80,6 +98,8 @@ export function PlansSettings() {
             description: plan.description || "",
             price_monthly: plan.price_monthly || 0,
             price_yearly: plan.price_yearly || 0,
+            price_monthly_byok: plan.price_monthly_byok || 0,
+            price_yearly_byok: plan.price_yearly_byok || 0,
             currency: plan.currency || "USD",
             max_agents: plan.max_agents ?? 1,
             max_conversations_per_month: plan.max_conversations_per_month ?? 50,
@@ -92,6 +112,8 @@ export function PlansSettings() {
             display_order: plan.display_order ?? 0,
             badge: plan.badge || "",
             requires_organization: plan.requires_organization || false,
+            allowed_template_ids: plan.allowed_template_ids || [],
+            max_members_default: plan.max_members_default ?? 5,
         });
         setModalMode("edit");
         setModalError("");
@@ -109,6 +131,15 @@ export function PlansSettings() {
             features: prev.features.includes(featureId)
                 ? prev.features.filter((f) => f !== featureId)
                 : [...prev.features, featureId],
+        }));
+    };
+
+    const toggleTemplate = (templateId: string) => {
+        setForm((prev) => ({
+            ...prev,
+            allowed_template_ids: prev.allowed_template_ids.includes(templateId)
+                ? prev.allowed_template_ids.filter((id) => id !== templateId)
+                : [...prev.allowed_template_ids, templateId],
         }));
     };
 
@@ -212,7 +243,7 @@ export function PlansSettings() {
     // ─── Formatters ───────────────────────────────────────────────────────────
     const formatPrice = (price: number | null) => {
         if (price === null || price === undefined) return "Custom";
-        return price === 0 ? "Free" : `$${price}`;
+        return price === 0 ? "Standard" : `$${price}`;
     };
 
     const formatLimit = (value: number | null) => {
@@ -537,6 +568,37 @@ export function PlansSettings() {
                                         </select>
                                     </div>
                                 </div>
+
+                                <div className="mt-4 p-4 rounded-xl bg-[var(--primary)]/5 border border-[var(--primary)]/10">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Zap className="w-4 h-4 text-[var(--primary)]" />
+                                        <h5 className="text-sm font-semibold text-[var(--primary)]">BYOK Pricing (Discounted)</h5>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-[var(--surface-700)] mb-1.5">BYOK Monthly ($)</label>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                min="0"
+                                                value={form.price_monthly_byok}
+                                                onChange={(e) => setForm({ ...form, price_monthly_byok: parseFloat(e.target.value) || 0 })}
+                                                className="w-full px-4 py-2.5 bg-[var(--surface-50)] border border-[var(--surface-300)] rounded-xl text-[var(--surface-900)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-[var(--surface-700)] mb-1.5">BYOK Yearly ($)</label>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                min="0"
+                                                value={form.price_yearly_byok}
+                                                onChange={(e) => setForm({ ...form, price_yearly_byok: parseFloat(e.target.value) || 0 })}
+                                                className="w-full px-4 py-2.5 bg-[var(--surface-50)] border border-[var(--surface-300)] rounded-xl text-[var(--surface-900)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* ─── Limits ── */}
@@ -583,25 +645,13 @@ export function PlansSettings() {
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-[var(--surface-700)] mb-1.5">
-                                            <span className="flex items-center gap-1.5"><MessageSquare className="w-3.5 h-3.5" /> Conversations / Month</span>
+                                            <span className="flex items-center gap-1.5"><MessageSquare className="w-3.5 h-3.5" /> Conv. / Month</span>
                                         </label>
                                         <input
                                             type="number"
                                             min="-1"
                                             value={form.max_conversations_per_month}
                                             onChange={(e) => setForm({ ...form, max_conversations_per_month: parseInt(e.target.value) })}
-                                            className="w-full px-4 py-2.5 bg-[var(--surface-100)] border border-[var(--surface-300)] rounded-xl text-[var(--surface-900)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30"
-                                        />
-                                    </div>
-                                    <div className="col-span-2">
-                                        <label className="block text-sm font-medium text-[var(--surface-700)] mb-1.5">
-                                            Max Token Usage / Month
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min="-1"
-                                            value={form.max_token_usage_per_month}
-                                            onChange={(e) => setForm({ ...form, max_token_usage_per_month: parseInt(e.target.value) })}
                                             className="w-full px-4 py-2.5 bg-[var(--surface-100)] border border-[var(--surface-300)] rounded-xl text-[var(--surface-900)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30"
                                         />
                                     </div>
@@ -637,6 +687,53 @@ export function PlansSettings() {
                                 </div>
                             </div>
 
+                            {/* ─── Agent Permissions ── */}
+                            <div>
+                                <h4 className="text-sm font-semibold text-[var(--surface-700)] mb-1 uppercase tracking-wider">Agent Permissions</h4>
+                                <p className="text-xs text-[var(--surface-500)] mb-3">
+                                    Explicitly grant access to specific templates.
+                                </p>
+                                <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                                    {templates.map((template) => {
+                                        const planRanks: Record<string, number> = { standard: 1, pro: 2, team: 3, enterprise: 4 };
+                                        const tRank = planRanks[template.plan_tier] || 0;
+                                        const pRank = planRanks[form.id] || 0;
+                                        const isAlreadyEntitled = tRank > 0 && pRank >= tRank;
+
+                                        return (
+                                            <label
+                                                key={template.id}
+                                                className={cn(
+                                                    "flex items-center gap-3 p-2.5 rounded-xl border cursor-pointer transition-all",
+                                                    form.allowed_template_ids.includes(template.id)
+                                                        ? "border-[var(--primary)]/30 bg-[var(--primary)]/5"
+                                                        : isAlreadyEntitled
+                                                            ? "border-emerald-500/20 bg-emerald-500/5 opacity-80"
+                                                            : "border-[var(--surface-200)] hover:border-[var(--surface-300)]"
+                                                )}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={form.allowed_template_ids.includes(template.id)}
+                                                    onChange={() => toggleTemplate(template.id)}
+                                                    disabled={isAlreadyEntitled}
+                                                    className="w-4 h-4 rounded border-[var(--surface-300)] text-[var(--primary)] focus:ring-[var(--primary)]/30 disabled:opacity-50"
+                                                />
+                                                <div className="flex items-center gap-2 min-w-0">
+                                                    <span className="text-lg shrink-0">{template.emoji}</span>
+                                                    <div className="min-w-0">
+                                                        <p className="text-sm font-medium text-[var(--surface-900)] truncate">{template.name}</p>
+                                                        <p className="text-[10px] text-[var(--surface-500)] uppercase font-semibold">
+                                                            {isAlreadyEntitled ? "Inherited" : `${template.plan_tier}`}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
                             {/* ─── Visibility ── */}
                             <div>
                                 <h4 className="text-sm font-semibold text-[var(--surface-700)] mb-3 uppercase tracking-wider">Visibility</h4>
@@ -657,39 +754,43 @@ export function PlansSettings() {
                                             onChange={(e) => setForm({ ...form, is_public: e.target.checked })}
                                             className="w-4 h-4 rounded border-[var(--surface-300)] text-[var(--primary)] focus:ring-[var(--primary)]/30"
                                         />
-                                        <span className="text-sm text-[var(--surface-700)]">Public (visible on pricing page)</span>
+                                        <span className="text-sm text-[var(--surface-700)]">Public</span>
                                     </label>
                                 </div>
                             </div>
 
-                            {/* ─── Organization Requirement ── */}
+                            {/* ─── Organization Defaults ── */}
                             <div>
                                 <h4 className="text-sm font-semibold text-[var(--surface-700)] mb-3 uppercase tracking-wider flex items-center gap-2">
-                                    <Building2 className="w-4 h-4" /> Organization Requirement
+                                    <Building2 className="w-4 h-4" /> Org Defaults
                                 </h4>
-                                <label
-                                    className={cn(
-                                        "flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all",
-                                        form.requires_organization
-                                            ? "border-blue-500/30 bg-blue-500/5"
-                                            : "border-[var(--surface-200)] hover:border-[var(--surface-300)]"
-                                    )}
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={form.requires_organization}
-                                        onChange={(e) => setForm({ ...form, requires_organization: e.target.checked })}
-                                        className="mt-0.5 w-4 h-4 rounded border-[var(--surface-300)] text-blue-500 focus:ring-blue-500/30"
-                                    />
-                                    <div className="min-w-0">
-                                        <p className="text-sm font-medium text-[var(--surface-900)]">Require Organization Membership</p>
-                                        <p className="text-xs text-[var(--surface-500)] mt-1">
-                                            When enabled, users can only be assigned this plan if they belong to an
-                                            organization (team). This is enforced at the API level — the system will
-                                            reject plan assignment if the user is not a member of any active organization.
-                                        </p>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="p-4 rounded-xl border border-[var(--surface-200)] bg-[var(--surface-100)]/50">
+                                        <label className="block text-sm font-medium text-[var(--surface-700)] mb-1.5">Max Seats</label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            value={form.max_members_default}
+                                            onChange={(e) => setForm({ ...form, max_members_default: parseInt(e.target.value) || 1 })}
+                                            className="w-full px-4 py-2.5 bg-white border border-[var(--surface-300)] rounded-xl text-[var(--surface-900)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30"
+                                        />
                                     </div>
-                                </label>
+                                    <label className={cn(
+                                        "flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all",
+                                        form.requires_organization ? "border-blue-500/30 bg-blue-500/5" : "border-[var(--surface-200)]"
+                                    )}>
+                                        <input
+                                            type="checkbox"
+                                            checked={form.requires_organization}
+                                            onChange={(e) => setForm({ ...form, requires_organization: e.target.checked })}
+                                            className="mt-0.5 w-4 h-4 rounded border-[var(--surface-300)] text-blue-500"
+                                        />
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-medium text-[var(--surface-900)]">Require Org</p>
+                                            <p className="text-[10px] text-[var(--surface-500)] mt-1">Must belong to a team.</p>
+                                        </div>
+                                    </label>
+                                </div>
                             </div>
                         </div>
 
@@ -704,58 +805,30 @@ export function PlansSettings() {
                             <button
                                 onClick={handleSave}
                                 disabled={saving}
-                                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-white font-medium transition-all disabled:opacity-50 shadow-lg"
+                                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-white font-medium transition-all shadow-lg"
                                 style={{ background: 'var(--gradient-primary)' }}
                             >
-                                {saving ? (
-                                    <>
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                        Saving...
-                                    </>
-                                ) : (
-                                    modalMode === "create" ? "Create Plan" : "Save Changes"
-                                )}
+                                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : (modalMode === "create" ? "Create Plan" : "Save Changes")}
                             </button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* ─── Delete Confirmation ──────────────────────────────────────────── */}
+            {/* ─── Delete Confirmation ── */}
             {deleteTarget && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="bg-[var(--surface-50)] rounded-2xl border border-[var(--surface-200)] shadow-2xl w-full max-w-md">
-                        <div className="p-5">
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="p-3 rounded-full bg-red-500/15">
-                                    <Trash2 className="w-6 h-6 text-red-500" />
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-semibold text-[var(--surface-900)]">Delete Plan</h3>
-                                    <p className="text-sm text-[var(--surface-500)]">
-                                        This will fail if any active licenses use this plan.
-                                    </p>
-                                </div>
+                    <div className="bg-[var(--surface-50)] rounded-2xl border border-[var(--surface-200)] shadow-2xl w-full max-w-md p-6">
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="p-3 rounded-full bg-red-500/15">
+                                <Trash2 className="w-6 h-6 text-red-500" />
                             </div>
-                            <p className="text-[var(--surface-700)] mb-6">
-                                Are you sure you want to delete <strong>{deleteTarget.name}</strong>?
-                                Consider deactivating it instead if users are on this plan.
-                            </p>
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => setDeleteTarget(null)}
-                                    className="flex-1 py-2.5 rounded-xl border border-[var(--surface-300)] text-[var(--surface-700)] hover:bg-[var(--surface-200)] transition-colors font-medium"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleDelete}
-                                    disabled={deleting}
-                                    className="flex-1 py-2.5 rounded-xl bg-red-500 text-white font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
-                                >
-                                    {deleting ? "Deleting..." : "Delete Plan"}
-                                </button>
-                            </div>
+                            <h3 className="text-lg font-semibold text-[var(--surface-900)]">Delete Plan</h3>
+                        </div>
+                        <p className="text-[var(--surface-700)] mb-6">Are you sure you want to delete <strong>{deleteTarget.name}</strong>?</p>
+                        <div className="flex gap-3">
+                            <button onClick={() => setDeleteTarget(null)} className="flex-1 py-2.5 rounded-xl border border-[var(--surface-300)] text-[var(--surface-700)] hover:bg-[var(--surface-200)] transition-colors">Cancel</button>
+                            <button onClick={handleDelete} disabled={deleting} className="flex-1 py-2.5 rounded-xl bg-red-500 text-white font-medium hover:bg-red-600 transition-colors">Delete</button>
                         </div>
                     </div>
                 </div>

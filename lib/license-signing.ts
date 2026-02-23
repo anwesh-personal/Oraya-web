@@ -35,7 +35,7 @@ export interface LicenseTokenClaims {
     lic_id: string;
     /** ORA Key (e.g. "ORA-XXXX-XXXX-XXXX-XXXX") */
     ora_key: string;
-    /** Plan ID (e.g. "free", "pro", "team", "enterprise") */
+    /** Plan ID (e.g. "standard", "pro", "team", "enterprise") */
     plan: string;
     /** Plan display name */
     plan_name: string;

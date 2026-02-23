@@ -49,7 +49,7 @@ async function getAccessibleAgents(): Promise<AssignedAgentExtended[]> {
             tagline: row.template_tagline ?? null,
             description: row.template_description ?? null,
             category: row.template_category ?? null,
-            plan_tier: row.template_plan_tier ?? "free",
+            plan_tier: row.template_plan_tier ?? "standard",
             version: row.template_version ?? null,
             tags: row.template_tags ?? [],
             personality_config: row.template_personality ?? null,

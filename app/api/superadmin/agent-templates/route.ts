@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
                 description: description || null,
                 core_prompt,
                 personality_config: personality_config || {},
-                plan_tier: plan_tier || "free",
+                plan_tier: plan_tier || "standard",
                 category: category || null,
                 tags: tags || [],
                 is_active: true,

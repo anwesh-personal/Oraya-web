@@ -46,7 +46,7 @@ export async function POST(request: Request) {
         }
 
         // 3. Validate plan exists and is purchasable
-        if (plan_id === "free" || plan_id === "enterprise") {
+        if (plan_id === "standard" || plan_id === "enterprise") {
             return NextResponse.json(
                 { error: `Cannot checkout for ${plan_id} plan` },
                 { status: 400 }

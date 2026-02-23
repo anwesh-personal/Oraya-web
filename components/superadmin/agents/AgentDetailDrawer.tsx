@@ -101,7 +101,7 @@ export function AgentDetailDrawer({ template, allCategories, onClose, onSave }: 
 
     const tierColor = (tier: string) => {
         switch (tier) {
-            case "free": return "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
+            case "standard": return "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
             case "pro": return "bg-amber-500/20 text-amber-400 border-amber-500/30";
             case "team": return "bg-blue-500/20 text-blue-400 border-blue-500/30";
             case "enterprise": return "bg-purple-500/20 text-purple-400 border-purple-500/30";
@@ -263,7 +263,7 @@ export function AgentDetailDrawer({ template, allCategories, onClose, onSave }: 
                                     </Field>
                                     <Field label="Plan Tier">
                                         <select value={planTier} onChange={e => { setPlanTier(e.target.value); markChanged(); }} className="input-field">
-                                            <option value="free">Free</option>
+                                            <option value="standard">Free</option>
                                             <option value="pro">Pro</option>
                                             <option value="team">Team</option>
                                             <option value="enterprise">Enterprise</option>

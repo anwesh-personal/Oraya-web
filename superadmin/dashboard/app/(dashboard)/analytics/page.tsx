@@ -39,7 +39,7 @@ async function getAnalyticsData() {
             { month: "Feb", revenue: 14200 },
         ],
         usersByTier: [
-            { tier: "Free", count: 2450, color: "#6b7280" },
+            { tier: "Standard", count: 2450, color: "#6b7280" },
             { tier: "BYOK", count: 800, color: "#8b5cf6" },
             { tier: "Pro", count: 420, color: "#06b6d4" },
             { tier: "Enterprise", count: 34, color: "#f59e0b" },

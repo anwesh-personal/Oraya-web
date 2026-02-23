@@ -326,7 +326,7 @@ async function handleSubscriptionCancelled(
             .eq("id", license.id);
     }
 
-    // Downgrade to free plan — create a new free license
+    // Downgrade to standard plan — create a new free license
     const metadata = subscription.metadata || {};
     const userId = metadata.supabase_user_id;
 
@@ -336,14 +336,14 @@ async function handleSubscriptionCancelled(
             .from("user_licenses") as any)
             .select("id")
             .eq("user_id", userId)
-            .eq("plan_id", "free")
+            .eq("plan_id", "standard")
             .eq("status", "active")
             .single();
 
         if (!freeLicense) {
             await (supabase.from("user_licenses") as any).insert({
                 user_id: userId,
-                plan_id: "free",
+                plan_id: "standard",
                 status: "active",
                 billing_cycle: "lifetime",
                 activated_at: new Date().toISOString(),

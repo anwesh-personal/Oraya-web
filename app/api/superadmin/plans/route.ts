@@ -59,6 +59,8 @@ export async function POST(request: NextRequest) {
         display_order,
         badge,
         requires_organization,
+        allowed_template_ids,
+        max_members_default,
     } = body;
 
     if (!id || !name) {
@@ -98,6 +100,8 @@ export async function POST(request: NextRequest) {
                 display_order: display_order ?? 0,
                 badge: badge || null,
                 requires_organization: requires_organization ?? false,
+                allowed_template_ids: allowed_template_ids || [],
+                max_members_default: max_members_default ?? 5,
             })
             .select()
             .single();
@@ -156,6 +160,7 @@ export async function PATCH(request: NextRequest) {
             "max_agents", "max_conversations_per_month", "max_ai_calls_per_month",
             "max_token_usage_per_month", "max_devices", "features",
             "is_active", "is_public", "display_order", "badge", "requires_organization",
+            "allowed_template_ids", "max_members_default",
         ];
 
         const safeUpdates: Record<string, any> = {};

@@ -15,7 +15,7 @@ import { logger } from "@/lib/logger";
 import {
     authenticateDesktopRequest,
     isAuthError,
-    ensureFreeLicense,
+    ensureStandardLicense,
     countActiveDevices,
     fetchDeviceActivation,
     recordTokenIssuance,
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
 
         // If no license found (not personal, not team-inherited), auto-create free
         if (!license) {
-            license = await ensureFreeLicense(supabase, userId);
+            license = await ensureStandardLicense(supabase, userId);
             if (!license) {
                 return NextResponse.json(
                     {
@@ -172,7 +172,7 @@ export async function POST(request: NextRequest) {
         let licenseIdForActivation: string;
 
         if (isTeamInherited) {
-            const personalLicense = await ensureFreeLicense(supabase, userId);
+            const personalLicense = await ensureStandardLicense(supabase, userId);
             if (!personalLicense) {
                 return NextResponse.json(
                     { error: "Unable to create device license. Please contact support.", code: "LICENSE_CREATION_FAILED" },

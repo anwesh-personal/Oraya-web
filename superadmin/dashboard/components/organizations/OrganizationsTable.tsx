@@ -59,7 +59,7 @@ export function OrganizationsTable({ organizations, onRefresh }: Props) {
             team: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
             enterprise: "bg-violet-500/10 text-violet-400 border-violet-500/20",
         };
-        return classes[plan || "free"] || classes.free;
+        return classes[plan || "standard"] || classes.free;
     };
 
     const apiCall = async (method: string, body?: any, params?: string) => {
@@ -338,7 +338,7 @@ export function OrganizationsTable({ organizations, onRefresh }: Props) {
                                     onChange={(e) => setEditPlan(e.target.value)}
                                     className="w-full px-4 py-2.5 bg-[var(--surface-100)] border border-[var(--surface-300)] rounded-xl text-[var(--surface-900)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50"
                                 >
-                                    <option value="free">Free</option>
+                                    <option value="standard">Standard</option>
                                     <option value="pro">Pro</option>
                                     <option value="team">Team</option>
                                     <option value="enterprise">Enterprise</option>

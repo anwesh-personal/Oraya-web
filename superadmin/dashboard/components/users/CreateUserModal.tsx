@@ -13,7 +13,7 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalP
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [fullName, setFullName] = useState("");
-    const [planId, setPlanId] = useState("free");
+    const [planId, setPlanId] = useState("standard");
     const [billingCycle, setBillingCycle] = useState("monthly");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -52,7 +52,7 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalP
             setEmail("");
             setPassword("");
             setFullName("");
-            setPlanId("free");
+            setPlanId("standard");
             setBillingCycle("monthly");
             onSuccess();
         } catch (err: any) {
@@ -165,7 +165,7 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalP
                                 onChange={(e) => setPlanId(e.target.value)}
                                 className="w-full px-4 py-2.5 bg-[var(--surface-100)] border border-[var(--surface-300)] rounded-xl text-[var(--surface-900)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 focus:border-[var(--primary)] transition-all"
                             >
-                                <option value="free">Free</option>
+                                <option value="standard">Standard</option>
                                 <option value="pro">Pro</option>
                                 <option value="team">Team</option>
                                 <option value="enterprise">Enterprise</option>
