@@ -110,9 +110,9 @@ const initialFlags: FeatureFlag[] = [
 export function FeatureFlagsSettings() {
     const [flags, setFlags] = useState<FeatureFlag[]>(initialFlags);
 
-    const toggleFlag = (flagId: string, tier: "standard" | "byok" | "pro" | "enterprise") => {
+    const toggleFlag = (flagId: string, tier: "free" | "byok" | "pro" | "enterprise") => {
         setFlags(flags.map((flag) =>
-            flag.id === flagId ? { ...flag, [tier]: !flag[tier] } : flag
+            flag.id === flagId ? { ...flag, [tier]: !(flag as any)[tier] } : flag
         ));
     };
 
@@ -156,7 +156,7 @@ export function FeatureFlagsSettings() {
                                     </td>
                                     <td className="px-4 py-4 text-center">
                                         <button
-                                            onClick={() => toggleFlag(flag.id, "standard")}
+                                            onClick={() => toggleFlag(flag.id, "free")}
                                             className={cn(
                                                 "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
                                                 flag.free
