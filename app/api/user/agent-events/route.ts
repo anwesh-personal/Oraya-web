@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
+import {
+    authenticateDesktopRequest,
+    isAuthError,
+} from "@/lib/desktop-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -9,12 +12,12 @@ export const dynamic = "force-dynamic";
 // Never blocks or fails the caller's operation.
 // ─────────────────────────────────────────────────────────────────────────────
 export async function POST(request: NextRequest) {
-    const supabase = await createServerSupabaseClient();
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const authResult = await authenticateDesktopRequest(request);
+    if (isAuthError(authResult)) {
+        return authResult;
     }
+
+    const userId = authResult.userId;
 
     const body = await request.json();
     const {
@@ -48,7 +51,7 @@ export async function POST(request: NextRequest) {
         const { error } = await (serviceClient
             .from("user_agent_events") as any)
             .insert({
-                user_id: user.id,
+                user_id: userId,
                 template_id: template_id || null,
                 agent_name,
                 event_type,

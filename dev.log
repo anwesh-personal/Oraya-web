@@ -1,0 +1,75 @@
+
+> oraya-saas@3.0.2 dev
+> next dev -p 3000
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1619ms
+ ✓ Compiled /api/user/agent-events in 372ms (115 modules)
+ GET /api/user/agent-events 405 in 513ms
+ POST /api/user/agent-events 401 in 36ms
+ ✓ Compiled in 498ms
+ ✓ Compiled /api/user/agent-events in 146ms (116 modules)
+ POST /api/user/agent-events 401 in 185ms
+ ✓ Compiled /api/superadmin/agent-templates/[id]/knowledge-bases in 302ms (205 modules)
+ GET /api/superadmin/agent-templates/f531b40c-68a3-459d-b2ba-81dd95dd553b/knowledge-bases 200 in 1897ms
+ GET /api/superadmin/agent-templates/f531b40c-68a3-459d-b2ba-81dd95dd553b/knowledge-bases 200 in 466ms
+ ✓ Compiled /api/superadmin/agent-templates/[id]/examples in 49ms (207 modules)
+ GET /api/superadmin/agent-templates/f531b40c-68a3-459d-b2ba-81dd95dd553b/examples 200 in 631ms
+ GET /api/superadmin/agent-templates/f531b40c-68a3-459d-b2ba-81dd95dd553b/examples 200 in 334ms
+ ✓ Compiled /api/superadmin/agent-templates/[id]/rules in 45ms (209 modules)
+ GET /api/superadmin/agent-templates/f531b40c-68a3-459d-b2ba-81dd95dd553b/rules 200 in 745ms
+ GET /api/superadmin/agent-templates/f531b40c-68a3-459d-b2ba-81dd95dd553b/rules 200 in 311ms
+ ✓ Compiled /api/superadmin/agent-templates/[id]/prompts in 51ms (211 modules)
+ GET /api/superadmin/agent-templates/f531b40c-68a3-459d-b2ba-81dd95dd553b/prompts 200 in 584ms
+ GET /api/superadmin/agent-templates/f531b40c-68a3-459d-b2ba-81dd95dd553b/prompts 200 in 291ms
+ ✓ Compiled /api/superadmin/agent-templates/[id]/icon in 58ms (213 modules)
+ POST /api/superadmin/agent-templates/f531b40c-68a3-459d-b2ba-81dd95dd553b/icon 200 in 3276ms
+ ⚠ The "images.domains" configuration is deprecated. Please use "images.remotePatterns" configuration instead.
+ GET /api/superadmin/agent-templates/f531b40c-68a3-459d-b2ba-81dd95dd553b/prompts 200 in 889ms
+ GET /api/superadmin/agent-templates/f531b40c-68a3-459d-b2ba-81dd95dd553b/prompts 200 in 366ms
+ GET /api/superadmin/agent-templates/f531b40c-68a3-459d-b2ba-81dd95dd553b/knowledge-bases 200 in 463ms
+ GET /api/superadmin/agent-templates/f531b40c-68a3-459d-b2ba-81dd95dd553b/knowledge-bases 200 in 263ms
+ ✓ Compiled /api/superadmin/agent-templates in 132ms (205 modules)
+ GET /api/superadmin/agent-templates 401 in 205ms
+ ○ Compiling / ...
+ ✓ Compiled /superadmin in 7.2s (1650 modules)
+ GET /superadmin 307 in 1758ms
+ GET / 200 in 7495ms
+ ✓ Compiled /superadmin/login in 416ms (1652 modules)
+ GET /superadmin/login 200 in 587ms
+ ✓ Compiled /api/superadmin/auth/login in 315ms (1007 modules)
+ POST /api/superadmin/auth/login 401 in 1928ms
+ POST /api/superadmin/auth/login 200 in 1632ms
+ ○ Compiling /superadmin/overview ...
+ ✓ Compiled /superadmin/overview in 1368ms (2937 modules)
+ ○ Compiling /superadmin/agents ...
+ ✓ Compiled /superadmin/agents in 875ms (3064 modules)
+ ✓ Compiled /api/superadmin/agent-templates in 239ms (1637 modules)
+ GET /api/superadmin/agent-templates 200 in 547ms
+ GET /api/superadmin/agent-templates 200 in 248ms
+ ✓ Compiled /api/superadmin/agent-templates/[id]/rules in 422ms (1639 modules)
+ GET /api/superadmin/agent-templates/54f431ae-100e-4a8e-b8cc-c4683adc7ab9/rules 200 in 973ms
+ GET /api/superadmin/agent-templates/54f431ae-100e-4a8e-b8cc-c4683adc7ab9/rules 200 in 276ms
+ ✓ Compiled /api/superadmin/agent-templates/[id]/examples in 132ms (1641 modules)
+ GET /api/superadmin/agent-templates/54f431ae-100e-4a8e-b8cc-c4683adc7ab9/examples 200 in 423ms
+ GET /api/superadmin/agent-templates/54f431ae-100e-4a8e-b8cc-c4683adc7ab9/examples 200 in 277ms
+ ✓ Compiled /api/superadmin/agent-templates/[id]/knowledge-bases in 154ms (1643 modules)
+ GET /api/superadmin/agent-templates/54f431ae-100e-4a8e-b8cc-c4683adc7ab9/knowledge-bases 200 in 570ms
+ GET /api/superadmin/agent-templates/54f431ae-100e-4a8e-b8cc-c4683adc7ab9/knowledge-bases 200 in 267ms
+ ✓ Compiled /api/superadmin/agent-templates/[id]/prompts in 226ms (1645 modules)
+ GET /api/superadmin/agent-templates/54f431ae-100e-4a8e-b8cc-c4683adc7ab9/prompts 200 in 673ms
+ GET /api/superadmin/agent-templates/54f431ae-100e-4a8e-b8cc-c4683adc7ab9/prompts 200 in 264ms
+ ✓ Compiled /api/superadmin/agent-templates/[id]/assignments in 285ms (1647 modules)
+ GET /api/superadmin/agent-templates/54f431ae-100e-4a8e-b8cc-c4683adc7ab9/assignments 200 in 1494ms
+ GET /api/superadmin/agent-templates/54f431ae-100e-4a8e-b8cc-c4683adc7ab9/assignments 200 in 784ms
+ ✓ Compiled in 1434ms (1984 modules)
+ ✓ Compiled /_not-found in 336ms (1973 modules)
+ GET /_next/static/css/app/layout.css?v=1771809413912 404 in 380ms
+ GET /_next/static/css/app/layout.css?v=1771809413912 404 in 73ms
+ ✓ Compiled in 955ms (2013 modules)
+ GET /_next/static/css/app/layout.css?v=1771809418717 404 in 31ms
+ GET /_next/static/css/app/layout.css?v=1771809418717 404 in 52ms

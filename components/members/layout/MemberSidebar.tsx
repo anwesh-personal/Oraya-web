@@ -6,6 +6,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
     LayoutDashboard,
+    Bot,
     Key,
     Coins,
     CreditCard,
@@ -53,6 +54,7 @@ const navigation = [
         label: "Main",
         items: [
             { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
+            { name: "My Agents", href: "/dashboard/agents", icon: Bot },
             { name: "License & Devices", href: "/dashboard/license", icon: Key },
             { name: "Token Wallet", href: "/dashboard/tokens", icon: Coins },
         ],

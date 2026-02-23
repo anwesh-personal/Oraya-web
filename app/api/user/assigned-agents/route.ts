@@ -3,9 +3,14 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-// ─── GET: Fetch agents assigned to the current user ─────────────────────────
-// Called by Oraya Desktop on launch to check for pushed agents.
-// Returns templates that have been assigned to this user but not yet installed.
+// ─── GET /api/user/assigned-agents ───────────────────────────────────────────
+// Returns all agent templates accessible to the authenticated user, via:
+//   1. Plan-based entitlement (hierarchical: enterprise ⊇ team ⊇ pro ⊇ free)
+//   2. Explicit superadmin assignment (push)
+//
+// Both sources are unified by the `get_user_accessible_agents` Postgres
+// function (migration 024). Explicit assignments take priority when a template
+// is available through both channels.
 // ─────────────────────────────────────────────────────────────────────────────
 export async function GET() {
     const supabase = await createServerSupabaseClient();
@@ -16,48 +21,41 @@ export async function GET() {
     }
 
     try {
-        // Get active assignments for this user
-        const { data: assignments, error } = await (supabase
-            .from("user_agent_assignments") as any)
-            .select(`
-                id,
-                template_id,
-                assignment_type,
-                assigned_at,
-                config_overrides
-            `)
-            .eq("user_id", user.id)
-            .eq("is_active", true);
+        const { data, error } = await (supabase.rpc as any)(
+            "get_user_accessible_agents",
+            { p_user_id: user.id }
+        );
 
         if (error) {
-            console.error("Fetch assigned agents error:", error);
+            console.error("[assigned-agents] RPC error:", error);
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
-        if (!assignments || assignments.length === 0) {
-            return NextResponse.json({ assigned_agents: [] });
-        }
+        // Reshape the flat RPC result into the AssignedAgent shape the frontend expects
+        const assigned_agents = (data ?? []).map((row: any) => ({
+            id: row.assignment_id ?? row.template_id, // entitled rows have no assignment row
+            template_id: row.template_id,
+            assignment_type: row.assignment_type,
+            assigned_at: row.assigned_at,
+            config_overrides: row.config_overrides ?? {},
+            template: {
+                id: row.template_id,
+                name: row.template_name,
+                emoji: row.template_emoji,
+                description: row.template_description,
+                icon_url: null,
+                category: row.template_category,
+                factory_version: row.factory_version,
+                factory_published_at: row.factory_published_at,
+                plan_tier: row.template_plan_tier,
+                version: row.template_version,
+                tags: row.template_tags ?? [],
+            },
+        }));
 
-        // Fetch full template data for each assignment
-        const templateIds = assignments.map((a: any) => a.template_id);
-        const { data: templates } = await (supabase
-            .from("agent_templates") as any)
-            .select("*")
-            .in("id", templateIds)
-            .eq("is_active", true);
-
-        // Merge assignment + template data
-        const assignedAgents = assignments.map((assignment: any) => {
-            const template = (templates || []).find((t: any) => t.id === assignment.template_id);
-            return {
-                ...assignment,
-                template: template || null,
-            };
-        }).filter((a: any) => a.template !== null);
-
-        return NextResponse.json({ assigned_agents: assignedAgents });
+        return NextResponse.json({ assigned_agents });
     } catch (err: any) {
-        console.error("Assigned agents API error:", err);
+        console.error("[assigned-agents] Unexpected error:", err);
         return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }

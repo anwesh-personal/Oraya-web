@@ -118,7 +118,7 @@ export async function PATCH(request: NextRequest) {
         const allowedFields = [
             "name", "emoji", "role", "tagline", "description",
             "core_prompt", "personality_config",
-            "plan_tier", "is_active", "category", "tags", "version",
+            "plan_tier", "is_active", "category", "tags", "version", "icon_url",
         ];
 
         const safeUpdates: Record<string, any> = {};

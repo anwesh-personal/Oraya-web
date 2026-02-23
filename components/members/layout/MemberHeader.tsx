@@ -13,6 +13,7 @@ import {
     ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 
 // ─────────────────────────────────────────────────────────────
 // Types
@@ -139,9 +140,10 @@ export function MemberHeader({ user, tokens, collapsed }: MemberHeaderProps) {
                 {/* Notifications */}
                 <button className="relative p-2 rounded-xl hover:bg-[var(--surface-100)] text-[var(--surface-500)] hover:text-[var(--surface-700)] transition-colors">
                     <Bell className="w-5 h-5" />
-                    {/* Notification dot */}
-                    {/* <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[var(--error)]" /> */}
                 </button>
+
+                {/* Theme Switcher */}
+                <ThemeSwitcher variant="dropdown" />
 
                 {/* User Menu */}
                 <div className="relative" ref={menuRef}>

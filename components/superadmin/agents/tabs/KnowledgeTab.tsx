@@ -120,7 +120,7 @@ export function KnowledgeTab({ templateId }: KnowledgeTabProps) {
             const res = await fetch(`/api/superadmin/agent-templates/${templateId}/knowledge-bases`);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
-            setKnowledgeBases(data.knowledgeBases || []);
+            setKnowledgeBases(data.knowledge_bases || []);
         } catch (err: any) {
             setError(err.message || "Failed to load knowledge bases");
         } finally {
@@ -314,8 +314,8 @@ export function KnowledgeTab({ templateId }: KnowledgeTabProps) {
                                 key={type}
                                 onClick={() => setNewType(type)}
                                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium border transition-all ${newType === type
-                                        ? `${meta.color} ring-1 ring-current`
-                                        : "bg-[var(--surface-100)] text-[var(--surface-600)] border-[var(--surface-300)]"
+                                    ? `${meta.color} ring-1 ring-current`
+                                    : "bg-[var(--surface-100)] text-[var(--surface-600)] border-[var(--surface-300)]"
                                     }`}
                             >
                                 {meta.icon} {meta.label}
@@ -477,8 +477,8 @@ export function KnowledgeTab({ templateId }: KnowledgeTabProps) {
                             <div
                                 key={kb.id}
                                 className={`border rounded-xl transition-all ${kb.is_active
-                                        ? "border-[var(--surface-300)] bg-[var(--surface-50)]"
-                                        : "border-[var(--surface-200)] bg-[var(--surface-100)] opacity-60"
+                                    ? "border-[var(--surface-300)] bg-[var(--surface-50)]"
+                                    : "border-[var(--surface-200)] bg-[var(--surface-100)] opacity-60"
                                     }`}
                             >
                                 {/* Row header */}
