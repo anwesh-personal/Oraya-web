@@ -29,7 +29,7 @@ export interface DesktopAuthContext {
     email: string;
     /** The raw Supabase access token (for forwarding if needed) */
     accessToken: string;
-    /** User's active license (null if no license / free plan) */
+    /** User's active license (null if no license found) */
     license: DesktopLicense | null;
     /** Team/org context (null if solo user) */
     team: TeamContext | null;
@@ -65,6 +65,7 @@ export interface DesktopLicense {
     currentPeriodEnd: string | null;
     aiCallsUsed: number;
     tokensUsed: number;
+    isByok: boolean;
     /** If this license came from a team membership, the team ID */
     teamId: string | null;
     /** How this license was resolved — "personal" (direct user_licenses row)
@@ -263,12 +264,12 @@ async function fetchTeamContext(
         guest: 1,
     };
 
-    // Plan priority: enterprise > team > pro > free
+    // Plan priority: enterprise > team > pro > standard
     const planPriority: Record<string, number> = {
         enterprise: 4,
         team: 3,
         pro: 2,
-        free: 1,
+        standard: 1,
     };
 
     // Sort by plan tier (best first), then role (highest first)
@@ -304,7 +305,7 @@ async function fetchTeamContext(
  *   1. Personal `user_licenses` row (direct license — solo or assigned by admin)
  *   2. Team-inherited: `team_members` → `teams.plan_id` → `plans`
  *      (the user has no personal license row, but belongs to a team with a paid plan)
- *   3. null (no license at all — will trigger free plan auto-creation in activate endpoint)
+ *   3. null (no license at all — will trigger standard plan auto-creation in activate endpoint)
  *
  * @param supabase - Service role Supabase client
  * @param userId - Supabase user ID
@@ -345,7 +346,8 @@ async function fetchUserLicense(
             tokensUsed: license.tokens_used || 0,
             teamId: team?.teamId || null,
             source: "personal",
-            plan: normalizePlan(plan),
+            isByok: !!license.is_byok,
+            plan: normalizePlan(plan, !!license.is_byok),
         };
     }
 
@@ -380,7 +382,8 @@ async function fetchUserLicense(
                     tokensUsed: 0,
                     teamId: team.teamId,
                     source: "team_inherited",
-                    plan: normalizePlan(plan),
+                    isByok: false, // Teams are managed by default unless we add team-level BYOK
+                    plan: normalizePlan(plan, false),
                 };
             }
         }
@@ -411,7 +414,18 @@ async function fetchPlanById(
 /**
  * Normalize a raw plan row into the typed plan shape.
  */
-function normalizePlan(plan: Record<string, any>): DesktopLicense["plan"] {
+function normalizePlan(plan: Record<string, any>, isByok: boolean): DesktopLicense["plan"] {
+    let features = plan.features || [];
+
+    // If BYOK, strip managed AI features
+    if (isByok) {
+        features = (features as string[]).filter(f => f !== "managed_ai" && f !== "everything");
+        // Ensure local_ai_only is present for BYOK
+        if (!features.includes("local_ai_only")) {
+            features.push("local_ai_only");
+        }
+    }
+
     return {
         id: plan.id,
         name: plan.name,
@@ -465,7 +479,7 @@ export async function fetchDeviceActivation(
 /**
  * Find a device activation by device_id across ALL of a user's licenses.
  * Used for team-inherited scenarios where the activation is on a personal
- * free-tier license row, not the team's plan.
+ * standard-tier license row, not the team's plan.
  */
 export async function fetchDeviceActivationByUser(
     supabase: ReturnType<typeof createServiceRoleClient>,
@@ -686,12 +700,12 @@ export function isVersionTooOld(
 }
 
 /**
- * Ensure a free license exists for a user.
+ * Ensure a standard license exists for a user.
  * Called during activation when the user has no license at all,
  * or when a team-inherited user needs a personal license row
  * to anchor device activations.
  */
-export async function ensureFreeLicense(
+export async function ensureStandardLicense(
     supabase: ReturnType<typeof createServiceRoleClient>,
     userId: string
 ): Promise<DesktopLicense | null> {
@@ -718,21 +732,22 @@ export async function ensureFreeLicense(
             tokensUsed: existing.tokens_used || 0,
             teamId: null,
             source: "personal",
-            plan: normalizePlan(existing.plans),
+            isByok: !!existing.is_byok,
+            plan: normalizePlan(existing.plans, !!existing.is_byok),
         };
     }
 
-    // Check if "free" plan exists
-    const { data: freePlan, error: planError } = await (
+    // Check if "standard" plan exists
+    const { data: standardPlan, error: planError } = await (
         supabase.from("plans") as any
     )
         .select("*")
-        .eq("id", "free")
+        .eq("id", "standard")
         .single();
 
-    if (planError || !freePlan) {
+    if (planError || !standardPlan) {
         console.error(
-            "[desktop-auth] Free plan not found in database. Cannot auto-create license."
+            "[desktop-auth] Standard plan not found in database. Cannot auto-create license."
         );
         return null;
     }
@@ -745,17 +760,17 @@ export async function ensureFreeLicense(
         supabase.from("user_licenses") as any
     ).insert({
         user_id: userId,
-        plan_id: "free",
+        plan_id: "standard",
         license_key: licenseKey,
         status: "active",
-        billing_cycle: "lifetime", // Free plan = lifetime (valid DB enum value)
+        billing_cycle: "monthly",
         ai_calls_used: 0,
         tokens_used: 0,
     }).select().single();
 
     if (insertError || !newLicense) {
         console.error(
-            "[desktop-auth] Failed to create free license:",
+            "[desktop-auth] Failed to create standard license:",
             insertError
         );
         return null;
@@ -764,17 +779,18 @@ export async function ensureFreeLicense(
     return {
         id: newLicense.id,
         userId: newLicense.user_id,
-        planId: "free",
+        planId: "standard",
         licenseKey: newLicense.license_key,
         status: "active",
-        billingCycle: "lifetime",
+        billingCycle: "monthly",
         currentPeriodStart: null,
         currentPeriodEnd: null,
         aiCallsUsed: 0,
         tokensUsed: 0,
         teamId: null,
         source: "personal",
-        plan: normalizePlan(freePlan),
+        isByok: false,
+        plan: normalizePlan(standardPlan, false),
     };
 }
 

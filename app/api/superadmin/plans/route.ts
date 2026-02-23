@@ -45,6 +45,8 @@ export async function POST(request: NextRequest) {
         description,
         price_monthly,
         price_yearly,
+        price_monthly_byok,
+        price_yearly_byok,
         currency,
         max_agents,
         max_conversations_per_month,
@@ -82,6 +84,8 @@ export async function POST(request: NextRequest) {
                 description: description || null,
                 price_monthly: price_monthly ?? 0,
                 price_yearly: price_yearly ?? 0,
+                price_monthly_byok: price_monthly_byok ?? 0,
+                price_yearly_byok: price_yearly_byok ?? 0,
                 currency: currency || "USD",
                 max_agents: max_agents ?? 1,
                 max_conversations_per_month: max_conversations_per_month ?? 50,
@@ -146,7 +150,9 @@ export async function PATCH(request: NextRequest) {
     try {
         // Only allow updating specific fields
         const allowedFields = [
-            "name", "description", "price_monthly", "price_yearly", "currency",
+            "name", "description", "price_monthly", "price_yearly",
+            "price_monthly_byok", "price_yearly_byok",
+            "currency",
             "max_agents", "max_conversations_per_month", "max_ai_calls_per_month",
             "max_token_usage_per_month", "max_devices", "features",
             "is_active", "is_public", "display_order", "badge", "requires_organization",

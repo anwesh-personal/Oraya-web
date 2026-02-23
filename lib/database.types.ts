@@ -3477,7 +3477,9 @@ export type Database = {
           max_token_usage_per_month: number | null
           name: string
           price_monthly: number | null
+          price_monthly_byok: number | null
           price_yearly: number | null
+          price_yearly_byok: number | null
           requires_organization: boolean | null
           updated_at: string | null
         }
@@ -3498,7 +3500,9 @@ export type Database = {
           max_token_usage_per_month?: number | null
           name: string
           price_monthly?: number | null
+          price_monthly_byok?: number | null
           price_yearly?: number | null
+          price_yearly_byok?: number | null
           requires_organization?: boolean | null
           updated_at?: string | null
         }
@@ -3519,7 +3523,9 @@ export type Database = {
           max_token_usage_per_month?: number | null
           name?: string
           price_monthly?: number | null
+          price_monthly_byok?: number | null
           price_yearly?: number | null
+          price_yearly_byok?: number | null
           requires_organization?: boolean | null
           updated_at?: string | null
         }
@@ -5109,6 +5115,7 @@ export type Database = {
           current_period_start: string | null
           expires_at: string | null
           id: string
+          is_byok: boolean | null
           is_trial: boolean | null
           license_key: string
           limit_reset_at: string | null
@@ -5136,6 +5143,7 @@ export type Database = {
           current_period_start?: string | null
           expires_at?: string | null
           id?: string
+          is_byok?: boolean | null
           is_trial?: boolean | null
           license_key: string
           limit_reset_at?: string | null
@@ -5163,6 +5171,7 @@ export type Database = {
           current_period_start?: string | null
           expires_at?: string | null
           id?: string
+          is_byok?: boolean | null
           is_trial?: boolean | null
           license_key?: string
           limit_reset_at?: string | null

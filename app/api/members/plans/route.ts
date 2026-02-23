@@ -20,6 +20,8 @@ export async function GET() {
                 description,
                 price_monthly,
                 price_yearly,
+                price_monthly_byok,
+                price_yearly_byok,
                 currency,
                 max_agents,
                 max_conversations_per_month,

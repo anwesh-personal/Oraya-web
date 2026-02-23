@@ -6,65 +6,13 @@ import Link from "next/link";
 import { useRef, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
-const plans = [
-    {
-        name: "Solo_Recon_Node",
-        price: "$9.95",
-        period: "/mo",
-        desc: "The entry-level neural hook for independent architects.",
-        cta: "Claim_Node",
-        features: [
-            { label: "1 Sovereign Agent (Ova)", included: true },
-            { label: "1 Dedicated Workspace", included: true },
-            { label: "Local LLM Runtime", included: true },
-            { label: "Basic System Memory", included: true },
-            { label: "Community Support", included: true },
-            { label: "Multi-Agent Parallelism", included: false },
-            { label: "Ghost Ops / Wraith Mode", included: false },
-        ],
-        popular: false,
-    },
-    {
-        name: "Architect_Elite_Swarm",
-        price: "$49",
-        period: "/mo",
-        desc: "Dominion-grade orchestration for high-intensity engineers.",
-        cta: "Ascend_To_Elite",
-        features: [
-            { label: "Full Elite Swarm (Ora, Ova, Mara)", included: true },
-            { label: "Unlimited Workspaces", included: true },
-            { label: "Multi-Agent Parallelism", included: true },
-            { label: "Advanced Neural Recon", included: true },
-            { label: "Ghost Ops / Wraith Mode", included: true },
-            { label: "Hardware Dominion", included: true },
-            { label: "Priority Kernel Support", included: true },
-            { label: "VPS Relay Driver", included: true },
-        ],
-        popular: true,
-    },
-    {
-        name: "Sovereign_Entity",
-        price: "$67",
-        period: "/node",
-        desc: "Enterprise isolation for high-status organizations.",
-        cta: "Authorize_Entity",
-        features: [
-            { label: "Dedicated Team Node", included: true },
-            { label: "Centralized Neural Relay", included: true },
-            { label: "Advanced Admin Control", included: true },
-            { label: "Audit Logs + Compliance", included: true },
-            { label: "Self-Hosted Support", included: true },
-            { label: "Air-Gapped Deployment", included: true },
-            { label: "White-Glove Onboarding", included: true },
-        ],
-        popular: false,
-    },
-];
+import { usePlans, Plan } from "@/hooks/usePlans";
 
 import { useResponsive } from "./responsive/ResponsiveProvider";
 import { ResponsiveSwitcher } from "./responsive/ResponsiveSwitcher";
 
 export default function PricingSection() {
+    const { plans: dbPlans, loading } = usePlans({ includeInactive: false });
     const [mounted, setMounted] = useState(false);
     const [chatInput, setChatInput] = useState("");
     const { isMobile } = useResponsive();
@@ -73,7 +21,18 @@ export default function PricingSection() {
         setMounted(true);
     }, []);
 
-    if (!mounted) return null;
+    if (!mounted || loading) return null;
+
+    // Map DB plans to UI structure
+    const plans = dbPlans.map(p => ({
+        name: p.name.replace(/\s+/g, "_"),
+        price: `$${p.price_monthly}`,
+        period: "/mo",
+        desc: p.description || "System tier for advanced neural operations.",
+        cta: p.id === 'enterprise' ? 'Authorize_Entity' : p.id === 'team' ? 'Claim_Swarm' : 'Claim_Node',
+        popular: p.id === 'pro',
+        features: (p.features || []).map(f => ({ label: f.replace(/_/g, " ").toUpperCase(), included: true }))
+    }));
 
     const sectionHeader = (
         <div className="text-center mb-16 md:mb-24 space-y-6 md:space-y-8">

@@ -29,18 +29,10 @@ export interface Plan {
 interface UsePlansOptions {
     /** If true, fetches ALL plans (including inactive) from superadmin endpoint. Default: false */
     includeInactive?: boolean;
-    /** If true, only returns active plans. Applied client-side as a convenience filter. Default: false */
+    /** If true, only returns active plans. Default: false */
     activeOnly?: boolean;
 }
 
-/**
- * Shared hook to fetch plans from the database.
- *
- * Usage:
- *   const { plans, loading, error, refetch } = usePlans();          // superadmin: all plans
- *   const { plans, loading } = usePlans({ activeOnly: true });      // superadmin: only active
- *   const { plans, loading } = usePlans({ includeInactive: false }); // public: only active+public
- */
 export function usePlans(options: UsePlansOptions = {}) {
     const { includeInactive = true, activeOnly = false } = options;
     const [plans, setPlans] = useState<Plan[]>([]);
@@ -51,10 +43,8 @@ export function usePlans(options: UsePlansOptions = {}) {
         setLoading(true);
         setError(null);
         try {
-            // Superadmin endpoint returns all plans; public endpoint filters to active+public
-            const endpoint = includeInactive
-                ? "/api/superadmin/plans"
-                : "/api/members/plans";
+            // Use the main app's API for plans
+            const endpoint = "/api/superadmin/plans";
 
             const res = await fetch(endpoint);
             const data = await res.json();
@@ -80,7 +70,6 @@ export function usePlans(options: UsePlansOptions = {}) {
 
     useEffect(() => {
         fetchPlans();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [includeInactive, activeOnly]);
 
     return { plans, loading, error, refetch: fetchPlans };
