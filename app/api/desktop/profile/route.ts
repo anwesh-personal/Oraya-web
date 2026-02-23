@@ -27,22 +27,22 @@ export async function GET(request: NextRequest) {
         const supabase = createServiceRoleClient();
 
         // Fetch profile
-        const { data: profile } = await (supabase
-            .from("user_profiles") as any)
+        const { data: profile } = await supabase
+            .from("user_profiles")
             .select("*, ora_key")
             .eq("id", userId)
             .single();
 
         // Fetch preferences
-        const { data: preferences } = await (supabase
-            .from("user_preferences") as any)
+        const { data: preferences } = await supabase
+            .from("user_preferences")
             .select("*")
             .eq("user_id", userId)
             .single();
 
         // Get org membership info
-        const { data: orgMembership } = await (supabase
-            .from("organization_members") as any)
+        const { data: orgMembership } = await (supabase as any)
+            .from("organization_members")
             .select("organization_id, role, organizations(name, slug)")
             .eq("user_id", userId)
             .limit(1)
@@ -132,8 +132,8 @@ export async function PATCH(request: NextRequest) {
         }
 
         if (Object.keys(profileUpdates).length > 0) {
-            const { error } = await (supabase
-                .from("user_profiles") as any)
+            const { error } = await supabase
+                .from("user_profiles")
                 .update(profileUpdates)
                 .eq("id", userId);
 
@@ -170,8 +170,8 @@ export async function PATCH(request: NextRequest) {
         }
 
         if (Object.keys(prefsUpdates).length > 0) {
-            const { error } = await (supabase
-                .from("user_preferences") as any)
+            const { error } = await supabase
+                .from("user_preferences")
                 .update(prefsUpdates)
                 .eq("user_id", userId);
 

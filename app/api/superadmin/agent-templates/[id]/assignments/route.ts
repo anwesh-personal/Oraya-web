@@ -42,8 +42,8 @@ export async function GET(
         // Enrich with user info for each assignment
         const enrichedAssignments = [];
         for (const assignment of (assignments || [])) {
-            const { data: user } = await (supabase
-                .from("profiles") as any)
+            const { data: user } = await supabase
+                .from("user_profiles")
                 .select("id, full_name, email, avatar_url")
                 .eq("id", assignment.user_id)
                 .single();

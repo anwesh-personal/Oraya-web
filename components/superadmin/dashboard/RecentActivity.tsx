@@ -84,7 +84,7 @@ export function RecentActivity({ logs }: RecentActivityProps) {
 
                             {/* Time */}
                             <span className="text-xs text-surface-500 whitespace-nowrap">
-                                {formatRelativeTime(log.created_at)}
+                                {formatRelativeTime(log.created_at ?? new Date().toISOString())}
                             </span>
                         </div>
                     );

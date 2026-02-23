@@ -122,7 +122,7 @@ export async function POST(request: Request) {
                 user_id: user.id,
                 wallet_id: wallet?.id || "",
                 tokens_purchased: tokenPackage.token_amount,
-                bonus_tokens: tokenPackage.token_amount * tokenPackage.bonus_percentage / 100,
+                bonus_tokens: tokenPackage.token_amount * (tokenPackage.bonus_percentage ?? 0) / 100,
                 amount_paid: tokenPackage.price,
                 currency: tokenPackage.currency,
                 price_per_1k_tokens: tokenPackage.price / (tokenPackage.token_amount / 1000),

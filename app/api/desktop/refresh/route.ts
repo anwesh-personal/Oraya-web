@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
         const activationLicenseId: string = activation.license_id || activation.licenseId;
 
         // ── Step 6: Update last_seen_at and app_version ──
-        await (supabase.from("license_activations") as any)
+        await supabase.from("license_activations")
             .update({
                 last_seen_at: new Date().toISOString(),
                 app_version: req.app_version,
@@ -241,7 +241,7 @@ export async function POST(request: NextRequest) {
         let effectiveMaxAgents = license.plan.maxAgents;
         let effectiveMaxDevices = license.plan.maxDevices;
         if (team?.teamId) {
-            const { data: teamRow } = await (supabase.from("teams") as any)
+            const { data: teamRow } = await supabase.from("teams")
                 .select("max_agents")
                 .eq("id", team.teamId)
                 .single();
@@ -251,7 +251,7 @@ export async function POST(request: NextRequest) {
         }
 
         // ── Step 8c: Fetch ORA Key from profile ──
-        const { data: profileRow } = await (supabase.from("user_profiles") as any)
+        const { data: profileRow } = await supabase.from("user_profiles")
             .select("ora_key")
             .eq("id", userId)
             .single();

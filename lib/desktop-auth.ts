@@ -585,7 +585,7 @@ export async function buildManagedAiClaims(
     try {
         // Fetch user's AI preferences
         const { data: prefs } = await supabase.from("user_ai_preferences")
-            .select("daily_spend_limit, monthly_spend_limit")
+            .select("daily_spending_limit_usd, monthly_spending_limit_usd")
             .eq("user_id", userId)
             .maybeSingle();
 
@@ -616,8 +616,8 @@ export async function buildManagedAiClaims(
             max_ai_calls_remaining: remainingAiCalls,
             max_tokens_remaining: remainingTokens,
             // Use ?? (nullish coalescing) so explicit $0 limits are respected
-            daily_limit_usd: prefs?.daily_spend_limit ?? 10.0,
-            monthly_limit_usd: prefs?.monthly_spend_limit ?? 100.0,
+            daily_limit_usd: prefs?.daily_spending_limit_usd ?? 10.0,
+            monthly_limit_usd: prefs?.monthly_spending_limit_usd ?? 100.0,
         };
     } catch (error) {
         console.error("[desktop-auth] Failed to build managed AI claims:", error);
@@ -710,7 +710,7 @@ export async function ensureFreeLicense(
             userId: existing.user_id,
             planId: existing.plan_id,
             licenseKey: existing.license_key,
-            status: existing.status,
+            status: existing.status ?? "active",
             billingCycle: existing.billing_cycle,
             currentPeriodStart: existing.current_period_start,
             currentPeriodEnd: existing.current_period_end,
