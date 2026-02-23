@@ -251,9 +251,9 @@ export async function POST(request: NextRequest) {
 
         // Check if this device is already activated (returning device = always allowed)
         const { data: existingDevice } = await (supabase
-            .from("device_activations")
+            .from("license_activations")
             .select("id, is_active")
-            .eq("user_id", userId)
+            .eq("license_id", license.id)
             .eq("device_id", device_id)
             .maybeSingle() as any);
 
@@ -262,16 +262,16 @@ export async function POST(request: NextRequest) {
             const maxDevices = license.plan.maxDevices;
             if (maxDevices !== -1) {
                 const { count } = await (supabase
-                    .from("device_activations")
+                    .from("license_activations")
                     .select("id", { count: "exact", head: true })
-                    .eq("user_id", userId)
+                    .eq("license_id", license.id)
                     .eq("is_active", true) as any);
 
                 if ((count || 0) >= maxDevices) {
                     const { data: activeDevices } = await (supabase
-                        .from("device_activations")
-                        .select("device_name, device_platform, last_seen_at")
-                        .eq("user_id", userId)
+                        .from("license_activations")
+                        .select("device_name, platform, last_seen_at")
+                        .eq("license_id", license.id)
                         .eq("is_active", true)
                         .order("last_seen_at", { ascending: false }) as any);
 
@@ -282,7 +282,7 @@ export async function POST(request: NextRequest) {
                             max_devices: maxDevices,
                             active_devices: (activeDevices || []).map((d: any) => ({
                                 device_name: d.device_name,
-                                platform: d.device_platform,
+                                platform: d.platform,
                                 last_seen: d.last_seen_at,
                             })),
                         },
@@ -292,23 +292,25 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        const { data: activation, error: activationError } = await (supabase.from("device_activations") as any)
+        const { data: activation, error: activationError } = await (supabase.from("license_activations") as any)
             .upsert(
                 {
-                    user_id: userId,
-                    ora_key,
+                    license_id: license.id,
                     device_id,
                     device_name: device_name || "Unknown Device",
-                    device_platform: device_platform || "macos",
-                    device_platform_version: device_platform_version || "unknown",
+                    device_type: device_type || "desktop",
+                    platform: device_platform || "macos",
+                    platform_version: device_platform_version || "unknown",
                     app_version: app_version || "0.0.0",
                     is_active: true,
                     last_seen_at: new Date().toISOString(),
                     activated_at: new Date().toISOString(),
                     ip_address: ipAddress,
                     user_agent: userAgent,
+                    deactivated_at: null,
+                    deactivated_reason: null,
                 },
-                { onConflict: "user_id,device_id" }
+                { onConflict: "license_id,device_id" }
             )
             .select()
             .single();
