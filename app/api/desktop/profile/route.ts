@@ -53,6 +53,7 @@ export async function GET(request: NextRequest) {
                 id: userId,
                 email,
                 full_name: profile?.full_name || null,
+                display_name: profile?.display_name || null,
                 username: profile?.username || null,
                 avatar_url: profile?.avatar_url || null,
                 bio: profile?.bio || null,
@@ -61,11 +62,12 @@ export async function GET(request: NextRequest) {
                 theme: profile?.theme || "dark",
                 account_status: profile?.account_status || "active",
                 ora_key: profile?.ora_key || null,
+                organization: profile?.organization || null,
                 onboarding_completed: profile?.onboarding_completed || false,
                 last_seen_at: profile?.last_seen_at || null,
                 referral_code: profile?.referral_code || null,
                 created_at: profile?.created_at || null,
-                organization: orgMembership
+                org_membership: orgMembership
                     ? {
                         id: (orgMembership as any).organization_id,
                         name: ((orgMembership as any).organizations as any)?.name || null,
@@ -116,9 +118,11 @@ export async function PATCH(request: NextRequest) {
         // ── Profile fields ──
         const profileAllowed = [
             "full_name",
+            "display_name",
             "username",
             "avatar_url",
             "bio",
+            "organization",
             "timezone",
             "language",
             "theme",

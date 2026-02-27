@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { Tables, Updatable } from "@/lib/database.types";
 
 export const dynamic = "force-dynamic";
 
@@ -29,8 +28,8 @@ export async function GET() {
         }
 
         // Fetch profile from user_profiles table
-        const { data: profile, error: profileError } = await (supabase
-            .from("user_profiles") as any)
+        const { data: profile, error: profileError } = await supabase
+            .from("user_profiles")
             .select("*")
             .eq("id", user.id)
             .single();
@@ -82,10 +81,10 @@ export async function PATCH(request: Request) {
             "locale",
         ];
 
-        const updates: Updatable<"user_profiles"> = {};
+        const updates: Record<string, unknown> = {};
         for (const field of allowedFields) {
             if (field in body) {
-                (updates as any)[field] = body[field];
+                updates[field] = body[field];
             }
         }
 
@@ -96,8 +95,8 @@ export async function PATCH(request: Request) {
             );
         }
 
-        const { data: profile, error: updateError } = await (supabase
-            .from("user_profiles") as any)
+        const { data: profile, error: updateError } = await supabase
+            .from("user_profiles")
             .update(updates)
             .eq("id", user.id)
             .select()

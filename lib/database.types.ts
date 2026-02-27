@@ -5321,6 +5321,7 @@ export type Database = {
           bio: string | null
           created_at: string | null
           desktop_app_version: string | null
+          display_name: string | null
           email_notifications_enabled: boolean | null
           email_verified: boolean | null
           full_name: string | null
@@ -5332,6 +5333,7 @@ export type Database = {
           onboarding_data: Json | null
           onboarding_step: number | null
           ora_key: string
+          organization: string | null
           phone_verified: boolean | null
           referral_code: string | null
           referred_by: string | null
@@ -5346,6 +5348,7 @@ export type Database = {
           bio?: string | null
           created_at?: string | null
           desktop_app_version?: string | null
+          display_name?: string | null
           email_notifications_enabled?: boolean | null
           email_verified?: boolean | null
           full_name?: string | null
@@ -5357,6 +5360,7 @@ export type Database = {
           onboarding_data?: Json | null
           onboarding_step?: number | null
           ora_key: string
+          organization?: string | null
           phone_verified?: boolean | null
           referral_code?: string | null
           referred_by?: string | null
@@ -5371,6 +5375,7 @@ export type Database = {
           bio?: string | null
           created_at?: string | null
           desktop_app_version?: string | null
+          display_name?: string | null
           email_notifications_enabled?: boolean | null
           email_verified?: boolean | null
           full_name?: string | null
@@ -5382,6 +5387,7 @@ export type Database = {
           onboarding_data?: Json | null
           onboarding_step?: number | null
           ora_key?: string
+          organization?: string | null
           phone_verified?: boolean | null
           referral_code?: string | null
           referred_by?: string | null
