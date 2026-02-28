@@ -670,7 +670,7 @@ export function getServerConfig() {
         // if the backend moves to a new domain. The client persists this
         // and uses it for all subsequent API calls.
         saas_base_url:
-            process.env.DESKTOP_API_BASE_URL || "https://oraya.dev",
+            process.env.DESKTOP_API_BASE_URL || "https://www.oraya.dev",
     };
 }
 
