@@ -56,20 +56,28 @@ export interface AssignedAgentExtended {
 // Helpers
 // ─────────────────────────────────────────────────────────────
 
-const TIER_RANK: Record<string, number> = { free: 1, pro: 2, team: 3, enterprise: 4 };
+/**
+ * planRankMap — maps plan ID → display_order (rank).
+ * Passed from the parent page as a prop, derived from the live plans table.
+ * Falls back to 0 for unknown plans (safest fallback).
+ */
+export type PlanRankMap = Record<string, number>;
 
-function tierColor(tier: string): string {
-    switch (tier) {
-        case "enterprise": return "var(--warning)";
-        case "team": return "var(--primary)";
-        case "pro": return "var(--info)";
-        default: return "var(--success)";
-    }
+function tierColor(tier: string, rankMap: PlanRankMap): string {
+    const rank = rankMap[tier] ?? 0;
+    // Colour bands based on rank value — works for any plan hierarchy.
+    // Admin adjusts display_order in Superadmin; colours shift automatically.
+    if (rank <= 0) return "var(--surface-400)";
+    if (rank === 1) return "var(--success)";
+    if (rank === 2) return "var(--info)";
+    if (rank === 3) return "var(--primary)";
+    return "var(--warning)"; // rank 4+ (enterprise and above)
 }
 
-function tierClearance(tier: string): string {
-    const map: Record<string, string> = { free: "L1", pro: "L2", team: "L3", enterprise: "L5" };
-    return map[tier] ?? "L1";
+function tierClearance(tier: string, rankMap: PlanRankMap): string {
+    const rank = rankMap[tier] ?? 0;
+    if (rank <= 0) return "L0";
+    return `L${rank}`;
 }
 
 function agentMode(agent: AssignedAgentExtended): string {
@@ -93,14 +101,16 @@ function RosterItem({
     agent,
     isActive,
     onClick,
+    planRankMap,
 }: {
     agent: AssignedAgentExtended;
     isActive: boolean;
     onClick: () => void;
+    planRankMap: PlanRankMap;
 }) {
-    const color = tierColor(agent.template.plan_tier);
+    const color = tierColor(agent.template.plan_tier, planRankMap);
     const tier = agent.template.plan_tier;
-    const clearance = tierClearance(tier);
+    const clearance = tierClearance(tier, planRankMap);
 
     return (
         <button
@@ -140,7 +150,7 @@ function RosterItem({
                     >
                         {agent.template.name}
                     </span>
-                    {tier === "enterprise" && (
+                    {(planRankMap[tier] ?? 0) >= 4 && (
                         <Crown className="w-3 h-3 flex-shrink-0" style={{ color }} />
                     )}
                 </div>
@@ -170,9 +180,9 @@ function RosterItem({
 // Detail Panel
 // ─────────────────────────────────────────────────────────────
 
-function AgentDetail({ agent }: { agent: AssignedAgentExtended }) {
-    const color = tierColor(agent.template.plan_tier);
-    const clearance = tierClearance(agent.template.plan_tier);
+function AgentDetail({ agent, planRankMap }: { agent: AssignedAgentExtended; planRankMap: PlanRankMap }) {
+    const color = tierColor(agent.template.plan_tier, planRankMap);
+    const clearance = tierClearance(agent.template.plan_tier, planRankMap);
     const mode = agentMode(agent);
     const capabilities = agentCapabilities(agent);
     const pc = agent.template.personality_config;
@@ -407,7 +417,17 @@ function EmptyState() {
 // Root Component
 // ─────────────────────────────────────────────────────────────
 
-export function AgentExplorer({ agents }: { agents: AssignedAgentExtended[] }) {
+export function AgentExplorer({
+    agents,
+    planRankMap = {},
+}: {
+    agents: AssignedAgentExtended[];
+    /**
+     * Maps plan ID → display_order from the live plans table.
+     * Build this in the parent page: Object.fromEntries(plans.map(p => [p.id, p.display_order]))
+     */
+    planRankMap?: PlanRankMap;
+}) {
     const [activeIndex, setActiveIndex] = useState(0);
 
     if (agents.length === 0) return <EmptyState />;
@@ -431,13 +451,14 @@ export function AgentExplorer({ agents }: { agents: AssignedAgentExtended[] }) {
                         agent={agent}
                         isActive={activeIndex === i}
                         onClick={() => setActiveIndex(i)}
+                        planRankMap={planRankMap}
                     />
                 ))}
             </div>
 
             {/* ── Detail ── */}
             <div className="lg:col-span-3">
-                <AgentDetail agent={agents[activeIndex]} />
+                <AgentDetail agent={agents[activeIndex]} planRankMap={planRankMap} />
             </div>
         </div>
     );

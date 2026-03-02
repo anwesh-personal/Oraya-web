@@ -14,6 +14,7 @@ import {
     Key,
     FileText,
     Shield,
+    Terminal,
     HelpCircle,
     ChevronRight,
     Boxes,
@@ -58,6 +59,7 @@ const navigation = [
         items: [
             { name: "API Keys", href: "/settings/api-keys", icon: Key },
             { name: "Security", href: "/settings/security", icon: Shield },
+            { name: "IDE Clients", href: "/ide-clients", icon: Terminal },
             { name: "Settings", href: "/settings", icon: Settings },
         ],
     },

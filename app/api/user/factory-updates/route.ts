@@ -4,12 +4,12 @@ import { createServiceRoleClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-// ─── GET: Check for factory memory updates ──────────────────────────────────
+// ─── POST: Check for factory memory updates ─────────────────────────────────
 // Called by Oraya Desktop on launch (and periodically) to check if any
 // installed agents have factory memory updates available.
 //
-// Query params:
-//   agents = JSON array of { template_id, current_version }
+// Request body (JSON):
+//   { agents: [{ template_id, current_version }] }
 //
 // Response:
 //   { updates: [{ template_id, latest_version, memories: [...] }] }
@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
 // The desktop receives the FULL current factory memory set and performs
 // the merge locally (add new, update changed, remove missing).
 // ─────────────────────────────────────────────────────────────────────────────
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
     const supabase = await createServerSupabaseClient();
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -25,25 +25,16 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const url = new URL(request.url);
-    const agentsParam = url.searchParams.get("agents");
-
-    if (!agentsParam) {
-        return NextResponse.json(
-            { error: "agents query param is required (JSON array of {template_id, current_version})" },
-            { status: 400 }
-        );
-    }
-
     let agentVersions: Array<{ template_id: string; current_version: number }>;
     try {
-        agentVersions = JSON.parse(agentsParam);
+        const body = await request.json();
+        agentVersions = body.agents;
         if (!Array.isArray(agentVersions)) {
-            throw new Error("Not an array");
+            throw new Error("Agents is not an array");
         }
     } catch {
         return NextResponse.json(
-            { error: "agents param must be a valid JSON array" },
+            { error: "Request body must contain 'agents' as a JSON array" },
             { status: 400 }
         );
     }

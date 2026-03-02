@@ -35,17 +35,18 @@ export async function GET(request: NextRequest) {
                     id: a.template_id,
                     name: a.template_name,
                     emoji: a.template_emoji,
-                    tagline: a.template_tagline,
+                    tagline: a.template_tagline || "",
                     description: a.template_description,
                     category: a.template_category,
                     plan_tier: a.template_plan_tier,
                     version: a.template_version,
                     tags: a.template_tags,
-                    personality_config: a.template_personality,
-                    core_prompt: a.config_overrides?.core_prompt || "", // Fallback
-                    role: a.config_overrides?.role || "assistant", // Fallback
+                    personality_config: a.template_personality || a.config_overrides?.personality_config || null,
+                    core_prompt: a.config_overrides?.core_prompt || a.template_core_prompt || "",
+                    role: a.config_overrides?.role || "assistant",
                     factory_version: a.factory_version,
-                    icon_url: a.template_icon_url,
+                    icon_url: a.template_icon_url || "",
+                    is_ide_specialist: a.is_ide_specialist || false,
                 }));
         }
 

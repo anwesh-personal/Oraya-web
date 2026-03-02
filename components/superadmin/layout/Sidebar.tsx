@@ -21,6 +21,7 @@ import {
     Boxes,
     Menu,
     X,
+    Terminal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
@@ -44,6 +45,7 @@ const navigation = [
         label: "AI Management",
         items: [
             { name: "Agents", href: "/superadmin/agents", icon: Bot },
+            { name: "Prompts", href: "/superadmin/prompts", icon: Terminal },
             { name: "Engines", href: "/superadmin/engines", icon: Server },
             { name: "AI Providers", href: "/superadmin/ai-providers", icon: Cpu },
             { name: "Models", href: "/superadmin/models", icon: Boxes },
