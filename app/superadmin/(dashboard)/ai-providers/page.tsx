@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, RefreshCw, AlertTriangle, Key, Activity, DollarSign, Zap } from "lucide-react";
+import { Plus, RefreshCw, AlertTriangle, Key, Activity, DollarSign, Zap, Database, Server } from "lucide-react";
 import { AIProvidersGrid } from "@/components/superadmin/ai-providers/AIProvidersGrid";
 import { AddKeyModal } from "@/components/superadmin/ai-providers/AddKeyModal";
 import { cn, formatCurrency } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/superadmin/ui/tabs";
+import { LocalModelsTab } from "@/components/superadmin/models/LocalModelsTab";
 
 interface KeyStats {
     total: number;
@@ -88,89 +90,108 @@ export default function AIProvidersPage() {
                 </div>
             </div>
 
-            {/* Budget Warning Banner */}
-            {stats && stats.monthlySpend > 5000 && (
-                <div className="flex items-center gap-4 p-4 bg-[var(--warning)]/10 border border-[var(--warning)]/30 rounded-xl">
-                    <AlertTriangle className="w-5 h-5 text-[var(--warning)] flex-shrink-0" />
-                    <div>
-                        <p className="text-sm font-medium text-[var(--warning)]">High Spend Alert</p>
-                        <p className="text-sm text-[var(--surface-600)] mt-0.5">
-                            Monthly spend is {formatCurrency(stats.monthlySpend)}. Consider reviewing usage patterns.
-                        </p>
-                    </div>
-                </div>
-            )}
+            <Tabs defaultValue="managed" className="space-y-6">
+                <TabsList>
+                    <TabsTrigger value="managed" className="gap-2">
+                        <Server className="w-4 h-4" />
+                        Managed Providers
+                    </TabsTrigger>
+                    <TabsTrigger value="local" className="gap-2">
+                        <Database className="w-4 h-4" />
+                        Local GGUF Registry
+                    </TabsTrigger>
+                </TabsList>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="p-5 rounded-2xl bg-gradient-to-br from-[var(--primary)]/10 to-[var(--primary)]/5 border border-[var(--primary)]/20">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-[var(--primary)]/20">
-                            <Key className="w-5 h-5 text-[var(--primary)]" />
+                <TabsContent value="managed" className="space-y-8">
+                    {/* Budget Warning Banner */}
+                    {stats && stats.monthlySpend > 5000 && (
+                        <div className="flex items-center gap-4 p-4 bg-[var(--warning)]/10 border border-[var(--warning)]/30 rounded-xl">
+                            <AlertTriangle className="w-5 h-5 text-[var(--warning)] flex-shrink-0" />
+                            <div>
+                                <p className="text-sm font-medium text-[var(--warning)]">High Spend Alert</p>
+                                <p className="text-sm text-[var(--surface-600)] mt-0.5">
+                                    Monthly spend is {formatCurrency(stats.monthlySpend)}. Consider reviewing usage patterns.
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-sm text-[var(--surface-600)]">Total API Keys</p>
-                            <p className="text-2xl font-bold text-[var(--surface-900)]">
-                                {isLoading ? "—" : stats?.total || 0}
-                            </p>
-                        </div>
-                    </div>
-                </div>
+                    )}
 
-                <div className="p-5 rounded-2xl bg-gradient-to-br from-[var(--success)]/10 to-[var(--success)]/5 border border-[var(--success)]/20">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-[var(--success)]/20">
-                            <Zap className="w-5 h-5 text-[var(--success)]" />
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="p-5 rounded-2xl bg-gradient-to-br from-[var(--primary)]/10 to-[var(--primary)]/5 border border-[var(--primary)]/20">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 rounded-xl bg-[var(--primary)]/20">
+                                    <Key className="w-5 h-5 text-[var(--primary)]" />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-[var(--surface-600)]">Total API Keys</p>
+                                    <p className="text-2xl font-bold text-[var(--surface-900)]">
+                                        {isLoading ? "—" : stats?.total || 0}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-sm text-[var(--surface-600)]">Healthy Keys</p>
-                            <p className="text-2xl font-bold text-[var(--success)]">
-                                {isLoading ? "—" : stats?.healthy || 0}
-                            </p>
-                        </div>
-                    </div>
-                </div>
 
-                <div className="p-5 rounded-2xl bg-gradient-to-br from-[var(--secondary)]/10 to-[var(--secondary)]/5 border border-[var(--secondary)]/20">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-[var(--secondary)]/20">
-                            <Activity className="w-5 h-5 text-[var(--secondary)]" />
+                        <div className="p-5 rounded-2xl bg-gradient-to-br from-[var(--success)]/10 to-[var(--success)]/5 border border-[var(--success)]/20">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 rounded-xl bg-[var(--success)]/20">
+                                    <Zap className="w-5 h-5 text-[var(--success)]" />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-[var(--surface-600)]">Healthy Keys</p>
+                                    <p className="text-2xl font-bold text-[var(--success)]">
+                                        {isLoading ? "—" : stats?.healthy || 0}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-sm text-[var(--surface-600)]">Daily Spend</p>
-                            <p className="text-2xl font-bold text-[var(--secondary)]">
-                                {isLoading ? "—" : formatCurrency(stats?.dailySpend || 0)}
-                            </p>
-                        </div>
-                    </div>
-                </div>
 
-                <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 to-amber-500/5 border border-warning/20">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-warning/20">
-                            <DollarSign className="w-5 h-5 text-warning" />
+                        <div className="p-5 rounded-2xl bg-gradient-to-br from-[var(--secondary)]/10 to-[var(--secondary)]/5 border border-[var(--secondary)]/20">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 rounded-xl bg-[var(--secondary)]/20">
+                                    <Activity className="w-5 h-5 text-[var(--secondary)]" />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-[var(--surface-600)]">Daily Spend</p>
+                                    <p className="text-2xl font-bold text-[var(--secondary)]">
+                                        {isLoading ? "—" : formatCurrency(stats?.dailySpend || 0)}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-sm text-[var(--surface-600)]">Monthly Spend</p>
-                            <p className="text-2xl font-bold text-warning">
-                                {isLoading ? "—" : formatCurrency(stats?.monthlySpend || 0)}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            {/* Providers Grid */}
-            {isLoading ? (
-                <div className="flex items-center justify-center py-20">
-                    <div className="flex flex-col items-center gap-4">
-                        <RefreshCw className="w-8 h-8 text-[var(--primary)] animate-spin" />
-                        <p className="text-[var(--surface-600)]">Loading providers...</p>
+                        <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 to-amber-500/5 border border-warning/20">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 rounded-xl bg-warning/20">
+                                    <DollarSign className="w-5 h-5 text-warning" />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-[var(--surface-600)]">Monthly Spend</p>
+                                    <p className="text-2xl font-bold text-warning">
+                                        {isLoading ? "—" : formatCurrency(stats?.monthlySpend || 0)}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            ) : (
-                <AIProvidersGrid providers={keys} onRefresh={handleRefresh} />
-            )}
+
+                    {/* Providers Grid */}
+                    {isLoading ? (
+                        <div className="flex items-center justify-center py-20">
+                            <div className="flex flex-col items-center gap-4">
+                                <RefreshCw className="w-8 h-8 text-[var(--primary)] animate-spin" />
+                                <p className="text-[var(--surface-600)]">Loading providers...</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <AIProvidersGrid providers={keys} onRefresh={handleRefresh} />
+                    )}
+                </TabsContent>
+
+                <TabsContent value="local">
+                    <LocalModelsTab />
+                </TabsContent>
+            </Tabs>
 
             {/* Add Key Modal */}
             <AddKeyModal
