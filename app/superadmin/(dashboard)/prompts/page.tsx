@@ -7,11 +7,11 @@ async function getPromptData() {
     const supabase = createServiceRoleClient();
 
     const [sectionsResult, assignmentsResult] = await Promise.all([
-        (supabase.from("headless_prompt_sections") as any)
+        supabase.from("headless_prompt_sections")
             .select("*")
             .order("category", { ascending: true })
             .order("name", { ascending: true }),
-        (supabase.from("headless_agent_prompt_assignments") as any)
+        supabase.from("headless_agent_prompt_assignments")
             .select("*, section:headless_prompt_sections(*)")
             .order("priority", { ascending: true }),
     ]);

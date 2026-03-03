@@ -510,14 +510,18 @@ export type Database = {
           category: string | null
           core_prompt: string
           created_at: string
+          default_memory_mode: string
           description: string | null
           emoji: string
           factory_published_at: string | null
           factory_version: number | null
           icon_url: string | null
           id: string
+          ide_specializations: string[] | null
+          ide_system_prompt: string | null
           install_count: number
           is_active: boolean
+          is_ide_specialist: boolean
           name: string
           oraya_file_url: string | null
           personality_config: Json | null
@@ -533,14 +537,18 @@ export type Database = {
           category?: string | null
           core_prompt: string
           created_at?: string
+          default_memory_mode?: string
           description?: string | null
           emoji?: string
           factory_published_at?: string | null
           factory_version?: number | null
           icon_url?: string | null
           id?: string
+          ide_specializations?: string[] | null
+          ide_system_prompt?: string | null
           install_count?: number
           is_active?: boolean
+          is_ide_specialist?: boolean
           name: string
           oraya_file_url?: string | null
           personality_config?: Json | null
@@ -556,14 +564,18 @@ export type Database = {
           category?: string | null
           core_prompt?: string
           created_at?: string
+          default_memory_mode?: string
           description?: string | null
           emoji?: string
           factory_published_at?: string | null
           factory_version?: number | null
           icon_url?: string | null
           id?: string
+          ide_specializations?: string[] | null
+          ide_system_prompt?: string | null
           install_count?: number
           is_active?: boolean
+          is_ide_specialist?: boolean
           name?: string
           oraya_file_url?: string | null
           personality_config?: Json | null
@@ -1351,6 +1363,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      cloud_local_models: {
+        Row: {
+          category: string | null
+          context_length: number
+          created_at: string | null
+          description: string
+          family: string
+          file_size_gb: number
+          hf_filename: string
+          hf_repo_id: string
+          id: string
+          is_active: boolean | null
+          name: string
+          parameters_billions: number
+          quantization: string
+          ram_required_gb: number
+          sort_order: number | null
+          tags: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          context_length?: number
+          created_at?: string | null
+          description: string
+          family: string
+          file_size_gb: number
+          hf_filename: string
+          hf_repo_id: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          parameters_billions: number
+          quantization: string
+          ram_required_gb: number
+          sort_order?: number | null
+          tags?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          context_length?: number
+          created_at?: string | null
+          description?: string
+          family?: string
+          file_size_gb?: number
+          hf_filename?: string
+          hf_repo_id?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          parameters_billions?: number
+          quantization?: string
+          ram_required_gb?: number
+          sort_order?: number | null
+          tags?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       consent_records: {
         Row: {
@@ -2438,6 +2510,243 @@ export type Database = {
           },
         ]
       }
+      headless_agent_prompt_assignments: {
+        Row: {
+          agent_key: string
+          assigned_by: string | null
+          content_override: string | null
+          created_at: string
+          id: string
+          is_enabled: boolean
+          priority: number
+          section_id: string
+          updated_at: string
+        }
+        Insert: {
+          agent_key: string
+          assigned_by?: string | null
+          content_override?: string | null
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          priority?: number
+          section_id: string
+          updated_at?: string
+        }
+        Update: {
+          agent_key?: string
+          assigned_by?: string | null
+          content_override?: string | null
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          priority?: number
+          section_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "headless_agent_prompt_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "platform_admins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "headless_agent_prompt_assignments_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "headless_prompt_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      headless_prompt_sections: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          is_system: boolean
+          name: string
+          slug: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          category?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          name: string
+          slug: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          name?: string
+          slug?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "headless_prompt_sections_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "platform_admins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "headless_prompt_sections_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "platform_admins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ide_clients: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          default_agent_template_id: string | null
+          default_memory_mode: string
+          default_protocols: string[]
+          description: string | null
+          display_name: string
+          docs_url: string | null
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          mcp_config_hint: Json | null
+          name: string
+          sync_checksum: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          default_agent_template_id?: string | null
+          default_memory_mode?: string
+          default_protocols?: string[]
+          description?: string | null
+          display_name: string
+          docs_url?: string | null
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          mcp_config_hint?: Json | null
+          name: string
+          sync_checksum?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          default_agent_template_id?: string | null
+          default_memory_mode?: string
+          default_protocols?: string[]
+          description?: string | null
+          display_name?: string
+          docs_url?: string | null
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          mcp_config_hint?: Json | null
+          name?: string
+          sync_checksum?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ide_clients_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "platform_admins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ide_clients_default_agent_template_id_fkey"
+            columns: ["default_agent_template_id"]
+            isOneToOne: false
+            referencedRelation: "agent_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ide_clients_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "platform_admins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ide_specialist_registry: {
+        Row: {
+          agent_template_id: string
+          created_at: string
+          id: string
+          ide_client_name: string
+          is_recommended: boolean
+          is_system: boolean
+          min_plan_tier: string
+          priority: number
+          specialization_notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          agent_template_id: string
+          created_at?: string
+          id?: string
+          ide_client_name: string
+          is_recommended?: boolean
+          is_system?: boolean
+          min_plan_tier?: string
+          priority?: number
+          specialization_notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agent_template_id?: string
+          created_at?: string
+          id?: string
+          ide_client_name?: string
+          is_recommended?: boolean
+          is_system?: boolean
+          min_plan_tier?: string
+          priority?: number
+          specialization_notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ide_specialist_registry_agent_template_id_fkey"
+            columns: ["agent_template_id"]
+            isOneToOne: false
+            referencedRelation: "agent_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_line_items: {
         Row: {
           amount: number
@@ -3461,6 +3770,8 @@ export type Database = {
       }
       plans: {
         Row: {
+          allowed_specialist_ids: string[] | null
+          allowed_template_ids: string[] | null
           badge: string | null
           created_at: string | null
           currency: string | null
@@ -3474,6 +3785,7 @@ export type Database = {
           max_ai_calls_per_month: number | null
           max_conversations_per_month: number | null
           max_devices: number | null
+          max_members_default: number | null
           max_token_usage_per_month: number | null
           name: string
           price_monthly: number | null
@@ -3484,6 +3796,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          allowed_specialist_ids?: string[] | null
+          allowed_template_ids?: string[] | null
           badge?: string | null
           created_at?: string | null
           currency?: string | null
@@ -3497,6 +3811,7 @@ export type Database = {
           max_ai_calls_per_month?: number | null
           max_conversations_per_month?: number | null
           max_devices?: number | null
+          max_members_default?: number | null
           max_token_usage_per_month?: number | null
           name: string
           price_monthly?: number | null
@@ -3507,6 +3822,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          allowed_specialist_ids?: string[] | null
+          allowed_template_ids?: string[] | null
           badge?: string | null
           created_at?: string | null
           currency?: string | null
@@ -3520,6 +3837,7 @@ export type Database = {
           max_ai_calls_per_month?: number | null
           max_conversations_per_month?: number | null
           max_devices?: number | null
+          max_members_default?: number | null
           max_token_usage_per_month?: number | null
           name?: string
           price_monthly?: number | null
@@ -5645,6 +5963,46 @@ export type Database = {
           total_users: number
         }[]
       }
+      get_headless_agent_prompt: {
+        Args: { p_agent_key: string }
+        Returns: {
+          category: string
+          content: string
+          is_override: boolean
+          priority: number
+          section_id: string
+          section_name: string
+          section_slug: string
+        }[]
+      }
+      get_ide_clients_for_sync: {
+        Args: never
+        Returns: {
+          default_protocols: string[]
+          description: string
+          display_name: string
+          docs_url: string
+          id: string
+          is_active: boolean
+          logo_url: string
+          mcp_config_hint: Json
+          name: string
+          updated_at: string
+        }[]
+      }
+      get_specialist_for_ide: {
+        Args: { p_ide_client_name: string; p_user_id: string }
+        Returns: {
+          agent_template_id: string
+          default_memory_mode: string
+          min_plan_tier: string
+          priority: number
+          registry_id: string
+          specialization_notes: string
+          template_emoji: string
+          template_name: string
+        }[]
+      }
       get_token_balance_for_update: {
         Args: { p_user_id: string }
         Returns: number
@@ -5659,9 +6017,12 @@ export type Database = {
           factory_published_at: string
           factory_version: number
           is_active: boolean
+          is_ide_specialist: boolean
           template_category: string
+          template_core_prompt: string
           template_description: string
           template_emoji: string
+          template_icon_url: string
           template_id: string
           template_name: string
           template_personality: Json
@@ -5683,12 +6044,30 @@ export type Database = {
         }[]
       }
       get_user_plan_id: { Args: { user_uuid: string }; Returns: string }
+      get_user_specialists: {
+        Args: { p_user_id: string }
+        Returns: {
+          agent_template_id: string
+          core_prompt: string
+          default_memory_mode: string
+          ide_client_name: string
+          ide_system_prompt: string
+          is_recommended: boolean
+          min_plan_tier: string
+          personality_config: Json
+          priority: number
+          registry_id: string
+          specialization_notes: string
+          template_emoji: string
+          template_name: string
+        }[]
+      }
       has_admin_role: { Args: { required_role: string }; Returns: boolean }
       is_license_valid: { Args: { p_license_key: string }; Returns: boolean }
       is_platform_admin: { Args: never; Returns: boolean }
       is_team_admin: { Args: { team_uuid: string }; Returns: boolean }
       is_team_member: { Args: { team_uuid: string }; Returns: boolean }
-      plan_tier_rank: { Args: { tier: string }; Returns: number }
+      plan_tier_rank: { Args: { p_tier: string }; Returns: number }
       refresh_analytics_views: { Args: never; Returns: undefined }
       reset_daily_ai_spend: { Args: never; Returns: number }
       user_has_organization: { Args: { user_uuid: string }; Returns: boolean }
@@ -5825,9 +6204,9 @@ export const Constants = {
   },
 } as const
 
-// Backward-compatibility alias (app code imports "Updatable")
+// ─── Convenience type aliases (manually maintained) ──────────────────────────
+export type AuditLog = Tables<"admin_audit_logs">;
 export type Updatable<T extends keyof Database["public"]["Tables"]> =
   Database["public"]["Tables"][T]["Update"];
 export type Insertable<T extends keyof Database["public"]["Tables"]> =
   Database["public"]["Tables"][T]["Insert"];
-export type AuditLog = Tables<"admin_audit_logs">;

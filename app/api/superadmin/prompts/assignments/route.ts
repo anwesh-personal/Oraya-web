@@ -19,7 +19,7 @@ export async function PATCH(request: NextRequest) {
         return NextResponse.json({ error: "No fields to update" }, { status: 400 });
     }
 
-    const { data, error } = await (supabase.from("headless_agent_prompt_assignments") as any)
+    const { data, error } = await supabase.from("headless_agent_prompt_assignments")
         .update(updates)
         .eq("id", id)
         .select()
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = createServiceRoleClient();
-    const { data, error } = await (supabase.from("headless_agent_prompt_assignments") as any)
+    const { data, error } = await supabase.from("headless_agent_prompt_assignments")
         .insert({
             agent_key,
             section_id,
@@ -62,7 +62,7 @@ export async function DELETE(request: NextRequest) {
     if (!id) return NextResponse.json({ error: "Assignment ID required" }, { status: 400 });
 
     const supabase = createServiceRoleClient();
-    const { error } = await (supabase.from("headless_agent_prompt_assignments") as any)
+    const { error } = await supabase.from("headless_agent_prompt_assignments")
         .delete()
         .eq("id", id);
 

@@ -21,7 +21,7 @@ export async function PATCH(request: NextRequest) {
         return NextResponse.json({ error: "No fields to update" }, { status: 400 });
     }
 
-    const { data, error } = await (supabase.from("headless_prompt_sections") as any)
+    const { data, error } = await supabase.from("headless_prompt_sections")
         .update(updates)
         .eq("id", id)
         .select()
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     if (!name || !slug) return NextResponse.json({ error: "Name and slug required" }, { status: 400 });
 
     const supabase = createServiceRoleClient();
-    const { data, error } = await (supabase.from("headless_prompt_sections") as any)
+    const { data, error } = await supabase.from("headless_prompt_sections")
         .insert({
             name,
             slug,
@@ -67,7 +67,7 @@ export async function DELETE(request: NextRequest) {
     const supabase = createServiceRoleClient();
 
     // Check if it's a system section
-    const { data: section } = await (supabase.from("headless_prompt_sections") as any)
+    const { data: section } = await supabase.from("headless_prompt_sections")
         .select("is_system")
         .eq("id", id)
         .single();
@@ -76,7 +76,7 @@ export async function DELETE(request: NextRequest) {
         return NextResponse.json({ error: "Cannot delete system sections" }, { status: 403 });
     }
 
-    const { error } = await (supabase.from("headless_prompt_sections") as any)
+    const { error } = await supabase.from("headless_prompt_sections")
         .delete()
         .eq("id", id);
 

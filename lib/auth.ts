@@ -93,3 +93,21 @@ export function hasPermission(
     if (session.role === "superadmin") return true; // Superadmin has all permissions
     return session.permissions?.[permission] === true;
 }
+
+/**
+ * Server-side route guard for superadmin API routes.
+ * Call `await requireSuperadmin()` at the top of any handler that must be
+ * restricted to superadmin sessions. Throws a NextResponse with status 401
+ * if the caller is not authenticated or does not hold the superadmin role.
+ */
+export async function requireSuperadmin(): Promise<SessionPayload> {
+    const session = await getSession();
+    if (!session || !hasRole(session, "superadmin")) {
+        // Throw a Response so Next.js route handlers surface it as a real HTTP error
+        throw new Response(
+            JSON.stringify({ error: "Unauthorized: superadmin access required" }),
+            { status: 401, headers: { "Content-Type": "application/json" } }
+        );
+    }
+    return session;
+}
