@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
+import {
+    authenticateDesktopRequest,
+    isAuthError,
+} from "@/lib/desktop-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -18,11 +21,10 @@ export const dynamic = "force-dynamic";
 // the merge locally (add new, update changed, remove missing).
 // ─────────────────────────────────────────────────────────────────────────────
 export async function POST(request: NextRequest) {
-    const supabase = await createServerSupabaseClient();
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Desktop sends JWT as Authorization: Bearer — use desktop auth (not cookies)
+    const authResult = await authenticateDesktopRequest(request);
+    if (isAuthError(authResult)) {
+        return authResult;
     }
 
     let agentVersions: Array<{ template_id: string; current_version: number }>;
