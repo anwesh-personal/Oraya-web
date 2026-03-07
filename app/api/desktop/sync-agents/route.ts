@@ -47,6 +47,11 @@ export async function GET(request: NextRequest) {
                     factory_version: a.factory_version,
                     icon_url: a.template_icon_url || "",
                     is_ide_specialist: a.is_ide_specialist || false,
+                    // Structured data (migration 047) — separate from core_prompt
+                    prompt_stack_items: a.prompt_stack_items || [],
+                    training_examples: a.training_examples || [],
+                    behavioral_rules: a.behavioral_rules || [],
+                    knowledge_entries: a.knowledge_entries || [],
                 }));
         }
 

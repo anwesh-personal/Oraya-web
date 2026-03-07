@@ -189,8 +189,12 @@ export function AgentsGrid() {
                             >
                                 {/* Header */}
                                 <div className="flex items-start gap-3 mb-3">
-                                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[var(--primary)]/20 to-[var(--primary)]/5 border border-[var(--primary)]/20 flex items-center justify-center text-xl shrink-0">
-                                        {template.emoji}
+                                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[var(--primary)]/20 to-[var(--primary)]/5 border border-[var(--primary)]/20 flex items-center justify-center text-xl shrink-0 overflow-hidden">
+                                        {template.icon_url ? (
+                                            <img src={template.icon_url} alt={template.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            template.emoji
+                                        )}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2">
