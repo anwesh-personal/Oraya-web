@@ -17,7 +17,7 @@ import {
     FileText,
     Shield,
     HelpCircle,
-    ChevronRight,
+    Rocket,
     Boxes,
     Menu,
     X,
@@ -54,7 +54,7 @@ const navigation = [
     {
         label: "Operations",
         items: [
-            { name: "Deployments", href: "/superadmin/deployments", icon: ChevronRight },
+            { name: "Deployments", href: "/superadmin/deployments", icon: Rocket },
             { name: "Analytics", href: "/superadmin/analytics", icon: BarChart3 },
             { name: "Audit Logs", href: "/superadmin/logs", icon: FileText },
         ],

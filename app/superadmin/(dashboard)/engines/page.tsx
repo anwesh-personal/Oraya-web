@@ -1,84 +1,54 @@
-import { createServiceRoleClient } from "@/lib/supabase/server";
+"use client";
+
+import { useState, useEffect } from "react";
 import { EnginesTable } from "@/components/superadmin/engines/EnginesTable";
-import { Plus, Download, Server, Cpu, HardDrive, Activity } from "lucide-react";
+import { Plus, Server, Cpu, HardDrive, RefreshCw } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { EngineEditor } from "@/components/superadmin/engines/EngineEditor";
 
-async function getEngineStats() {
-    // Engine deployment stats
-    return {
-        totalEngines: 12,
-        activeEngines: 10,
-        totalDeployments: 245,
-        avgUptime: 99.7,
+export default function EnginesPage() {
+    const [engines, setEngines] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [isEditorOpen, setIsEditorOpen] = useState(false);
+
+    const [stats, setStats] = useState({
+        totalEngines: 0,
+        activeEngines: 0,
+        totalDeployments: 0,
+    });
+
+    const fetchEngines = async (isRefresh = false) => {
+        if (isRefresh) setIsRefreshing(true);
+        else setIsLoading(true);
+
+        try {
+            const response = await fetch("/api/superadmin/engines");
+            if (response.ok) {
+                const data = await response.json();
+                const fetchedEngines = data.engines || [];
+
+                setEngines(fetchedEngines);
+
+                setStats({
+                    totalEngines: fetchedEngines.length,
+                    activeEngines: fetchedEngines.filter((e: any) => e.status === "active").length,
+                    totalDeployments: fetchedEngines.reduce((sum: number, e: any) => sum + (e.deployment_count || 0), 0),
+                });
+            }
+        } catch (error) {
+            console.error("Error fetching engines:", error);
+        } finally {
+            setIsLoading(false);
+            setIsRefreshing(false);
+        }
     };
-}
 
-type Engine = {
-    id: string;
-    name: string;
-    provider: string;
-    model: string;
-    status: "active" | "maintenance" | "inactive";
-    deployments: number;
-    avgLatency: number;
-    uptime: number;
-    lastDeployed: string;
-};
+    useEffect(() => {
+        fetchEngines();
+    }, []);
 
-async function getEngines(): Promise<Engine[]> {
-    // In production, fetch from DB
-    return [
-        {
-            id: "1",
-            name: "GPT-4o Engine",
-            provider: "openai",
-            model: "gpt-4o",
-            status: "active",
-            deployments: 89,
-            avgLatency: 1.2,
-            uptime: 99.9,
-            lastDeployed: "2026-02-09",
-        },
-        {
-            id: "2",
-            name: "Claude Sonnet Engine",
-            provider: "anthropic",
-            model: "claude-3-sonnet",
-            status: "active",
-            deployments: 56,
-            avgLatency: 1.8,
-            uptime: 99.8,
-            lastDeployed: "2026-02-08",
-        },
-        {
-            id: "3",
-            name: "Gemini Pro Engine",
-            provider: "google",
-            model: "gemini-1.5-pro",
-            status: "active",
-            deployments: 34,
-            avgLatency: 1.5,
-            uptime: 99.5,
-            lastDeployed: "2026-02-07",
-        },
-        {
-            id: "4",
-            name: "GPT-4o Mini Engine",
-            provider: "openai",
-            model: "gpt-4o-mini",
-            status: "active",
-            deployments: 66,
-            avgLatency: 0.8,
-            uptime: 99.9,
-            lastDeployed: "2026-02-09",
-        },
-    ];
-}
-
-export default async function EnginesPage() {
-    const [stats, engines] = await Promise.all([
-        getEngineStats(),
-        getEngines(),
-    ]);
+    const handleRefresh = () => fetchEngines(true);
 
     return (
         <div className="space-y-8">
@@ -89,11 +59,19 @@ export default async function EnginesPage() {
                     <p className="text-[var(--surface-500)] mt-1">Manage and monitor AI model deployments</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button className="flex items-center gap-2 px-4 py-2.5 bg-[var(--surface-100)] border border-[var(--surface-300)] rounded-xl text-[var(--surface-700)] hover:bg-[var(--surface-200)] transition-all">
-                        <Download className="w-4 h-4" />
-                        Export
+                    <button
+                        onClick={handleRefresh}
+                        disabled={isRefreshing}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-[var(--surface-100)] border border-[var(--surface-300)] rounded-xl text-sm font-medium text-[var(--surface-700)] hover:bg-[var(--surface-200)] transition-all disabled:opacity-50"
+                    >
+                        <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+                        Refresh
                     </button>
-                    <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[var(--primary-foreground)] font-medium transition-all shadow-lg" style={{ background: 'var(--gradient-primary)' }}>
+                    <button
+                        onClick={() => setIsEditorOpen(true)}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[var(--primary-foreground)] font-medium transition-all shadow-lg"
+                        style={{ background: 'var(--gradient-primary)' }}
+                    >
                         <Plus className="w-4 h-4" />
                         Add Engine
                     </button>
@@ -101,7 +79,7 @@ export default async function EnginesPage() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="p-6 rounded-2xl bg-gradient-to-br from-[var(--primary)]/10 to-[var(--primary)]/5 border border-primary/20">
                     <div className="flex items-center gap-4">
                         <div className="p-3 rounded-xl bg-primary/20">
@@ -137,22 +115,28 @@ export default async function EnginesPage() {
                         </div>
                     </div>
                 </div>
-
-                <div className="p-6 rounded-2xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-warning/20">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-warning/20">
-                            <Activity className="w-6 h-6 text-warning" />
-                        </div>
-                        <div>
-                            <p className="text-sm text-[var(--surface-500)]">Avg Uptime</p>
-                            <p className="text-2xl font-bold text-[var(--surface-900)]">{stats.avgUptime}%</p>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             {/* Engines Table */}
-            <EnginesTable engines={engines} />
+            {isLoading ? (
+                <div className="flex items-center justify-center py-20">
+                    <div className="flex flex-col items-center gap-4">
+                        <RefreshCw className="w-8 h-8 text-[var(--primary)] animate-spin" />
+                        <p className="text-[var(--surface-600)]">Loading engines...</p>
+                    </div>
+                </div>
+            ) : (
+                <EnginesTable engines={engines} onRefresh={handleRefresh} />
+            )}
+
+            <EngineEditor
+                isOpen={isEditorOpen}
+                onClose={() => setIsEditorOpen(false)}
+                onSuccess={() => {
+                    setIsEditorOpen(false);
+                    handleRefresh();
+                }}
+            />
         </div>
     );
 }

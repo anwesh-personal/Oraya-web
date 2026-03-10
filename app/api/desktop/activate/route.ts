@@ -275,7 +275,7 @@ export async function POST(request: NextRequest) {
 
         // ── Step 10b: Resolve effective limits (org overrides plan) ──
         let effectiveMaxAgents = license.plan.maxAgents;
-        let effectiveMaxDevices = license.plan.maxDevices;
+        const effectiveMaxDevices = license.plan.maxDevices;
         if (team?.teamId) {
             const { data: teamRow } = await (supabase.from("teams") as any)
                 .select("max_agents, max_members")

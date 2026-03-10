@@ -590,6 +590,11 @@ export async function getUserLicenseIds(
 /**
  * Build managed AI claims for inclusion in the signed OLT.
  * Extracted here so activate and refresh don't duplicate this logic.
+ *
+ * Resolution order for Master Engine:
+ *   1. Direct user deployment  (engine_deployments WHERE target_type='user' AND target_id=userId)
+ *   2. Plan-level deployment   (engine_deployments WHERE target_type='plan' AND target_id=planId)
+ *   3. Fallback to global managed keys (legacy behavior)
  */
 export async function buildManagedAiClaims(
     supabase: ReturnType<typeof createServiceRoleClient>,
@@ -623,6 +628,42 @@ export async function buildManagedAiClaims(
             ? Number.MAX_SAFE_INTEGER
             : Math.max(0, license.plan.maxTokenUsagePerMonth - (license.tokensUsed || 0));
 
+        // ── Resolve Master Engine deployment ──────────────────────────────
+        let engineId: string | undefined;
+
+        // 1. Check for direct user-level deployment
+        const { data: userDeployment } = await (supabase as any)
+            .from("engine_deployments")
+            .select("master_engine_id")
+            .eq("target_type", "user")
+            .eq("target_id", userId)
+            .eq("status", "active")
+            .maybeSingle();
+
+        if (userDeployment?.master_engine_id) {
+            engineId = userDeployment.master_engine_id;
+        }
+
+        // 2. Fallback: check for plan-level deployment
+        if (!engineId && license.plan?.id) {
+            const { data: planDeployment } = await (supabase as any)
+                .from("engine_deployments")
+                .select("master_engine_id")
+                .eq("target_type", "plan")
+                .eq("target_id", license.plan.id)
+                .eq("status", "active")
+                .maybeSingle();
+
+            if (planDeployment?.master_engine_id) {
+                engineId = planDeployment.master_engine_id;
+            }
+        }
+
+        // Build the proxy URL (only set when an engine is deployed)
+        const proxyUrl = engineId
+            ? `${process.env.NEXT_PUBLIC_APP_URL || ""}/api/v1/ai/proxy`
+            : undefined;
+
         return {
             enabled: true,
             allowed_providers: allowedProviders,
@@ -632,6 +673,8 @@ export async function buildManagedAiClaims(
             // Use ?? (nullish coalescing) so explicit $0 limits are respected
             daily_limit_usd: prefs?.daily_spending_limit_usd ?? 10.0,
             monthly_limit_usd: prefs?.monthly_spending_limit_usd ?? 100.0,
+            engine_id: engineId,
+            proxy_url: proxyUrl,
         };
     } catch (error) {
         console.error("[desktop-auth] Failed to build managed AI claims:", error);

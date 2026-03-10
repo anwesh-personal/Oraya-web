@@ -12,40 +12,61 @@ import {
     Clock,
     Server,
     Zap,
+    Rocket,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { EngineEditor } from "./EngineEditor";
+import { DeployModal } from "./DeployModal";
 
 interface Engine {
     id: string;
     name: string;
-    provider: string;
-    model: string;
-    status: "active" | "inactive" | "maintenance";
-    deployments: number;
-    avgLatency: number;
-    uptime: number;
-    lastDeployed: string;
+    description?: string;
+    status: "active" | "archived" | "draft";
+    slots?: any[];
+    slot_count?: number;
+    deployment_count?: number;
+    categories?: {
+        llm: number;
+        image: number;
+        audio: number;
+        video: number;
+    };
+    created_at: string;
 }
 
 interface EnginesTableProps {
     engines: Engine[];
+    onRefresh: () => void;
 }
 
-const providerColors: Record<string, string> = {
-    openai: "from-emerald-500 to-green-600",
-    anthropic: "from-orange-500 to-amber-600",
-    google: "from-blue-500 to-cyan-600",
-    mistral: "from-purple-500 to-violet-600",
-};
 
-export function EnginesTable({ engines }: EnginesTableProps) {
+export function EnginesTable({ engines, onRefresh }: EnginesTableProps) {
     const [searchQuery, setSearchQuery] = useState("");
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
+    // Modal state
+    const [isEditorOpen, setIsEditorOpen] = useState(false);
+    const [editingEngine, setEditingEngine] = useState<Engine | null>(null);
+    const [isDeployOpen, setIsDeployOpen] = useState(false);
+    const [deployingEngine, setDeployingEngine] = useState<Engine | null>(null);
+
+
+    const handleEdit = (engine: Engine) => {
+        setEditingEngine(engine);
+        setIsEditorOpen(true);
+        setOpenDropdown(null);
+    };
+
+    const handleDeploy = (engine: Engine) => {
+        setDeployingEngine(engine);
+        setIsDeployOpen(true);
+        setOpenDropdown(null);
+    };
+
     const filteredEngines = engines.filter((engine) =>
         engine.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        engine.model.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        engine.provider.toLowerCase().includes(searchQuery.toLowerCase())
+        (engine.description || "").toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     const getStatusIcon = (status: string) => {
@@ -99,16 +120,10 @@ export function EnginesTable({ engines }: EnginesTableProps) {
                                 Engine
                             </th>
                             <th className="px-6 py-4 text-left text-xs font-medium text-[var(--surface-500)] uppercase tracking-wider">
-                                Provider
+                                Slots (by category)
                             </th>
                             <th className="px-6 py-4 text-left text-xs font-medium text-[var(--surface-500)] uppercase tracking-wider">
                                 Deployments
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-medium text-[var(--surface-500)] uppercase tracking-wider">
-                                Avg Latency
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-medium text-[var(--surface-500)] uppercase tracking-wider">
-                                Uptime
                             </th>
                             <th className="px-6 py-4 text-left text-xs font-medium text-[var(--surface-500)] uppercase tracking-wider">
                                 Status
@@ -125,39 +140,40 @@ export function EnginesTable({ engines }: EnginesTableProps) {
                                     <div className="flex items-center gap-3">
                                         <div className={cn(
                                             "w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center",
-                                            providerColors[engine.provider] || "from-gray-500 to-gray-600"
+                                            "from-gray-500 to-gray-600"
                                         )}>
                                             <Server className="w-5 h-5 text-white" />
                                         </div>
                                         <div>
                                             <p className="font-medium text-[var(--surface-900)]">{engine.name}</p>
-                                            <p className="text-sm text-[var(--surface-500)]">{engine.model}</p>
+                                            <p className="text-sm text-[var(--surface-500)]">{engine.description || "No description"}</p>
                                         </div>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-[var(--surface-200)] text-[var(--surface-800)] capitalize">
-                                        {engine.provider}
-                                    </span>
+                                    <div className="flex gap-2">
+                                        {engine.categories?.llm ? (
+                                            <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                                                {engine.categories.llm} LLM
+                                            </span>
+                                        ) : null}
+                                        {engine.categories?.image ? (
+                                            <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-blue-500/10 text-blue-600 border border-blue-500/20">
+                                                {engine.categories.image} Image
+                                            </span>
+                                        ) : null}
+                                        {engine.categories?.audio ? (
+                                            <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-purple-500/10 text-purple-600 border border-purple-500/20">
+                                                {engine.categories.audio} Audio
+                                            </span>
+                                        ) : null}
+                                        {!engine.slot_count && <span className="text-[var(--surface-400)] text-sm">Empty</span>}
+                                    </div>
                                 </td>
                                 <td className="px-6 py-4">
                                     <div className="flex items-center gap-2">
                                         <Zap className="w-4 h-4 text-warning" />
-                                        <span className="text-[var(--surface-900)] font-medium">{engine.deployments}</span>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <span className="text-[var(--surface-900)]">{engine.avgLatency}s</span>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-16 h-1.5 bg-[var(--surface-200)] rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-success rounded-full"
-                                                style={{ width: `${engine.uptime}%` }}
-                                            />
-                                        </div>
-                                        <span className="text-[var(--surface-900)] text-sm">{engine.uptime}%</span>
+                                        <span className="text-[var(--surface-900)] font-medium">{engine.deployment_count || 0}</span>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
@@ -187,9 +203,19 @@ export function EnginesTable({ engines }: EnginesTableProps) {
                                                         <Eye className="w-4 h-4" />
                                                         View
                                                     </button>
-                                                    <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[var(--surface-600)] hover:bg-[var(--surface-100)] text-sm">
+                                                    <button
+                                                        onClick={() => handleEdit(engine)}
+                                                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[var(--surface-600)] hover:bg-[var(--surface-100)] text-sm"
+                                                    >
                                                         <Settings className="w-4 h-4" />
                                                         Configure
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeploy(engine)}
+                                                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-emerald-600 hover:bg-emerald-500/10 text-sm"
+                                                    >
+                                                        <Rocket className="w-4 h-4" />
+                                                        Deploy
                                                     </button>
                                                     <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-error hover:bg-error/10 text-sm">
                                                         <Trash2 className="w-4 h-4" />
@@ -212,6 +238,26 @@ export function EnginesTable({ engines }: EnginesTableProps) {
                     </div>
                 )}
             </div>
+
+            <EngineEditor
+                isOpen={isEditorOpen}
+                onClose={() => setIsEditorOpen(false)}
+                onSuccess={() => {
+                    setIsEditorOpen(false);
+                    onRefresh();
+                }}
+                engine={editingEngine}
+            />
+
+            <DeployModal
+                isOpen={isDeployOpen}
+                onClose={() => setIsDeployOpen(false)}
+                onSuccess={() => {
+                    setIsDeployOpen(false);
+                    onRefresh();
+                }}
+                engine={deployingEngine}
+            />
         </div>
     );
 }

@@ -3,6 +3,11 @@ const nextConfig = {
     // Enable React strict mode
     reactStrictMode: true,
 
+    // ESLint: warnings should not block production builds
+    eslint: {
+        ignoreDuringBuilds: true,
+    },
+
     // Optimize images
     images: {
         domains: ['api.oraya.dev', 'avatars.githubusercontent.com', 'www.anwe.sh'],

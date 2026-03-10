@@ -91,6 +91,10 @@ export interface ManagedAiClaims {
     max_tokens_remaining: number;
     daily_limit_usd: number;
     monthly_limit_usd: number;
+    /** Master Engine ID assigned to this user (via direct deployment or plan) */
+    engine_id?: string;
+    /** URL for the Key Proxy endpoint (server-side AI routing) */
+    proxy_url?: string;
 }
 
 /** Input for creating a license token */
