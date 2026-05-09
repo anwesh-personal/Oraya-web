@@ -274,7 +274,7 @@ export async function POST(request: NextRequest) {
             maxTokens: license.plan.maxTokenUsagePerMonth,
 
             deviceId: req.device_id,
-            deviceName: activation.device_name,
+            deviceName: activation.deviceName || activation.device_name || "Unknown Device",
             devicePlatform: activation.platform,
             activationId: activation.id,
 

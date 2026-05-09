@@ -918,13 +918,13 @@ export type Database = {
         Insert: {
           allowed_ips?: unknown[] | null
           allowed_origins?: string[] | null
-          api_key: string
-          api_key_prefix: string
+          api_key?: string
+          api_key_prefix?: string
           created_at?: string | null
           expires_at?: string | null
           id?: string
           is_active?: boolean | null
-          key_hash: string
+          key_hash?: string
           key_name: string
           last_used_at?: string | null
           last_used_ip?: unknown
@@ -2270,6 +2270,95 @@ export type Database = {
         }
         Relationships: []
       }
+      engine_deployments: {
+        Row: {
+          id: string
+          master_engine_id: string
+          target_type: string
+          target_id: string
+          status: string
+          deployed_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          master_engine_id: string
+          target_type: string
+          target_id: string
+          status?: string
+          deployed_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          master_engine_id?: string
+          target_type?: string
+          target_id?: string
+          status?: string
+          deployed_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engine_deployments_master_engine_id_fkey"
+            columns: ["master_engine_id"]
+            isOneToOne: false
+            referencedRelation: "master_engines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      engine_provider_slots: {
+        Row: {
+          id: string
+          engine_id: string
+          managed_key_id: string
+          category: string
+          selected_model: string | null
+          is_enabled: boolean
+          priority: number
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          engine_id: string
+          managed_key_id: string
+          category: string
+          selected_model?: string | null
+          is_enabled?: boolean
+          priority?: number
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          engine_id?: string
+          managed_key_id?: string
+          category?: string
+          selected_model?: string | null
+          is_enabled?: boolean
+          priority?: number
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engine_provider_slots_engine_id_fkey"
+            columns: ["engine_id"]
+            isOneToOne: false
+            referencedRelation: "master_engines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "engine_provider_slots_managed_key_id_fkey"
+            columns: ["managed_key_id"]
+            isOneToOne: false
+            referencedRelation: "managed_ai_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       error_logs: {
         Row: {
           app_state: Json | null
@@ -3187,6 +3276,33 @@ export type Database = {
           tags?: string[] | null
           updated_at?: string | null
           weight?: number | null
+        }
+        Relationships: []
+      }
+      master_engines: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          status: string
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          status?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          status?: string
+          created_at?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
