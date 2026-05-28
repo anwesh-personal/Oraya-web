@@ -24,8 +24,8 @@ const jetbrains = JetBrains_Mono({
 
 export const metadata: Metadata = {
     title: {
-        template: "%s | Oraya",
-        default: "Oraya — The Personal Sovereign Operating System",
+        template: "%s | Orakhos",
+        default: "Orakhos — The Sovereign Operating System",
     },
     description: "The private intelligence kernel for the 1%. Unify high-intensity logic with absolute hardware privacy. Engineered for the architect, not the masses.",
     metadataBase: new URL("https://oraya.dev"),
@@ -33,13 +33,13 @@ export const metadata: Metadata = {
         type: "website",
         locale: "en_US",
         url: "https://oraya.dev",
-        siteName: "Oraya",
-        title: "Oraya — The AI Operating System",
-        description: "The intelligence layer for developers. Local-first. Self-healing. Free.",
+        siteName: "Orakhos",
+        title: "Orakhos — The Sovereign Operating System",
+        description: "The sovereign intelligence layer. Local-first. Self-healing. Zero cloud dependencies.",
     },
     twitter: {
         card: "summary_large_image",
-        title: "Oraya — The AI Operating System",
+        title: "Orakhos — The Sovereign Operating System",
     },
 };
 
@@ -51,7 +51,8 @@ export default function RootLayout({
     return (
         <html lang="en" suppressHydrationWarning>
             <head>
-                <link rel="icon" href="/favicon.ico" />
+                <link rel="icon" type="image/png" href="/favicon.png" />
+                <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <meta name="theme-color" content="#000000" />
             </head>
