@@ -11,6 +11,9 @@ import {
     Bot,
     Download,
     Tag,
+    Monitor,
+    Globe,
+    CodeXml,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -429,37 +432,155 @@ export function AgentExplorer({
     planRankMap?: PlanRankMap;
 }) {
     const [activeIndex, setActiveIndex] = useState(0);
+    const [activeTab, setActiveTab] = useState<"desktop" | "web">("desktop");
 
     if (agents.length === 0) return <EmptyState />;
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 items-stretch">
-            {/* ── Roster ── */}
-            <div className="lg:col-span-2 flex flex-col gap-2">
-                <div className="flex items-center justify-between px-1 mb-3">
-                    <span className="text-[10px] font-mono text-[var(--surface-500)] uppercase tracking-widest">
-                        Active_Agents // {agents.length}
-                    </span>
-                    <span className="text-[10px] font-mono text-[var(--success)] uppercase tracking-widest">
-                        ● Authorized
-                    </span>
-                </div>
-
-                {agents.map((agent, i) => (
-                    <RosterItem
-                        key={agent.id}
-                        agent={agent}
-                        isActive={activeIndex === i}
-                        onClick={() => setActiveIndex(i)}
-                        planRankMap={planRankMap}
-                    />
+        <div className="space-y-5">
+            {/* ── Tab Bar ── */}
+            <div
+                className="flex gap-1 p-1 rounded-xl w-fit"
+                style={{ background: "var(--surface-100)" }}
+            >
+                {[
+                    { key: "desktop" as const, label: "Desktop", icon: <Monitor className="w-4 h-4" /> },
+                    { key: "web" as const, label: "Web", icon: <Globe className="w-4 h-4" /> },
+                ].map(tab => (
+                    <button
+                        key={tab.key}
+                        onClick={() => setActiveTab(tab.key)}
+                        className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all"
+                        style={{
+                            background: activeTab === tab.key ? "var(--surface-50)" : "transparent",
+                            color: activeTab === tab.key ? "var(--surface-900)" : "var(--surface-500)",
+                            boxShadow: activeTab === tab.key ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+                        }}
+                    >
+                        {tab.icon}
+                        {tab.label}
+                    </button>
                 ))}
             </div>
 
-            {/* ── Detail ── */}
-            <div className="lg:col-span-3">
-                <AgentDetail agent={agents[activeIndex]} planRankMap={planRankMap} />
-            </div>
+            {/* ── Desktop Tab ── */}
+            {activeTab === "desktop" && (
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 items-stretch">
+                    {/* ── Roster ── */}
+                    <div className="lg:col-span-2 flex flex-col gap-2">
+                        <div className="flex items-center justify-between px-1 mb-3">
+                            <span className="text-[10px] font-mono text-[var(--surface-500)] uppercase tracking-widest">
+                                Active_Agents // {agents.length}
+                            </span>
+                            <span className="text-[10px] font-mono text-[var(--success)] uppercase tracking-widest">
+                                ● Authorized
+                            </span>
+                        </div>
+
+                        {agents.map((agent, i) => (
+                            <RosterItem
+                                key={agent.id}
+                                agent={agent}
+                                isActive={activeIndex === i}
+                                onClick={() => setActiveIndex(i)}
+                                planRankMap={planRankMap}
+                            />
+                        ))}
+                    </div>
+
+                    {/* ── Detail ── */}
+                    <div className="lg:col-span-3">
+                        <AgentDetail agent={agents[activeIndex]} planRankMap={planRankMap} />
+                    </div>
+                </div>
+            )}
+
+            {/* ── Web Tab ── */}
+            {activeTab === "web" && (
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between px-1">
+                        <span className="text-[10px] font-mono text-[var(--surface-500)] uppercase tracking-widest">
+                            Deployable_Agents // {agents.length}
+                        </span>
+                        <a
+                            href="/dashboard/widgets"
+                            className="inline-flex items-center gap-1.5 text-xs font-semibold transition-colors hover:underline"
+                            style={{ color: "var(--primary)" }}
+                        >
+                            <CodeXml className="w-3.5 h-3.5" />
+                            Manage Widgets
+                        </a>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {agents.map(agent => (
+                            <div
+                                key={agent.id}
+                                className="rounded-2xl border p-5 transition-all hover:shadow-lg group"
+                                style={{
+                                    background: "var(--surface-50)",
+                                    borderColor: "var(--surface-200)",
+                                }}
+                            >
+                                <div className="flex items-center gap-3 mb-3">
+                                    <div
+                                        className="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                                        style={{
+                                            background: "color-mix(in srgb, var(--primary) 10%, var(--surface-100))",
+                                            border: "1px solid color-mix(in srgb, var(--primary) 20%, transparent)",
+                                        }}
+                                    >
+                                        {agent.template.emoji || "🤖"}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="text-sm font-bold text-[var(--surface-900)] truncate">
+                                            {agent.template.name}
+                                        </h4>
+                                        {agent.template.tagline && (
+                                            <p className="text-[11px] text-[var(--surface-500)] truncate">
+                                                {agent.template.tagline}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {agent.template.description && (
+                                    <p className="text-xs text-[var(--surface-500)] line-clamp-2 mb-4">
+                                        {agent.template.description}
+                                    </p>
+                                )}
+
+                                {agent.template.tags?.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 mb-4">
+                                        {agent.template.tags.slice(0, 3).map(tag => (
+                                            <span
+                                                key={tag}
+                                                className="px-2 py-0.5 rounded-md text-[10px] font-semibold"
+                                                style={{
+                                                    background: "color-mix(in srgb, var(--primary) 8%, var(--surface-100))",
+                                                    color: "var(--surface-600)",
+                                                    border: "1px solid var(--surface-200)",
+                                                }}
+                                            >
+                                                {tag}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+
+                                <a
+                                    href={`/dashboard/widgets?agent=${agent.template_id}`}
+                                    className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90 group-hover:scale-[1.02]"
+                                    style={{ background: "var(--gradient-primary)" }}
+                                >
+                                    <CodeXml className="w-3.5 h-3.5" />
+                                    Deploy as Widget
+                                </a>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
