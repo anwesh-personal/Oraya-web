@@ -96,7 +96,8 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
     const [agentDisplayName, setAgentDisplayName] = useState(widget.config?.agent_display_name || tmpl?.name || "");
     const [agentBio, setAgentBio] = useState(widget.config?.agent_bio || tmpl?.tagline || "");
     const [avatarUrl, setAvatarUrl] = useState(widget.config?.avatar_url || tmpl?.icon_url || "");
-    const [welcomeMessage, setWelcomeMessage] = useState(widget.config?.welcome_message || "Hi! How can I help you today?");
+    const [welcomeMessage, setWelcomeMessage] = useState(widget.welcome_message || widget.config?.welcome_message || "");
+    const [placeholder, setPlaceholder] = useState(widget.placeholder || widget.config?.placeholder || "");
     const [widgetType, setWidgetType] = useState(widget.widget_type || "bubble");
     const [position, setPosition] = useState(widget.config?.position || "bottom-right");
     const [persistenceMode, setPersistenceMode] = useState(widget.persistence_mode || "ephemeral");
@@ -224,6 +225,7 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
             agent_bio: agentBio,
             avatar_url: avatarUrl,
             welcome_message: welcomeMessage,
+            placeholder,
             position,
             core_prompt_override: corePrompt,
             // Appearance (also in top-level columns)
@@ -303,7 +305,7 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
                     auto_open_delay: autoOpenDelay,
                     avatar_url: avatarUrl || null,
                     welcome_message: welcomeMessage,
-                    placeholder: widget.placeholder || "Type a message...",
+                    placeholder: placeholder || undefined,
                     config,
                 }),
             });
@@ -321,6 +323,7 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
         primaryColor, accentColor, bgColor, textColor, fontFamily,
         darkMode, borderRadius, showBranding, bubbleSize, chatWidth, chatHeight,
         companyLogoUrl, windowStyle, soundEnabled, autoOpen, autoOpenDelay,
+        placeholder,
         selectedProviderId, selectedModel, qaItems, rawContext, promptLayers, rules,
         formality, verbosity, emojiUsage, responseStyle,
         personalityText, styleText, toneText,
@@ -762,7 +765,7 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
                                                 ) : (
                                                     <input type="text" value={selectedModel} onChange={e => setSelectedModel(e.target.value)}
                                                         className="w-full px-4 py-3 rounded-xl border text-sm font-mono outline-none transition-colors focus:border-[var(--primary)]"
-                                                        style={inputStyle} placeholder="Enter model ID manually (e.g., gpt-4o)" />
+                                                        style={inputStyle} placeholder="Enter model identifier from your provider" />
                                                 )}
                                             </div>
                                         );
@@ -1455,7 +1458,17 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
                             </div>
 
                             {/* Mini widget preview */}
-                            <div className="p-5" style={{ background: darkMode ? "#1a1a2e" : "#f0f0f5" }}>
+                            {(() => {
+                                // Compute preview colors from actual widget config (mirrors buildStyles in oraya-widget.js)
+                                const pvBg = darkMode ? (bgColor === "#ffffff" ? "#1e1e2f" : bgColor) : bgColor;
+                                const pvText = darkMode ? "#e2e8f0" : textColor;
+                                const pvSubtle = darkMode ? "#2d2d44" : "#f1f5f9";
+                                const pvBorder = darkMode ? "#3d3d5c" : "#e2e8f0";
+                                const pvInputBg = darkMode ? "#2d2d44" : "#f8fafc";
+                                const pvMuted = darkMode ? "#64748b" : "#94a3b8";
+                                const pvPageBg = darkMode ? "#12121f" : "#f0f0f5";
+                                return (
+                            <div className="p-5" style={{ background: pvPageBg }}>
                                 {/* Bubble */}
                                 <div className="flex justify-end mb-3">
                                     <div className="flex items-center justify-center rounded-full"
@@ -1474,8 +1487,8 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
                                 {/* Chat window */}
                                 <div className="overflow-hidden" style={{
                                     borderRadius: `${borderRadius}px`,
-                                    background: darkMode ? (bgColor === "#ffffff" ? "#1a1a2e" : bgColor) : bgColor,
-                                    border: `1px solid ${darkMode ? "#333" : "#e2e8f0"}`,
+                                    background: pvBg,
+                                    border: `1px solid ${pvBorder}`,
                                     boxShadow: windowStyle === "shadow" ? "0 12px 40px rgba(0,0,0,0.18)" : "0 4px 16px rgba(0,0,0,0.08)",
                                     backdropFilter: windowStyle === "glass" ? "blur(12px)" : undefined,
                                     fontFamily: fontFamily,
@@ -1510,7 +1523,7 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
                                         {/* Welcome */}
                                         <div className="text-center py-2">
                                             <span className="text-xl">{tmpl?.emoji || "🤖"}</span>
-                                            <p className="text-[10px] mt-1" style={{ color: darkMode ? "#94a3b8" : "#64748b" }}>
+                                            <p className="text-[10px] mt-1" style={{ color: pvMuted }}>
                                                 {welcomeMessage || "Hi! How can I help you today?"}
                                             </p>
                                         </div>
@@ -1525,8 +1538,8 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
                                         <div className="flex justify-start">
                                             <div className="px-3 py-1.5 rounded-xl text-[10px] max-w-[75%]"
                                                 style={{
-                                                    background: darkMode ? "#2d2d44" : "#f1f5f9",
-                                                    color: darkMode ? "#e2e8f0" : textColor,
+                                                    background: pvSubtle,
+                                                    color: pvText,
                                                     borderRadius: `${Math.min(borderRadius, 16)}px`,
                                                 }}>
                                                 Of course! I&apos;m here to help. What can I do for you today? 😊
@@ -1538,11 +1551,11 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
                                     <div className="px-3 pb-2 flex items-center gap-2">
                                         <div className="flex-1 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px]"
                                             style={{
-                                                background: darkMode ? "#2d2d44" : "#f8fafc",
-                                                border: `1px solid ${darkMode ? "#444" : "#e2e8f0"}`,
-                                                color: darkMode ? "#64748b" : "#94a3b8",
+                                                background: pvInputBg,
+                                                border: `1px solid ${pvBorder}`,
+                                                color: pvMuted,
                                             }}>
-                                            Type a message...
+                                            {placeholder || "Type a message..."}
                                         </div>
                                         <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: primaryColor }}>
                                             <svg viewBox="0 0 24 24" width="12" height="12" fill="white">
@@ -1553,12 +1566,14 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
 
                                     {/* Branding */}
                                     {showBranding && (
-                                        <div className="text-center py-1.5" style={{ borderTop: `1px solid ${darkMode ? "#333" : "#eee"}` }}>
-                                            <span className="text-[8px]" style={{ color: darkMode ? "#555" : "#aaa" }}>Powered by Oraya</span>
+                                        <div className="text-center py-1.5" style={{ borderTop: `1px solid ${pvBorder}` }}>
+                                            <span className="text-[8px]" style={{ color: pvMuted }}>Powered by Oraya</span>
                                         </div>
                                     )}
                                 </div>
                             </div>
+                                );
+                            })()}
 
                             {/* Preview info */}
                             <div className="px-4 py-2.5 flex items-center justify-between" style={{ borderTop: "1px solid var(--surface-200)" }}>

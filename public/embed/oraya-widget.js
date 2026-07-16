@@ -86,8 +86,8 @@
 
     // ─── CSS Generation ─────────────────────────────────────────────────────
     function buildStyles(cfg) {
-        const p = cfg.primaryColor || "#7c3aed";
-        const a = cfg.accentColor || "#6d28d9";
+        const p = cfg.primaryColor || "#6366f1";
+        const a = cfg.accentColor || "#4f46e5";
         const bg = cfg.darkMode ? "#1a1a2e" : (cfg.bgColor || "#ffffff");
         const text = cfg.darkMode ? "#e2e8f0" : (cfg.textColor || "#1a1a2e");
         const subtle = cfg.darkMode ? "#2d2d44" : "#f1f5f9";
@@ -99,8 +99,15 @@
         const h = cfg.chatHeight || 620;
         const bs = cfg.bubbleSize || 60;
 
+        // Dynamically load the configured font (extract first family name)
+        var fontName = font.split(",")[0].trim().replace(/['"]/g, "");
+        var fontImport = "";
+        if (fontName && fontName !== "system-ui" && fontName !== "-apple-system") {
+            fontImport = "@import url('https://fonts.googleapis.com/css2?family=" + encodeURIComponent(fontName) + ":wght@400;500;600;700&display=swap');";
+        }
+
         return `
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+            ${fontImport}
 
             *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
