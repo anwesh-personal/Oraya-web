@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
                 bubble_size, chat_width, chat_height, dark_mode,
                 show_branding, custom_css, persistence_mode,
                 auto_open, auto_open_delay, sound_enabled,
-                gate_config, is_active,
+                gate_config, is_active, config,
                 agent_templates:template_id (
                     name, emoji, icon_url, tagline
                 )
@@ -70,6 +70,9 @@ export async function GET(request: NextRequest) {
         }
 
         const agent = (widget as any).agent_templates;
+
+        // Parse config JSONB for extra fields
+        const widgetConfig = (widget as any).config || {};
 
         return NextResponse.json(
             {
@@ -103,6 +106,9 @@ export async function GET(request: NextRequest) {
                     gateConfig: widget.persistence_mode === "gated"
                         ? widget.gate_config
                         : null,
+                    // Extended config from JSONB
+                    companyLogo: widgetConfig.company_logo_url || null,
+                    windowStyle: widgetConfig.window_style || "solid",
                 },
             },
             { headers: cors }

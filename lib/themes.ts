@@ -111,12 +111,12 @@ export const themes: Record<ThemeId, Theme> = {
                 surface100: '#111111',
                 surface200: '#1a1a1a',
                 surface300: '#252525',
-                surface400: '#333333',
-                surface500: '#555555',
-                surface600: '#888888',
-                surface700: '#aaaaaa',
+                surface400: '#353535',
+                surface500: '#606060',
+                surface600: '#909090',
+                surface700: '#b0b0b0',
                 surface800: '#dddddd',
-                surface900: '#ffffff',
+                surface900: '#f5f5f5',
 
                 success: '#00FF99',
                 successGlow: 'rgba(0, 255, 153, 0.3)',
@@ -144,16 +144,16 @@ export const themes: Record<ThemeId, Theme> = {
 
                 // Refined high-end light surfaces (Clean & Consistent)
                 surface0: '#ffffff',     // Pure white base
-                surface50: '#fafafa',    // Subtle elevation
-                surface100: '#f5f5f7',   // Recessed sections
-                surface200: '#efeff3',   // Borders / Input hover
-                surface300: '#e5e5ea',   // High-contrast borders / Dividers
-                surface400: '#d1d1d6',   // Inactive states
-                surface500: '#8e8e93',   // Secondary text
-                surface600: '#6e6e73',   // Muted text
-                surface700: '#48484a',   // Strong text
-                surface800: '#2c2c2e',   // Body text
-                surface900: '#000000',   // Heading / Critical text
+                surface50: '#f9f9fb',    // Subtle elevation
+                surface100: '#f2f2f5',   // Card backgrounds
+                surface200: '#e8e8ed',   // Borders / Input bg
+                surface300: '#dcdce3',   // High-contrast dividers
+                surface400: '#c7c7cf',   // Inactive states
+                surface500: '#85858d',   // Secondary/muted text
+                surface600: '#5e5e66',   // Stronger muted text
+                surface700: '#3d3d42',   // Strong text
+                surface800: '#252528',   // Body text
+                surface900: '#0c0c0e',   // Heading / Critical text
 
                 success: '#009966',
                 successGlow: 'rgba(0, 153, 102, 0.1)',
@@ -210,9 +210,9 @@ export const themes: Record<ThemeId, Theme> = {
                 surface200: '#2C2820',
                 surface300: '#3D3728',
                 surface400: '#524A38',
-                surface500: '#6A6050',
-                surface600: '#8A806E',
-                surface700: '#B0A898',
+                surface500: '#7A7060',
+                surface600: '#9A9080',
+                surface700: '#BEB6A6',
                 surface800: '#D8D0C0',
                 surface900: '#F0E8D8',
 
@@ -241,17 +241,17 @@ export const themes: Record<ThemeId, Theme> = {
                 secondaryForeground: '#FDF8F0',
 
                 // Warm cream / parchment / linen surfaces
-                surface0: '#EDE4D4',
-                surface50: '#F5EDE0',
-                surface100: '#FDF8F0',
-                surface200: '#F8F0E4',
+                surface0: '#FDF8F0',
+                surface50: '#F8F2E8',
+                surface100: '#F0E8DA',
+                surface200: '#E6DCCC',
                 surface300: '#D8CDB8',
-                surface400: '#BFAF92',
-                surface500: '#9C8B6E',
-                surface600: '#7A6B52',
-                surface700: '#5A4C38',
-                surface800: '#3A3025',
-                surface900: '#2A2018',
+                surface400: '#C0B49A',
+                surface500: '#8C7D66',
+                surface600: '#6B5D48',
+                surface700: '#504434',
+                surface800: '#362D22',
+                surface900: '#221A12',
 
                 success: '#4A7525',
                 successGlow: 'none',
@@ -307,11 +307,11 @@ export const themes: Record<ThemeId, Theme> = {
                 surface100: '#101010',
                 surface200: '#181818',
                 surface300: '#252525',
-                surface400: '#333333',
-                surface500: '#404040',
-                surface600: '#666666',
-                surface700: '#A0A0A0',
-                surface800: '#D0D0D0',
+                surface400: '#353535',
+                surface500: '#585858',
+                surface600: '#808080',
+                surface700: '#A8A8A8',
+                surface800: '#D4D4D4',
                 surface900: '#FFFFFF',
 
                 success: '#00D26A',
@@ -339,16 +339,16 @@ export const themes: Record<ThemeId, Theme> = {
                 secondaryForeground: '#FFFFFF',
 
                 // Pure stark white — maximum contrast editorial
-                surface0: '#F2F2F2',
+                surface0: '#FFFFFF',
                 surface50: '#FAFAFA',
-                surface100: '#FFFFFF',
-                surface200: '#F5F5F5',
+                surface100: '#F5F5F5',
+                surface200: '#EEEEEE',
                 surface300: '#E0E0E0',
                 surface400: '#BDBDBD',
-                surface500: '#9E9E9E',
-                surface600: '#757575',
-                surface700: '#424242',
-                surface800: '#212121',
+                surface500: '#8A8A8A',
+                surface600: '#636363',
+                surface700: '#3D3D3D',
+                surface800: '#1F1F1F',
                 surface900: '#000000',
 
                 success: '#00873E',
@@ -405,12 +405,12 @@ export const themes: Record<ThemeId, Theme> = {
                 surface100: '#121228',
                 surface200: '#181834',
                 surface300: '#252550',
-                surface400: '#353565',
-                surface500: '#555585',
-                surface600: '#7878A8',
-                surface700: '#A0A0D0',
+                surface400: '#383870',
+                surface500: '#6060A0',
+                surface600: '#8888B8',
+                surface700: '#ABABD5',
                 surface800: '#D0D0F0',
-                surface900: '#FFFFFF',
+                surface900: '#F0F0FF',
 
                 success: '#10B981',
                 successGlow: 'rgba(16, 185, 129, 0.3)',
@@ -437,15 +437,15 @@ export const themes: Record<ThemeId, Theme> = {
                 secondaryForeground: '#FFFFFF',
 
                 // Cool indigo-slate tinted surfaces
-                surface0: '#E8EAFE',
-                surface50: '#EEF0FF',
-                surface100: '#F8F8FF',
-                surface200: '#F0F1FE',
+                surface0: '#F8F8FF',
+                surface50: '#F2F3FE',
+                surface100: '#EAECFC',
+                surface200: '#E0E2F6',
                 surface300: '#D0D3EE',
                 surface400: '#B0B5D8',
-                surface500: '#8088B8',
-                surface600: '#606892',
-                surface700: '#3E4570',
+                surface500: '#7078A8',
+                surface600: '#525A88',
+                surface700: '#383F68',
                 surface800: '#1E2350',
                 surface900: '#0E1235',
 
@@ -503,12 +503,12 @@ export const themes: Record<ThemeId, Theme> = {
                 surface100: '#0A1010',
                 surface200: '#0F1818',
                 surface300: '#1A2828',
-                surface400: '#283838',
-                surface500: '#405050',
-                surface600: '#607070',
-                surface700: '#90A8A8',
-                surface800: '#C0D8D8',
-                surface900: '#E0F7FA',
+                surface400: '#2C3E3E',
+                surface500: '#507070',
+                surface600: '#709090',
+                surface700: '#98B8B8',
+                surface800: '#C4DEDE',
+                surface900: '#E8F8FA',
 
                 success: '#00FF41',
                 successGlow: 'rgba(0, 255, 65, 0.4)',
@@ -535,17 +535,17 @@ export const themes: Record<ThemeId, Theme> = {
                 secondaryForeground: '#FFFFFF',
 
                 // Cool teal/mint tinted surfaces
-                surface0: '#D8E8E8',
-                surface50: '#E4F0F0',
-                surface100: '#F0F8F8',
-                surface200: '#E8F2F2',
+                surface0: '#F0F8F8',
+                surface50: '#E8F2F2',
+                surface100: '#DFEAEA',
+                surface200: '#D0E0E0',
                 surface300: '#B8D0D0',
                 surface400: '#90B0B0',
-                surface500: '#608888',
-                surface600: '#406868',
-                surface700: '#2A5050',
+                surface500: '#588080',
+                surface600: '#3E6262',
+                surface700: '#284848',
                 surface800: '#183838',
-                surface900: '#0A2828',
+                surface900: '#0A2020',
 
                 success: '#008025',
                 successGlow: 'none',

@@ -229,6 +229,21 @@
                 gap: 12px;
                 flex-shrink: 0;
             }
+            .ow-window.ow-style-glass .ow-header {
+                background: linear-gradient(135deg, var(--ow-primary), var(--ow-accent));
+                backdrop-filter: blur(20px);
+            }
+            .ow-window.ow-style-shadow {
+                box-shadow: 0 25px 80px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.06);
+            }
+            .ow-header-logo {
+                width: 24px;
+                height: 24px;
+                margin-left: auto;
+                object-fit: contain;
+                opacity: 0.85;
+                border-radius: 4px;
+            }
             .ow-header-avatar {
                 width: 40px;
                 height: 40px;
@@ -464,6 +479,107 @@
             .ow-send:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
             .ow-send svg { width: 18px; height: 18px; fill: white; }
 
+            /* ── Input Toolbar ──────────────────────────────────── */
+
+            .ow-toolbar {
+                display: flex;
+                gap: 4px;
+                padding: 4px 16px 8px;
+                flex-shrink: 0;
+            }
+            .ow-tool-btn {
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
+                background: transparent;
+                border: 1px solid var(--ow-border);
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: background 0.2s ease, border-color 0.2s ease;
+                flex-shrink: 0;
+            }
+            .ow-tool-btn:hover {
+                background: var(--ow-subtle);
+                border-color: var(--ow-primary);
+            }
+            .ow-tool-btn.ow-active {
+                background: var(--ow-primary);
+                border-color: var(--ow-primary);
+            }
+            .ow-tool-btn.ow-active svg { fill: white; }
+            .ow-tool-btn svg { width: 16px; height: 16px; fill: var(--ow-text); opacity: 0.6; }
+
+            /* ── Emoji Picker ───────────────────────────────────── */
+
+            .ow-emoji-picker {
+                position: absolute;
+                bottom: 100px;
+                left: 16px;
+                right: 16px;
+                background: var(--ow-bg);
+                border: 1px solid var(--ow-border);
+                border-radius: 12px;
+                padding: 10px;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+                display: none;
+                z-index: 10;
+                max-height: 200px;
+                overflow-y: auto;
+            }
+            .ow-emoji-picker.ow-visible { display: block; }
+            .ow-emoji-grid {
+                display: grid;
+                grid-template-columns: repeat(8, 1fr);
+                gap: 2px;
+            }
+            .ow-emoji-btn {
+                width: 100%;
+                aspect-ratio: 1;
+                border: none;
+                background: transparent;
+                cursor: pointer;
+                font-size: 18px;
+                border-radius: 6px;
+                transition: background 0.15s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .ow-emoji-btn:hover { background: var(--ow-subtle); }
+            .ow-emoji-cats {
+                display: flex;
+                gap: 2px;
+                padding-bottom: 6px;
+                margin-bottom: 6px;
+                border-bottom: 1px solid var(--ow-border);
+                overflow-x: auto;
+            }
+            .ow-emoji-cat-btn {
+                padding: 3px 6px;
+                border: none;
+                background: transparent;
+                cursor: pointer;
+                font-size: 14px;
+                border-radius: 4px;
+                opacity: 0.6;
+                flex-shrink: 0;
+            }
+            .ow-emoji-cat-btn.ow-active { background: var(--ow-subtle); opacity: 1; }
+
+            /* ── STT indicator ──────────────────────────────────── */
+
+            .ow-tool-btn.ow-recording {
+                border-color: #ef4444;
+                animation: ow-rec-pulse 1s ease-in-out infinite;
+            }
+            .ow-tool-btn.ow-recording svg { fill: #ef4444; opacity: 1; }
+            @keyframes ow-rec-pulse {
+                0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+                50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+            }
+
             /* ── Branding Footer ────────────────────────────────── */
 
             .ow-branding {
@@ -593,6 +709,9 @@
         close: '<svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>',
         send: '<svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>',
         minimize: '<svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg>',
+        emoji: '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg>',
+        mic: '<svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>',
+        attach: '<svg viewBox="0 0 24 24"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg>',
     };
 
     // ─── HTML Builders ──────────────────────────────────────────────────────
@@ -608,12 +727,17 @@
             ? '<img src="' + esc(cfg.agentIcon) + '" alt="' + esc(cfg.agentName) + '">'
             : esc(cfg.agentEmoji || "🤖");
 
+        var logoHtml = cfg.companyLogo
+            ? '<img class="ow-header-logo" src="' + esc(cfg.companyLogo) + '" alt="Logo">'
+            : '';
+
         return '<div class="ow-header">'
             + '<div class="ow-header-avatar">' + avatarContent + '</div>'
             + '<div class="ow-header-info">'
             +   '<div class="ow-header-name">' + esc(cfg.name || cfg.agentName || "AI Assistant") + '</div>'
             +   '<div class="ow-header-status">Online</div>'
             + '</div>'
+            + logoHtml
             + '<button class="ow-header-close" id="ow-close">' + ICON.close + '</button>'
             + '</div>';
     }
@@ -678,9 +802,17 @@
     }
 
     function buildInputHTML(cfg) {
-        return '<div class="ow-input-area">'
+        var hasSpeech = typeof window !== 'undefined' && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window);
+        return '<div style="position:relative">'
+            + '<div class="ow-emoji-picker" id="ow-emoji-picker"></div>'
+            + '<div class="ow-input-area">'
             + '<textarea class="ow-input" id="ow-input" placeholder="' + esc(cfg.placeholder || "Type a message...") + '" rows="1"></textarea>'
             + '<button class="ow-send" id="ow-send">' + ICON.send + '</button>'
+            + '</div>'
+            + '<div class="ow-toolbar">'
+            + '<button class="ow-tool-btn" id="ow-emoji-toggle" title="Emoji">' + ICON.emoji + '</button>'
+            + (hasSpeech ? '<button class="ow-tool-btn" id="ow-mic-toggle" title="Voice input">' + ICON.mic + '</button>' : '')
+            + '</div>'
             + '</div>';
     }
 
@@ -691,6 +823,7 @@
 
     function buildWindowHTML(cfg) {
         var pos = cfg.position || "bottom-right";
+        var wstyle = cfg.windowStyle || "solid";
         var inner = buildHeaderHTML(cfg);
 
         if (cfg.persistenceMode === "gated" && !getSessionId()) {
@@ -702,7 +835,7 @@
 
         inner += buildBrandingHTML(cfg);
 
-        return '<div class="ow-window ' + pos + '" id="ow-window">'
+        return '<div class="ow-window ' + pos + ' ow-style-' + wstyle + '" id="ow-window">'
             + inner
             + '</div>';
     }
@@ -817,6 +950,111 @@
         var gateSubmit = root.getElementById("ow-gate-submit");
         if (gateSubmit) {
             gateSubmit.addEventListener("click", function () { self.handleGateSubmit(); });
+        }
+
+        // ── Emoji Picker ──
+        var emojiToggle = root.getElementById("ow-emoji-toggle");
+        var emojiPicker = root.getElementById("ow-emoji-picker");
+        if (emojiToggle && emojiPicker) {
+            var EMOJIS = {
+                "😊": ["😊","😂","🤣","❤️","😍","🙏","😭","😘","🥰","😎","🤔","🙄","😏","😌","🤩","🥺","😇","🤗","😱","😈"],
+                "👍": ["👍","👎","👏","🤝","✌️","🤞","💪","🙌","👋","🤙","💯","✅","⭐","🔥","💡","🎯","🚀","💎","🏆","💰"],
+                "🐱": ["🐱","🐶","🐻","🐼","🐸","🐵","🦊","🐰","🦁","🐮","🐷","🦄","🐝","🐙","🦋","🌈","🌸","🌻","🍀","🌊"],
+                "🍕": ["🍕","🍔","🍟","🌮","🍣","🍰","☕","🍺","🎂","🍩","🥗","🍎","🍇","🍑","🍋","🧁","🍭","🍿","🥤","🫐"],
+                "⚽": ["⚽","🏀","🎮","🎵","🎬","📸","🎨","🎤","🎹","🏈","🎪","🎲","🎭","🃏","🧩","🎯","🏐","🎳","🏓","🛹"],
+                "❤️": ["❤️","💔","💖","💗","💕","💞","💓","💘","💝","🖤","🤍","💜","💙","💚","💛","🧡","♥️","💌","💐","🌹"]
+            };
+
+            var catKeys = Object.keys(EMOJIS);
+            var catHtml = '<div class="ow-emoji-cats">';
+            catKeys.forEach(function(ck, i) {
+                catHtml += '<button class="ow-emoji-cat-btn' + (i === 0 ? ' ow-active' : '') + '" data-ecat="' + i + '">' + ck + '</button>';
+            });
+            catHtml += '</div>';
+            var gridHtml = '<div class="ow-emoji-grid" id="ow-emoji-grid"></div>';
+            emojiPicker.innerHTML = catHtml + gridHtml;
+
+            function renderEmojiCat(idx) {
+                var grid = root.getElementById("ow-emoji-grid");
+                if (!grid) return;
+                var emojis = EMOJIS[catKeys[idx]];
+                grid.innerHTML = emojis.map(function(e) {
+                    return '<button class="ow-emoji-btn">' + e + '</button>';
+                }).join('');
+            }
+            renderEmojiCat(0);
+
+            emojiPicker.addEventListener("click", function(e) {
+                var btn = e.target.closest(".ow-emoji-btn");
+                if (btn) {
+                    var inp = root.getElementById("ow-input");
+                    if (inp) {
+                        inp.value += btn.textContent;
+                        inp.focus();
+                    }
+                    emojiPicker.classList.remove("ow-visible");
+                    emojiToggle.classList.remove("ow-active");
+                    return;
+                }
+                var catBtn = e.target.closest(".ow-emoji-cat-btn");
+                if (catBtn) {
+                    var cats = emojiPicker.querySelectorAll(".ow-emoji-cat-btn");
+                    for (var c = 0; c < cats.length; c++) cats[c].classList.remove("ow-active");
+                    catBtn.classList.add("ow-active");
+                    renderEmojiCat(parseInt(catBtn.getAttribute("data-ecat"), 10));
+                }
+            });
+
+            emojiToggle.addEventListener("click", function() {
+                var open = emojiPicker.classList.toggle("ow-visible");
+                emojiToggle.classList.toggle("ow-active", open);
+            });
+        }
+
+        // ── Speech-to-Text ──
+        var micToggle = root.getElementById("ow-mic-toggle");
+        if (micToggle) {
+            var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                var recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = true;
+                recognition.lang = "en-US";
+                var isRecording = false;
+
+                micToggle.addEventListener("click", function() {
+                    if (isRecording) {
+                        recognition.stop();
+                        isRecording = false;
+                        micToggle.classList.remove("ow-recording");
+                    } else {
+                        recognition.start();
+                        isRecording = true;
+                        micToggle.classList.add("ow-recording");
+                    }
+                });
+
+                recognition.onresult = function(event) {
+                    var transcript = "";
+                    for (var i = event.resultIndex; i < event.results.length; i++) {
+                        transcript += event.results[i][0].transcript;
+                    }
+                    var inp = root.getElementById("ow-input");
+                    if (inp && transcript) {
+                        inp.value = transcript;
+                    }
+                };
+
+                recognition.onend = function() {
+                    isRecording = false;
+                    micToggle.classList.remove("ow-recording");
+                };
+
+                recognition.onerror = function() {
+                    isRecording = false;
+                    micToggle.classList.remove("ow-recording");
+                };
+            }
         }
     };
 

@@ -87,6 +87,7 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState("");
+    const [showPreview, setShowPreview] = useState(true);
 
     const tmpl = widget.agent_templates;
 
@@ -105,10 +106,22 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
     const [corePrompt, setCorePrompt] = useState(widget.config?.core_prompt_override || tmpl?.core_prompt || "");
 
     // Appearance
-    const [primaryColor, setPrimaryColor] = useState(widget.config?.primary_color || "#6366f1");
-    const [darkMode, setDarkMode] = useState(widget.config?.dark_mode ?? false);
-    const [borderRadius, setBorderRadius] = useState(widget.config?.border_radius ?? 16);
-    const [showBranding, setShowBranding] = useState(widget.config?.branding !== false);
+    const [primaryColor, setPrimaryColor] = useState(widget.primary_color || widget.config?.primary_color || "#6366f1");
+    const [accentColor, setAccentColor] = useState(widget.accent_color || widget.config?.accent_color || "#4f46e5");
+    const [bgColor, setBgColor] = useState(widget.bg_color || widget.config?.bg_color || "#ffffff");
+    const [textColor, setTextColor] = useState(widget.text_color || widget.config?.text_color || "#1a1a2e");
+    const [fontFamily, setFontFamily] = useState(widget.font_family || widget.config?.font_family || "Inter, system-ui, sans-serif");
+    const [darkMode, setDarkMode] = useState(widget.dark_mode ?? widget.config?.dark_mode ?? false);
+    const [borderRadius, setBorderRadius] = useState(widget.border_radius ?? widget.config?.border_radius ?? 16);
+    const [showBranding, setShowBranding] = useState(widget.show_branding ?? widget.config?.branding !== false);
+    const [bubbleSize, setBubbleSize] = useState(widget.bubble_size ?? 60);
+    const [chatWidth, setChatWidth] = useState(widget.chat_width ?? 400);
+    const [chatHeight, setChatHeight] = useState(widget.chat_height ?? 620);
+    const [companyLogoUrl, setCompanyLogoUrl] = useState(widget.config?.company_logo_url || "");
+    const [windowStyle, setWindowStyle] = useState<string>(widget.config?.window_style || "solid");
+    const [soundEnabled, setSoundEnabled] = useState(widget.sound_enabled ?? false);
+    const [autoOpen, setAutoOpen] = useState(widget.auto_open ?? false);
+    const [autoOpenDelay, setAutoOpenDelay] = useState(widget.auto_open_delay ?? 3000);
 
     // AI Model
     const [selectedProviderId, setSelectedProviderId] = useState(widget.user_provider_id || "");
@@ -213,11 +226,17 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
             welcome_message: welcomeMessage,
             position,
             core_prompt_override: corePrompt,
-            // Appearance
+            // Appearance (also in top-level columns)
             primary_color: primaryColor,
+            accent_color: accentColor,
+            bg_color: bgColor,
+            text_color: textColor,
+            font_family: fontFamily,
             dark_mode: darkMode,
             border_radius: borderRadius,
             branding: showBranding,
+            company_logo_url: companyLogoUrl,
+            window_style: windowStyle,
             // AI Model
             model: selectedModel,
             // Training Data
@@ -267,6 +286,24 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
                     persistence_mode: persistenceMode,
                     domain_whitelist: domainWhitelist.split(",").map((d: string) => d.trim()).filter(Boolean),
                     user_provider_id: selectedProviderId || null,
+                    // Dedicated DB columns
+                    primary_color: primaryColor,
+                    accent_color: accentColor,
+                    bg_color: bgColor,
+                    text_color: textColor,
+                    font_family: fontFamily,
+                    border_radius: borderRadius,
+                    dark_mode: darkMode,
+                    show_branding: showBranding,
+                    bubble_size: bubbleSize,
+                    chat_width: chatWidth,
+                    chat_height: chatHeight,
+                    sound_enabled: soundEnabled,
+                    auto_open: autoOpen,
+                    auto_open_delay: autoOpenDelay,
+                    avatar_url: avatarUrl || null,
+                    welcome_message: welcomeMessage,
+                    placeholder: widget.placeholder || "Type a message...",
                     config,
                 }),
             });
@@ -281,7 +318,9 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
     }, [
         widget, name, agentDisplayName, agentBio, avatarUrl, welcomeMessage,
         widgetType, position, persistenceMode, domainWhitelist, corePrompt,
-        primaryColor, darkMode, borderRadius, showBranding,
+        primaryColor, accentColor, bgColor, textColor, fontFamily,
+        darkMode, borderRadius, showBranding, bubbleSize, chatWidth, chatHeight,
+        companyLogoUrl, windowStyle, soundEnabled, autoOpen, autoOpenDelay,
         selectedProviderId, selectedModel, qaItems, rawContext, promptLayers, rules,
         formality, verbosity, emojiUsage, responseStyle,
         personalityText, styleText, toneText,
@@ -316,6 +355,18 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => setShowPreview(!showPreview)}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
+                        style={{
+                            background: showPreview ? "color-mix(in srgb, var(--primary) 10%, var(--surface-50))" : "var(--surface-100)",
+                            border: showPreview ? "1px solid var(--primary)" : "1px solid var(--surface-200)",
+                            color: showPreview ? "var(--primary)" : "var(--surface-600)",
+                        }}
+                    >
+                        <Eye className="w-3.5 h-3.5" />
+                        Preview
+                    </button>
                     {error && (
                         <span className="text-xs text-red-500 flex items-center gap-1">
                             <AlertTriangle className="w-3 h-3" /> {error}
@@ -502,51 +553,159 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
 
                     {/* ═══════ Appearance ═══════ */}
                     {activeTab === "appearance" && (
-                        <div className="space-y-5">
-                            <h2 className="text-lg font-bold text-[var(--surface-900)]">Appearance</h2>
+                        <div className="space-y-6">
+                            <h2 className="text-lg font-bold text-[var(--surface-900)]">Design Studio</h2>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-xs font-semibold text-[var(--surface-700)] mb-1.5 block">Primary Color</label>
-                                    <div className="flex items-center gap-3">
-                                        <input type="color" value={primaryColor} onChange={e => setPrimaryColor(e.target.value)}
-                                            className="w-12 h-12 rounded-xl border cursor-pointer" style={{ borderColor: "var(--surface-200)" }} />
-                                        <input type="text" value={primaryColor} onChange={e => setPrimaryColor(e.target.value)}
-                                            className="flex-1 px-4 py-3 rounded-xl border text-sm font-mono outline-none transition-colors focus:border-[var(--primary)]"
-                                            style={inputStyle} />
-                                    </div>
+                            {/* ── Color Palette ── */}
+                            <div className="p-4 rounded-xl space-y-4" style={{ background: "color-mix(in srgb, var(--primary) 3%, var(--surface-100))", border: "1px solid color-mix(in srgb, var(--primary) 10%, var(--surface-200))" }}>
+                                <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--surface-500)]">Color Palette</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    {([
+                                        { label: "Primary", val: primaryColor, set: setPrimaryColor },
+                                        { label: "Accent", val: accentColor, set: setAccentColor },
+                                        { label: "Background", val: bgColor, set: setBgColor },
+                                        { label: "Text", val: textColor, set: setTextColor },
+                                    ] as const).map(c => (
+                                        <div key={c.label}>
+                                            <label className="text-xs font-semibold text-[var(--surface-700)] mb-1.5 block">{c.label}</label>
+                                            <div className="flex items-center gap-2">
+                                                <input type="color" value={c.val} onChange={e => c.set(e.target.value)}
+                                                    className="w-10 h-10 rounded-lg border cursor-pointer flex-shrink-0" style={{ borderColor: "var(--surface-200)" }} />
+                                                <input type="text" value={c.val} onChange={e => c.set(e.target.value)}
+                                                    className="flex-1 px-3 py-2 rounded-lg border text-xs font-mono outline-none transition-colors focus:border-[var(--primary)]"
+                                                    style={inputStyle} />
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                                <div>
-                                    <label className="text-xs font-semibold text-[var(--surface-700)] mb-1.5 block">Border Radius</label>
-                                    <div className="flex items-center gap-3">
-                                        <input type="range" min="0" max="32" value={borderRadius}
-                                            onChange={e => setBorderRadius(Number(e.target.value))}
-                                            className="flex-1" style={{ accentColor: "var(--primary)" }} />
-                                        <span className="text-sm font-mono text-[var(--surface-600)] w-12 text-right">{borderRadius}px</span>
-                                    </div>
+                                {/* Live swatch preview */}
+                                <div className="flex gap-2 pt-2">
+                                    <div className="flex-1 h-8 rounded-lg" style={{ background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})` }} />
+                                    <div className="w-16 h-8 rounded-lg border" style={{ background: bgColor, borderColor: "var(--surface-200)" }} />
+                                    <div className="w-16 h-8 rounded-lg flex items-center justify-center text-xs font-bold" style={{ background: bgColor, color: textColor }}>Aa</div>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <label className="flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-colors hover:bg-[var(--surface-100)]"
-                                    style={{ borderColor: "var(--surface-200)" }}>
-                                    <input type="checkbox" checked={darkMode} onChange={e => setDarkMode(e.target.checked)}
-                                        className="w-5 h-5 rounded" style={{ accentColor: "var(--primary)" }} />
-                                    <div>
-                                        <span className="text-sm font-semibold text-[var(--surface-900)]">Dark Mode</span>
-                                        <p className="text-[11px] text-[var(--surface-500)]">Use dark theme for the chat widget</p>
-                                    </div>
-                                </label>
-                                <label className="flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-colors hover:bg-[var(--surface-100)]"
-                                    style={{ borderColor: "var(--surface-200)" }}>
-                                    <input type="checkbox" checked={showBranding} onChange={e => setShowBranding(e.target.checked)}
-                                        className="w-5 h-5 rounded" style={{ accentColor: "var(--primary)" }} />
-                                    <div>
-                                        <span className="text-sm font-semibold text-[var(--surface-900)]">Show Branding</span>
-                                        <p className="text-[11px] text-[var(--surface-500)]">"Powered by Oraya" badge in widget</p>
-                                    </div>
-                                </label>
+                            {/* ── Typography ── */}
+                            <div className="p-4 rounded-xl space-y-4" style={{ background: "var(--surface-100)", border: "1px solid var(--surface-200)" }}>
+                                <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--surface-500)]">Typography</h3>
+                                <div>
+                                    <label className="text-xs font-semibold text-[var(--surface-700)] mb-1.5 block">Font Family</label>
+                                    <select value={fontFamily} onChange={e => setFontFamily(e.target.value)}
+                                        className="w-full px-4 py-3 rounded-xl border text-sm outline-none transition-colors focus:border-[var(--primary)]"
+                                        style={inputStyle}>
+                                        <option value="Inter, system-ui, sans-serif">Inter (Modern)</option>
+                                        <option value="DM Sans, sans-serif">DM Sans (Clean)</option>
+                                        <option value="Plus Jakarta Sans, sans-serif">Plus Jakarta Sans (Premium)</option>
+                                        <option value="Poppins, sans-serif">Poppins (Friendly)</option>
+                                        <option value="Roboto, sans-serif">Roboto (Neutral)</option>
+                                        <option value="Montserrat, sans-serif">Montserrat (Bold)</option>
+                                        <option value="system-ui, -apple-system, sans-serif">System Default</option>
+                                    </select>
+                                </div>
                             </div>
+
+                            {/* ── Company Logo ── */}
+                            <div className="p-4 rounded-xl space-y-3" style={{ background: "var(--surface-100)", border: "1px solid var(--surface-200)" }}>
+                                <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--surface-500)]">Company Logo</h3>
+                                <div className="flex items-center gap-4">
+                                    <div className="w-14 h-14 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0"
+                                        style={{ background: "var(--surface-200)", border: "1px solid var(--surface-300)" }}>
+                                        {companyLogoUrl ? (
+                                            <img src={companyLogoUrl} alt="Logo" className="w-full h-full object-contain" />
+                                        ) : (
+                                            <Image className="w-5 h-5 text-[var(--surface-400)]" />
+                                        )}
+                                    </div>
+                                    <input type="text" value={companyLogoUrl} onChange={e => setCompanyLogoUrl(e.target.value)}
+                                        className="flex-1 px-4 py-3 rounded-xl border text-sm font-mono outline-none transition-colors focus:border-[var(--primary)]"
+                                        style={inputStyle} placeholder="https://your-company.com/logo.png" />
+                                </div>
+                                <p className="text-[10px] text-[var(--surface-400)]">Shown in the chat header. Use a square or landscape logo (SVG or PNG recommended).</p>
+                            </div>
+
+                            {/* ── Dimensions ── */}
+                            <div className="p-4 rounded-xl space-y-4" style={{ background: "var(--surface-100)", border: "1px solid var(--surface-200)" }}>
+                                <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--surface-500)]">Dimensions</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    {([
+                                        { label: "Border Radius", val: borderRadius, set: setBorderRadius, min: 0, max: 32, unit: "px" },
+                                        { label: "Bubble Size", val: bubbleSize, set: setBubbleSize, min: 42, max: 80, unit: "px" },
+                                        { label: "Chat Width", val: chatWidth, set: setChatWidth, min: 320, max: 500, unit: "px" },
+                                        { label: "Chat Height", val: chatHeight, set: setChatHeight, min: 400, max: 720, unit: "px" },
+                                    ] as const).map(d => (
+                                        <div key={d.label}>
+                                            <div className="flex items-center justify-between mb-1.5">
+                                                <label className="text-xs font-semibold text-[var(--surface-700)]">{d.label}</label>
+                                                <span className="text-xs font-mono text-[var(--surface-500)]">{d.val}{d.unit}</span>
+                                            </div>
+                                            <input type="range" min={d.min} max={d.max} value={d.val}
+                                                onChange={e => d.set(Number(e.target.value))}
+                                                className="w-full" style={{ accentColor: "var(--primary)" }} />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* ── Window Style Presets ── */}
+                            <div className="p-4 rounded-xl space-y-3" style={{ background: "var(--surface-100)", border: "1px solid var(--surface-200)" }}>
+                                <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--surface-500)]">Window Style</h3>
+                                <div className="grid grid-cols-4 gap-2">
+                                    {([
+                                        { key: "solid", label: "Solid", desc: "Clean flat" },
+                                        { key: "glass", label: "Glass", desc: "Frosted blur" },
+                                        { key: "gradient", label: "Gradient", desc: "Vibrant header" },
+                                        { key: "shadow", label: "Shadow", desc: "Elevated card" },
+                                    ] as const).map(preset => (
+                                        <button key={preset.key} onClick={() => setWindowStyle(preset.key)}
+                                            className="p-3 rounded-xl border text-center transition-all"
+                                            style={{
+                                                background: windowStyle === preset.key
+                                                    ? "color-mix(in srgb, var(--primary) 10%, var(--surface-50))"
+                                                    : "var(--surface-50)",
+                                                borderColor: windowStyle === preset.key ? "var(--primary)" : "var(--surface-200)",
+                                                boxShadow: windowStyle === preset.key ? "0 0 0 1px var(--primary)" : "none",
+                                            }}>
+                                            <span className="text-xs font-bold block" style={{ color: windowStyle === preset.key ? "var(--primary)" : "var(--surface-900)" }}>
+                                                {preset.label}
+                                            </span>
+                                            <span className="text-[10px] text-[var(--surface-500)]">{preset.desc}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* ── Toggles ── */}
+                            <div className="grid grid-cols-2 gap-3">
+                                {([
+                                    { label: "Dark Mode", desc: "Dark theme for widget", checked: darkMode, set: (v: boolean) => setDarkMode(v) },
+                                    { label: "Show Branding", desc: "\"Powered by Oraya\" badge", checked: showBranding, set: (v: boolean) => setShowBranding(v) },
+                                    { label: "Sound Effects", desc: "Play sound on new messages", checked: soundEnabled, set: (v: boolean) => setSoundEnabled(v) },
+                                    { label: "Auto-Open", desc: "Open chat after page load", checked: autoOpen, set: (v: boolean) => setAutoOpen(v) },
+                                ] as const).map(t => (
+                                    <label key={t.label} className="flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all hover:bg-[var(--surface-50)]"
+                                        style={{ borderColor: t.checked ? "var(--primary)" : "var(--surface-200)", background: t.checked ? "color-mix(in srgb, var(--primary) 5%, var(--surface-50))" : "var(--surface-50)" }}>
+                                        <input type="checkbox" checked={t.checked} onChange={e => t.set(e.target.checked)}
+                                            className="w-4 h-4 rounded" style={{ accentColor: "var(--primary)" }} />
+                                        <div>
+                                            <span className="text-xs font-semibold text-[var(--surface-900)] block">{t.label}</span>
+                                            <span className="text-[10px] text-[var(--surface-500)]">{t.desc}</span>
+                                        </div>
+                                    </label>
+                                ))}
+                            </div>
+
+                            {autoOpen && (
+                                <div>
+                                    <div className="flex items-center justify-between mb-1.5">
+                                        <label className="text-xs font-semibold text-[var(--surface-700)]">Auto-Open Delay</label>
+                                        <span className="text-xs font-mono text-[var(--surface-500)]">{(autoOpenDelay / 1000).toFixed(1)}s</span>
+                                    </div>
+                                    <input type="range" min="1000" max="10000" step="500" value={autoOpenDelay}
+                                        onChange={e => setAutoOpenDelay(Number(e.target.value))}
+                                        className="w-full" style={{ accentColor: "var(--primary)" }} />
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -1284,6 +1443,136 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
                     )}
 
                 </div>
+
+                {/* ── Live Preview Panel ── */}
+                {showPreview && (
+                    <div className="w-[340px] flex-shrink-0 sticky top-4 self-start">
+                        <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--surface-200)", background: "var(--surface-50)" }}>
+                            {/* Preview header */}
+                            <div className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: "1px solid var(--surface-200)" }}>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--surface-500)]">Live Preview</span>
+                                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                            </div>
+
+                            {/* Mini widget preview */}
+                            <div className="p-5" style={{ background: darkMode ? "#1a1a2e" : "#f0f0f5" }}>
+                                {/* Bubble */}
+                                <div className="flex justify-end mb-3">
+                                    <div className="flex items-center justify-center rounded-full"
+                                        style={{
+                                            width: `${Math.min(bubbleSize, 52)}px`,
+                                            height: `${Math.min(bubbleSize, 52)}px`,
+                                            background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})`,
+                                            boxShadow: `0 4px 16px ${primaryColor}40`,
+                                        }}>
+                                        <svg viewBox="0 0 24 24" width="22" height="22" fill="white">
+                                            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                {/* Chat window */}
+                                <div className="overflow-hidden" style={{
+                                    borderRadius: `${borderRadius}px`,
+                                    background: darkMode ? (bgColor === "#ffffff" ? "#1a1a2e" : bgColor) : bgColor,
+                                    border: `1px solid ${darkMode ? "#333" : "#e2e8f0"}`,
+                                    boxShadow: windowStyle === "shadow" ? "0 12px 40px rgba(0,0,0,0.18)" : "0 4px 16px rgba(0,0,0,0.08)",
+                                    backdropFilter: windowStyle === "glass" ? "blur(12px)" : undefined,
+                                    fontFamily: fontFamily,
+                                }}>
+                                    {/* Header */}
+                                    <div className="flex items-center gap-2.5 px-4 py-3" style={{
+                                        background: windowStyle === "gradient"
+                                            ? `linear-gradient(135deg, ${primaryColor}, ${accentColor})`
+                                            : primaryColor,
+                                    }}>
+                                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm overflow-hidden"
+                                            style={{ background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.15)" }}>
+                                            {avatarUrl ? (
+                                                <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <span>{tmpl?.emoji || "🤖"}</span>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <div className="text-xs font-bold text-white leading-tight">
+                                                {agentDisplayName || name || "AI Assistant"}
+                                            </div>
+                                            <div className="text-[9px] text-white/70">Online</div>
+                                        </div>
+                                        {companyLogoUrl && (
+                                            <img src={companyLogoUrl} alt="" className="w-5 h-5 ml-auto object-contain opacity-80" />
+                                        )}
+                                    </div>
+
+                                    {/* Messages */}
+                                    <div className="p-3 space-y-2" style={{ minHeight: "140px" }}>
+                                        {/* Welcome */}
+                                        <div className="text-center py-2">
+                                            <span className="text-xl">{tmpl?.emoji || "🤖"}</span>
+                                            <p className="text-[10px] mt-1" style={{ color: darkMode ? "#94a3b8" : "#64748b" }}>
+                                                {welcomeMessage || "Hi! How can I help you today?"}
+                                            </p>
+                                        </div>
+                                        {/* Sample user msg */}
+                                        <div className="flex justify-end">
+                                            <div className="px-3 py-1.5 rounded-xl text-[10px] text-white max-w-[70%]"
+                                                style={{ background: primaryColor, borderRadius: `${Math.min(borderRadius, 16)}px` }}>
+                                                Hello! I need help
+                                            </div>
+                                        </div>
+                                        {/* Sample bot msg */}
+                                        <div className="flex justify-start">
+                                            <div className="px-3 py-1.5 rounded-xl text-[10px] max-w-[75%]"
+                                                style={{
+                                                    background: darkMode ? "#2d2d44" : "#f1f5f9",
+                                                    color: darkMode ? "#e2e8f0" : textColor,
+                                                    borderRadius: `${Math.min(borderRadius, 16)}px`,
+                                                }}>
+                                                Of course! I&apos;m here to help. What can I do for you today? 😊
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Input area */}
+                                    <div className="px-3 pb-2 flex items-center gap-2">
+                                        <div className="flex-1 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px]"
+                                            style={{
+                                                background: darkMode ? "#2d2d44" : "#f8fafc",
+                                                border: `1px solid ${darkMode ? "#444" : "#e2e8f0"}`,
+                                                color: darkMode ? "#64748b" : "#94a3b8",
+                                            }}>
+                                            Type a message...
+                                        </div>
+                                        <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: primaryColor }}>
+                                            <svg viewBox="0 0 24 24" width="12" height="12" fill="white">
+                                                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+
+                                    {/* Branding */}
+                                    {showBranding && (
+                                        <div className="text-center py-1.5" style={{ borderTop: `1px solid ${darkMode ? "#333" : "#eee"}` }}>
+                                            <span className="text-[8px]" style={{ color: darkMode ? "#555" : "#aaa" }}>Powered by Oraya</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Preview info */}
+                            <div className="px-4 py-2.5 flex items-center justify-between" style={{ borderTop: "1px solid var(--surface-200)" }}>
+                                <div className="text-[10px] text-[var(--surface-500)]">
+                                    {chatWidth}×{chatHeight}px • {fontFamily.split(",")[0].replace(/"/g, "")}
+                                </div>
+                                <div className="flex gap-1">
+                                    <div className="w-3 h-3 rounded-full" style={{ background: primaryColor }} />
+                                    <div className="w-3 h-3 rounded-full" style={{ background: accentColor }} />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
