@@ -106,9 +106,7 @@ export function EmbedCodeModal({ widget, onClose }: EmbedCodeModalProps) {
     const [copied, setCopied] = useState(false);
     const [keyCopied, setKeyCopied] = useState(false);
 
-    const baseUrl = typeof window !== "undefined"
-        ? window.location.origin
-        : "https://oraya.dev";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://oraya.dev";
 
     const codeMap: Record<EmbedTab, string> = {
         html: getHtmlCode(widget.api_key, baseUrl),

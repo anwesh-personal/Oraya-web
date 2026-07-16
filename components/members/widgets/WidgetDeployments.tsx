@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Plus, Search, MoreVertical, Copy, Check, Trash2,
@@ -70,6 +71,7 @@ export function WidgetDeployments({ widgets: initialWidgets, availableAgents }: 
     const [embedWidget, setEmbedWidget] = useState<WidgetDeployment | null>(null);
     const [copiedId, setCopiedId] = useState<string | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const router = useRouter();
 
     // Filter
     const filtered = widgets.filter(w =>
@@ -111,7 +113,9 @@ export function WidgetDeployments({ widgets: initialWidgets, availableAgents }: 
     const handleCreated = useCallback((widget: WidgetDeployment) => {
         setWidgets(prev => [widget, ...prev]);
         setShowCreate(false);
-    }, []);
+        // Redirect to full editor so user can configure provider, training, personality etc.
+        router.push(`/dashboard/widgets/${widget.id}`);
+    }, [router]);
 
     return (
         <div className="space-y-6">
@@ -242,6 +246,13 @@ export function WidgetDeployments({ widgets: initialWidgets, availableAgents }: 
 
                                     {/* Actions */}
                                     <div className="flex items-center gap-1 flex-shrink-0">
+                                        <button
+                                            onClick={() => router.push(`/dashboard/widgets/${widget.id}`)}
+                                            className="p-2 rounded-lg transition-colors hover:bg-[var(--surface-200)]"
+                                            title="Edit / Configure"
+                                        >
+                                            <Settings2 className="w-4 h-4 text-[var(--primary)]" />
+                                        </button>
                                         <button
                                             onClick={() => setEmbedWidget(widget)}
                                             className="p-2 rounded-lg transition-colors hover:bg-[var(--surface-200)]"
