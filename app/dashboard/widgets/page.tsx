@@ -70,7 +70,7 @@ async function getWidgets(): Promise<WidgetDeployment[]> {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) redirect("/login");
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
         .from("widget_deployments")
         .select(`
             *,
