@@ -1,4 +1,7 @@
-const input = "VwBCIEIOdG2tOWMMwR2uRXdaWSsduRYAfzblL5mix6TAufU2o8.";
+// SECURITY: hardcoded private-key material removed — it leaked via git history
+// and the remote. Rotate the license signing keypair and supply via env only.
+// See 2026-07-13 security posture doc.
+const input = process.env.LICENSE_SIGNING_KEY_RAW || "<REDACTED_ROTATE_ME>";
 const cleanInput = input.replace('.', ''); // Remove trailing dot
 
 // Standard PKCS#8 prefix for Ed25519 is 16 bytes:

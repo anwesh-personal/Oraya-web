@@ -7,7 +7,7 @@
 -- STEPS TO ADD SUPERADMIN:
 -- 1. Create user in Supabase Auth (Dashboard > Authentication > Users > Add User)
 --    Email: anweshrath@gmail.com
---    Password: 3edcCDE#
+--    Password: <REDACTED — rotate superadmin credential; see 2026-07-13 security posture doc>
 -- 2. Copy the user's UUID from the Auth dashboard
 -- 3. Replace 'YOUR_SUPABASE_AUTH_USER_UUID' below with that UUID
 -- 4. Run this migration

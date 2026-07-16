@@ -15,7 +15,7 @@ CREATE INDEX IF NOT EXISTS idx_platform_admins_email_active
 ON platform_admins(email) WHERE is_active = TRUE;
 
 -- Update the existing superadmin with a hashed password
--- Password: 3edcCDE#
+-- Password: <REDACTED — rotate superadmin credential; see 2026-07-13 security posture doc>
 -- bcrypt hash (12 rounds)
 UPDATE platform_admins 
 SET password_hash = '$2a$12$eIslKL0/DiGjcdsCAZAGLO51Izn7nzESDn4HOOQYU1mSUQVFgbKWK',

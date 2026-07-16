@@ -11,6 +11,7 @@ import {
     Coins,
     CreditCard,
     Microscope,
+    CodeXml,
     Settings,
     HelpCircle,
     LogOut,
@@ -63,6 +64,7 @@ const navigation = [
         label: "Services",
         items: [
             { name: "24/7 Research", href: "/dashboard/research", icon: Microscope },
+            { name: "Widget Deployments", href: "/dashboard/widgets", icon: CodeXml },
         ],
     },
     {

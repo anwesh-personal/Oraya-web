@@ -1,6 +1,10 @@
 import crypto from "crypto";
 
-const input = "VwBCIEIOdG2tOWMMwR2uRXdaWSsduRYAfzblL5mix6TAufU2o8.";
+// SECURITY: the raw private-key material that used to be hardcoded here was
+// exposed in git history and pushed to the remote. It MUST be rotated (generate
+// a new license signing keypair) and this value must be supplied via env, never
+// committed. See 2026-07-13 security posture doc (History purge + rotation runbook).
+const input = process.env.LICENSE_SIGNING_KEY_RAW || "<REDACTED_ROTATE_ME>";
 const cleanInput = input.replace('.', ''); // Remove trailing dot
 
 // The standard PKCS#8 header for Ed25519 is:
