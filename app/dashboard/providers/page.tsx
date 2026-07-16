@@ -1,8 +1,7 @@
 import { Metadata } from "next";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { ProviderHub } from "@/components/members/providers/ProviderHub";
-import { Cpu } from "lucide-react";
+import ProviderHub from "@/components/members/providers/ProviderHub";
 
 // ─────────────────────────────────────────────────────────────
 // Metadata
@@ -72,31 +71,6 @@ export default async function ProvidersPage() {
 
     return (
         <div className="space-y-8 page-enter">
-            {/* ── Header ── */}
-            <div className="flex items-start justify-between gap-4">
-                <div>
-                    <div className="flex items-center gap-3 mb-1">
-                        <div
-                            className="w-10 h-10 rounded-xl flex items-center justify-center"
-                            style={{
-                                background: "color-mix(in srgb, var(--primary) 12%, var(--surface-100))",
-                                border: "1px solid color-mix(in srgb, var(--primary) 25%, transparent)",
-                            }}
-                        >
-                            <Cpu className="w-5 h-5 text-[var(--primary)]" />
-                        </div>
-                        <h1 className="text-2xl font-bold text-[var(--surface-900)] font-display">
-                            AI Providers
-                        </h1>
-                    </div>
-                    <p className="text-sm text-[var(--surface-500)] ml-[3.25rem]">
-                        Configure your own AI provider API keys. Add keys, validate instantly,
-                        and select models for your agent widgets.
-                    </p>
-                </div>
-            </div>
-
-            {/* ── Provider Hub ── */}
             <ProviderHub providers={providers} />
         </div>
     );

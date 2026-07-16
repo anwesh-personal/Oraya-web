@@ -39,32 +39,59 @@ async function validateOpenAI(apiKey: string): Promise<ValidationResult> {
 }
 
 async function validateAnthropic(apiKey: string): Promise<ValidationResult> {
+    const knownModels: ModelInfo[] = [
+        { id: "claude-sonnet-4-20250514", name: "Claude Sonnet 4" },
+        { id: "claude-opus-4-20250514", name: "Claude Opus 4" },
+        { id: "claude-3-5-haiku-20241022", name: "Claude 3.5 Haiku" },
+        { id: "claude-3-5-sonnet-20241022", name: "Claude 3.5 Sonnet" },
+        { id: "claude-3-haiku-20240307", name: "Claude 3 Haiku" },
+    ];
+
     try {
+        // Try /v1/models first (newer API versions support it)
         const res = await fetch("https://api.anthropic.com/v1/models", {
             headers: {
                 "x-api-key": apiKey,
                 "anthropic-version": "2024-10-22",
             },
         });
-        if (!res.ok) {
-            // Anthropic may not have /models — fallback to known models
-            if (res.status === 404) {
-                return {
-                    valid: true,
-                    models: [
-                        { id: "claude-sonnet-4-20250514", name: "Claude Sonnet 4" },
-                        { id: "claude-opus-4-20250514", name: "Claude Opus 4" },
-                        { id: "claude-3-5-haiku-20241022", name: "Claude 3.5 Haiku" },
-                        { id: "claude-3-5-sonnet-20241022", name: "Claude 3.5 Sonnet" },
-                    ],
-                };
-            }
-            return { valid: false, models: [], error: `HTTP ${res.status}` };
+
+        if (res.ok) {
+            const data = await res.json();
+            const models = (data.data || [])
+                .map((m: any): ModelInfo => ({ id: m.id, name: m.display_name || m.id }));
+            return { valid: true, models: models.length > 0 ? models : knownModels };
         }
-        const data = await res.json();
-        const models = (data.data || [])
-            .map((m: any): ModelInfo => ({ id: m.id, name: m.display_name || m.id }));
-        return { valid: true, models };
+
+        // /v1/models returned non-200 (400, 404, etc) — verify key with a
+        // lightweight messages request that costs nothing (empty body triggers
+        // a validation error, but a 401 = bad key, anything else = key is valid)
+        if (res.status === 401) {
+            return { valid: false, models: [], error: "Invalid API key" };
+        }
+
+        // Any other status (400, 404, 403) means the endpoint isn't available
+        // but the key authenticated. Verify with a ping request.
+        const pingRes = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: {
+                "x-api-key": apiKey,
+                "anthropic-version": "2024-10-22",
+                "content-type": "application/json",
+            },
+            body: JSON.stringify({
+                model: "claude-3-haiku-20240307",
+                max_tokens: 1,
+                messages: [{ role: "user", content: "hi" }],
+            }),
+        });
+
+        // 401 = bad key. Anything else (200, 400, 429) = key is valid
+        if (pingRes.status === 401) {
+            return { valid: false, models: [], error: "Invalid API key" };
+        }
+
+        return { valid: true, models: knownModels };
     } catch (err: any) {
         return { valid: false, models: [], error: err.message };
     }
