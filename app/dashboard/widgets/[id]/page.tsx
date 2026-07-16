@@ -29,7 +29,7 @@ async function getWidget(id: string) {
             *,
             agent_templates:template_id (
                 id, name, emoji, tagline, category, icon_url,
-                personality_config, description
+                core_prompt, personality_config, description, role
             )
         `)
         .eq("id", id)
@@ -56,6 +56,57 @@ async function getUserProviders() {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Template Composition Data
+// ─────────────────────────────────────────────────────────────
+
+async function getTemplateData(templateId: string | null) {
+    if (!templateId) return null;
+
+    const supabase = await createServerSupabaseClient();
+
+    const [promptsRes, examplesRes, rulesRes, knowledgeRes, memoriesRes] = await Promise.all([
+        (supabase as any)
+            .from("agent_template_prompts")
+            .select("*")
+            .eq("template_id", templateId)
+            .eq("is_active", true)
+            .order("priority", { ascending: true }),
+        (supabase as any)
+            .from("agent_template_examples")
+            .select("*")
+            .eq("template_id", templateId)
+            .eq("is_active", true)
+            .order("sort_order", { ascending: true }),
+        (supabase as any)
+            .from("agent_template_rules")
+            .select("*")
+            .eq("template_id", templateId)
+            .eq("is_active", true)
+            .order("sort_order", { ascending: true }),
+        (supabase as any)
+            .from("agent_template_knowledge_bases")
+            .select("*")
+            .eq("template_id", templateId)
+            .eq("is_active", true)
+            .order("created_at", { ascending: true }),
+        (supabase as any)
+            .from("agent_template_memories")
+            .select("*")
+            .eq("template_id", templateId)
+            .eq("is_active", true)
+            .order("sort_order", { ascending: true }),
+    ]);
+
+    return {
+        prompts: promptsRes.data ?? [],
+        examples: examplesRes.data ?? [],
+        rules: rulesRes.data ?? [],
+        knowledge: knowledgeRes.data ?? [],
+        memories: memoriesRes.data ?? [],
+    };
+}
+
+// ─────────────────────────────────────────────────────────────
 // Page
 // ─────────────────────────────────────────────────────────────
 
@@ -72,9 +123,16 @@ export default async function WidgetEditorPage({
 
     if (!widget) notFound();
 
+    // Fetch full template composition data in parallel
+    const templateData = await getTemplateData(widget.template_id);
+
     return (
         <div className="page-enter">
-            <WidgetEditor widget={widget} providers={providers} />
+            <WidgetEditor
+                widget={widget}
+                providers={providers}
+                templateData={templateData}
+            />
         </div>
     );
 }
