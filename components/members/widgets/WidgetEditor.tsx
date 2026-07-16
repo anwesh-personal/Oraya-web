@@ -88,6 +88,8 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState("");
     const [showPreview, setShowPreview] = useState(true);
+    const [avatarUploading, setAvatarUploading] = useState(false);
+    const avatarFileRef = useRef<HTMLInputElement>(null);
 
     const tmpl = widget.agent_templates;
 
@@ -434,24 +436,82 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
                             <div className="p-4 rounded-xl space-y-4" style={{ background: "color-mix(in srgb, var(--primary) 3%, var(--surface-100))", border: "1px solid color-mix(in srgb, var(--primary) 10%, var(--surface-200))" }}>
                                 <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--surface-500)]">Agent Identity</h3>
                                 <div className="flex items-start gap-5">
-                                    {/* Avatar preview */}
+                                    {/* Avatar preview + upload */}
                                     <div className="flex flex-col items-center gap-2 flex-shrink-0">
-                                        <div
-                                            className="w-20 h-20 rounded-2xl flex items-center justify-center overflow-hidden"
-                                            style={{
-                                                background: avatarUrl
-                                                    ? "transparent"
-                                                    : "color-mix(in srgb, var(--primary) 12%, var(--surface-200))",
-                                                border: "2px solid color-mix(in srgb, var(--primary) 25%, var(--surface-200))",
-                                            }}
-                                        >
-                                            {avatarUrl ? (
-                                                <img src={avatarUrl} alt="Agent" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <span className="text-3xl">{tmpl?.emoji || "🤖"}</span>
-                                            )}
+                                        <div className="relative group">
+                                            <div
+                                                className="w-20 h-20 rounded-2xl flex items-center justify-center overflow-hidden"
+                                                style={{
+                                                    background: avatarUrl
+                                                        ? "transparent"
+                                                        : "color-mix(in srgb, var(--primary) 12%, var(--surface-200))",
+                                                    border: "2px solid color-mix(in srgb, var(--primary) 25%, var(--surface-200))",
+                                                }}
+                                            >
+                                                {avatarUrl ? (
+                                                    <img src={avatarUrl} alt="Agent" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <span className="text-3xl">{tmpl?.emoji || "🤖"}</span>
+                                                )}
+                                            </div>
+                                            {/* Upload overlay */}
+                                            <div
+                                                className="absolute inset-0 rounded-2xl flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                                style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(2px)" }}
+                                                onClick={() => avatarFileRef.current?.click()}
+                                            >
+                                                <Upload className="w-4 h-4 text-white" />
+                                                <span className="text-[9px] font-semibold text-white">Upload</span>
+                                            </div>
+                                            {/* Hidden file input */}
+                                            <input
+                                                ref={avatarFileRef}
+                                                type="file"
+                                                accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+                                                className="hidden"
+                                                onChange={async (e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (!file) return;
+                                                    if (file.size > 2 * 1024 * 1024) {
+                                                        setError("Avatar file must be under 2 MB");
+                                                        return;
+                                                    }
+                                                    setAvatarUploading(true);
+                                                    try {
+                                                        const fd = new FormData();
+                                                        fd.append("file", file);
+                                                        fd.append("widgetId", widget.id);
+                                                        const res = await fetch("/api/members/widgets/avatar", { method: "POST", body: fd });
+                                                        const data = await res.json();
+                                                        if (!res.ok) throw new Error(data.error || "Upload failed");
+                                                        setAvatarUrl(data.avatar_url);
+                                                    } catch (err: any) {
+                                                        setError(err.message);
+                                                    } finally {
+                                                        setAvatarUploading(false);
+                                                        e.target.value = "";
+                                                    }
+                                                }}
+                                            />
                                         </div>
-                                        <span className="text-[10px] text-[var(--surface-500)]">Avatar</span>
+                                        {avatarUploading ? (
+                                            <span className="text-[10px] font-semibold" style={{ color: "var(--primary)" }}>
+                                                <Loader2 className="w-3 h-3 animate-spin inline mr-1" />Uploading…
+                                            </span>
+                                        ) : (
+                                            <span className="text-[10px] text-[var(--surface-500)]">
+                                                {avatarUrl ? "Click to change" : "Click to upload"}
+                                            </span>
+                                        )}
+                                        {avatarUrl && (
+                                            <button
+                                                onClick={() => setAvatarUrl("")}
+                                                className="text-[10px] font-semibold px-2 py-0.5 rounded-md transition-colors hover:opacity-80"
+                                                style={{ color: "var(--surface-500)", background: "var(--surface-150, var(--surface-100))" }}
+                                            >
+                                                Remove
+                                            </button>
+                                        )}
                                     </div>
                                     <div className="flex-1 space-y-3">
                                         <div>
@@ -467,7 +527,9 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
                                                 style={inputStyle} placeholder="Short description shown in chat header" />
                                         </div>
                                         <div>
-                                            <label className="text-xs font-semibold text-[var(--surface-700)] mb-1.5 block">Avatar URL</label>
+                                            <label className="text-xs font-semibold text-[var(--surface-700)] mb-1.5 block">
+                                                Avatar URL <span className="font-normal text-[var(--surface-400)]">(or upload above)</span>
+                                            </label>
                                             <input type="text" value={avatarUrl} onChange={e => setAvatarUrl(e.target.value)}
                                                 className="w-full px-4 py-3 rounded-xl border text-sm font-mono outline-none transition-colors focus:border-[var(--primary)]"
                                                 style={inputStyle} placeholder="https://your-domain.com/avatar.png" />
