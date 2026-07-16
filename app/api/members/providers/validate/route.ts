@@ -163,6 +163,53 @@ async function validateCustom(apiKey: string, baseUrl: string): Promise<Validati
     }
 }
 
+async function validateORAK(apiKey: string): Promise<ValidationResult> {
+    try {
+        // Call internal keys/validate endpoint on the same SaaS instance
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL
+            ? `https://${process.env.VERCEL_URL}`
+            : "https://myoraya.space";
+
+        const res = await fetch(`${baseUrl}/api/v1/keys/validate`, {
+            headers: { Authorization: `Bearer ${apiKey}` },
+        });
+
+        if (!res.ok) {
+            const body = await res.text();
+            let errorMsg = `Invalid ORAK key (HTTP ${res.status})`;
+            try {
+                const parsed = JSON.parse(body);
+                if (parsed.error) errorMsg = parsed.error;
+            } catch { /* ignore parse errors */ }
+            return { valid: false, models: [], error: errorMsg };
+        }
+
+        const data = await res.json();
+
+        if (!data.valid) {
+            return { valid: false, models: [], error: data.error || "Invalid ORAK key" };
+        }
+
+        // Convert gateway model manifest to ModelInfo format
+        const models: ModelInfo[] = (data.models || [])
+            .filter((m: any) => m.is_enabled !== false)
+            .map((m: any): ModelInfo => ({
+                id: m.name,
+                name: m.name,
+            }));
+
+        const engineName = data.engine?.name || "Oraya Sovereign Engine";
+
+        return {
+            valid: true,
+            models,
+            error: undefined,
+        };
+    } catch (err: any) {
+        return { valid: false, models: [], error: `Cannot reach Oraya gateway: ${err.message}` };
+    }
+}
+
 // ─── POST: Validate a key ───────────────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
@@ -203,6 +250,9 @@ export async function POST(request: NextRequest) {
                     );
                 }
                 result = await validateCustom(api_key, base_url);
+                break;
+            case "oraya":
+                result = await validateORAK(api_key);
                 break;
             default:
                 return NextResponse.json(

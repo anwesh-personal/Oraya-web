@@ -461,6 +461,11 @@ async function callProvider(
             };
             break;
         }
+        case "oraya":
+            url = "https://myoraya.space/api/v1/chat/completions";
+            headers["Authorization"] = `Bearer ${apiKey}`;
+            body = { model, messages, temperature, max_tokens: maxTokens };
+            break;
         default:
             throw new Error(`Unsupported provider: ${provider}`);
     }
@@ -495,6 +500,10 @@ async function callProvider(
             content = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
             totalTokens = (data.usageMetadata?.promptTokenCount || 0) +
                           (data.usageMetadata?.candidatesTokenCount || 0);
+            break;
+        case "oraya":
+            content = data.choices?.[0]?.message?.content || "";
+            totalTokens = data.usage?.total_tokens || 0;
             break;
         default:
             content = "";

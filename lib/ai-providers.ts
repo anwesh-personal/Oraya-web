@@ -1,7 +1,7 @@
 // AI Provider and Model Configuration
 // Comprehensive type definitions and model registry
 
-export type ProviderId = 'openai' | 'anthropic' | 'google' | 'mistral' | 'perplexity' | 'groq' | 'cohere' | 'deepseek';
+export type ProviderId = 'oraya' | 'openai' | 'anthropic' | 'google' | 'mistral' | 'perplexity' | 'groq' | 'cohere' | 'deepseek';
 
 export interface AIModel {
     id: string;
@@ -89,6 +89,119 @@ export interface AIProvider {
 // =============================================================================
 
 export const providers: Record<ProviderId, AIProvider> = {
+    oraya: {
+        id: 'oraya',
+        name: 'Oraya',
+        description: 'Oraya Sovereign Engine — ORAK gateway routes to Spark, Core, Rune, Iris, Prism, and Voice models',
+        website: 'https://myoraya.space',
+        apiDocsUrl: 'https://myoraya.space/dashboard/api-keys',
+        logo: '🔥',
+        color: 'text-amber-400',
+        bgColor: 'bg-amber-500/10',
+        status: 'active',
+        features: {
+            managedKeys: true,
+            userKeys: true,
+            streaming: true,
+            rateLimiting: true,
+            usage: true,
+        },
+        defaultModel: 'oraya-spark',
+        recommendedModel: 'oraya-spark',
+        models: [
+            {
+                id: 'oraya-spark',
+                name: 'Spark',
+                provider: 'oraya',
+                modelId: 'oraya-spark',
+                description: 'Fast, versatile default model for everyday tasks',
+                category: 'fast',
+                capabilities: {
+                    chat: true, completion: true, streaming: true,
+                    functionCalling: true, vision: false, codeExecution: false,
+                    reasoning: false, multimodal: false,
+                },
+                contextWindow: 128000,
+                maxOutputTokens: 8192,
+                pricing: { input: 0, output: 0 },
+                performance: { avgLatency: 600, tokensPerSecond: 120, reliability: 99.5 },
+                status: 'active',
+            },
+            {
+                id: 'oraya-core',
+                name: 'Core',
+                provider: 'oraya',
+                modelId: 'oraya-core',
+                description: 'Primary reasoning model with deep analysis capabilities',
+                category: 'flagship',
+                capabilities: {
+                    chat: true, completion: true, streaming: true,
+                    functionCalling: true, vision: false, codeExecution: false,
+                    reasoning: true, multimodal: false,
+                },
+                contextWindow: 200000,
+                maxOutputTokens: 16384,
+                pricing: { input: 0, output: 0 },
+                performance: { avgLatency: 1200, tokensPerSecond: 80, reliability: 99.5 },
+                status: 'active',
+            },
+            {
+                id: 'oraya-rune',
+                name: 'Rune',
+                provider: 'oraya',
+                modelId: 'oraya-rune',
+                description: 'Advanced reasoning and code generation model',
+                category: 'reasoning',
+                capabilities: {
+                    chat: true, completion: true, streaming: true,
+                    functionCalling: true, vision: false, codeExecution: true,
+                    reasoning: true, multimodal: false,
+                },
+                contextWindow: 200000,
+                maxOutputTokens: 16384,
+                pricing: { input: 0, output: 0 },
+                performance: { avgLatency: 2000, tokensPerSecond: 60, reliability: 99.0 },
+                status: 'active',
+            },
+            {
+                id: 'oraya-rune-flash',
+                name: 'Rune Flash',
+                provider: 'oraya',
+                modelId: 'oraya-rune-flash',
+                description: 'Fast variant of Rune for quick reasoning tasks',
+                category: 'fast',
+                capabilities: {
+                    chat: true, completion: true, streaming: true,
+                    functionCalling: true, vision: false, codeExecution: true,
+                    reasoning: true, multimodal: false,
+                },
+                contextWindow: 128000,
+                maxOutputTokens: 8192,
+                pricing: { input: 0, output: 0 },
+                performance: { avgLatency: 800, tokensPerSecond: 100, reliability: 99.5 },
+                status: 'active',
+            },
+            {
+                id: 'oraya-iris',
+                name: 'Iris',
+                provider: 'oraya',
+                modelId: 'oraya-iris',
+                description: 'Vision model for image understanding and analysis',
+                category: 'vision',
+                capabilities: {
+                    chat: true, completion: true, streaming: true,
+                    functionCalling: false, vision: true, codeExecution: false,
+                    reasoning: false, multimodal: true,
+                },
+                contextWindow: 128000,
+                maxOutputTokens: 4096,
+                pricing: { input: 0, output: 0 },
+                performance: { avgLatency: 1500, tokensPerSecond: 70, reliability: 99.0 },
+                status: 'active',
+            },
+        ],
+    },
+
     openai: {
         id: 'openai',
         name: 'OpenAI',

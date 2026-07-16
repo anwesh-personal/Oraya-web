@@ -29,6 +29,18 @@ interface ProviderCardMeta {
 
 const PROVIDER_CARDS: ProviderCardMeta[] = [
     {
+        id: "oraya",
+        name: "Oraya (ORAK Gateway)",
+        logo: "🔥",
+        color: "#f59e0b",
+        bgClass: "bg-amber-500/10",
+        colorClass: "text-amber-400",
+        docsUrl: "https://myoraya.space/dashboard/api-keys",
+        keyPlaceholder: "ORAK-...",
+        keyPrefix: "ORAK-",
+        description: "Oraya Sovereign Engine — Spark, Core, Rune, Iris, Prism, Voice",
+    },
+    {
         id: "openai",
         name: "OpenAI",
         logo: "🤖",
