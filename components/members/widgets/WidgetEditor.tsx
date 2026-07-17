@@ -99,6 +99,7 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
     const [agentBio, setAgentBio] = useState(widget.config?.agent_bio || tmpl?.tagline || "");
     const [avatarUrl, setAvatarUrl] = useState(widget.config?.avatar_url || tmpl?.icon_url || "");
     const [welcomeMessage, setWelcomeMessage] = useState(widget.welcome_message || widget.config?.welcome_message || "");
+    const [quickReplies, setQuickReplies] = useState<string[]>(widget.config?.quick_replies || []);
     const [placeholder, setPlaceholder] = useState(widget.placeholder || widget.config?.placeholder || "");
     const [widgetType, setWidgetType] = useState(widget.widget_type || "bubble");
     const [position, setPosition] = useState(widget.config?.position || "bottom-right");
@@ -277,6 +278,8 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
                 style: styleText,
                 tone: toneText,
             },
+            // Quick replies
+            quick_replies: quickReplies.filter(q => q.trim()),
         };
 
         try {
@@ -382,6 +385,16 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
                             <Check className="w-3 h-3" /> Saved
                         </span>
                     )}
+                    <a href={`/dashboard/widgets/${widget.id}/analytics`}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all hover:opacity-80"
+                        style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)", color: "var(--primary)", border: "1px solid color-mix(in srgb, var(--primary) 25%, transparent)" }}>
+                        📊 Analytics
+                    </a>
+                    <a href={`/dashboard/widgets/${widget.id}/conversations`}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all hover:opacity-80"
+                        style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)", color: "var(--primary)", border: "1px solid color-mix(in srgb, var(--primary) 25%, transparent)" }}>
+                        💬 Conversations
+                    </a>
                     <button
                         onClick={handleSave}
                         disabled={saving}
@@ -563,6 +576,51 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
                                 <textarea value={welcomeMessage} onChange={e => setWelcomeMessage(e.target.value)}
                                     className="w-full px-4 py-3 rounded-xl border text-sm outline-none transition-colors focus:border-[var(--primary)] resize-none"
                                     style={inputStyle} rows={3} placeholder="Hi! How can I help you today?" />
+                            </div>
+
+                            {/* ── Quick Replies ── */}
+                            <div>
+                                <label className="text-xs font-semibold text-[var(--surface-700)] mb-1.5 block">Quick Replies</label>
+                                <p className="text-[10px] text-[var(--surface-500)] mb-2">Suggested buttons shown below the welcome message</p>
+                                <div className="flex flex-wrap gap-1.5 mb-2">
+                                    {quickReplies.map((qr, i) => (
+                                        <span key={i} className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full"
+                                            style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)", color: "var(--primary)", border: "1px solid color-mix(in srgb, var(--primary) 25%, transparent)" }}>
+                                            {qr}
+                                            <button onClick={() => setQuickReplies(quickReplies.filter((_, j) => j !== i))}
+                                                className="ml-0.5 hover:opacity-70" style={{ background: "none", border: "none", color: "var(--primary)", cursor: "pointer", fontSize: "0.75rem" }}>×</button>
+                                        </span>
+                                    ))}
+                                </div>
+                                <div className="flex gap-2">
+                                    <input id="qr-input" type="text" placeholder="e.g. What are your prices?"
+                                        className="flex-1 px-3 py-2 rounded-lg border text-xs outline-none transition-colors focus:border-[var(--primary)]"
+                                        style={inputStyle}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter") {
+                                                const input = e.currentTarget;
+                                                const val = input.value.trim();
+                                                if (val && quickReplies.length < 6) {
+                                                    setQuickReplies([...quickReplies, val]);
+                                                    input.value = "";
+                                                }
+                                            }
+                                        }} />
+                                    <button onClick={() => {
+                                        const input = document.getElementById("qr-input") as HTMLInputElement;
+                                        if (input?.value.trim() && quickReplies.length < 6) {
+                                            setQuickReplies([...quickReplies, input.value.trim()]);
+                                            input.value = "";
+                                        }
+                                    }}
+                                        className="px-3 py-2 rounded-lg text-xs font-semibold"
+                                        style={{ background: "color-mix(in srgb, var(--primary) 15%, transparent)", color: "var(--primary)", border: "1px solid color-mix(in srgb, var(--primary) 30%, transparent)", cursor: "pointer" }}>
+                                        + Add
+                                    </button>
+                                </div>
+                                {quickReplies.length >= 6 && (
+                                    <p className="text-[10px] text-amber-500 mt-1">Maximum 6 quick replies</p>
+                                )}
                             </div>
 
                             {/* ── Core Prompt Override ── */}
