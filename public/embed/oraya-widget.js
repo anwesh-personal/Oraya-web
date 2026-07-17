@@ -1278,14 +1278,75 @@
         });
     };
 
-    OrayaWidget.prototype.loadSession = function () {
+    OrayaWidget.prototype.loadSession = function (onDone) {
         var self = this;
         var sid = getSessionId();
-        if (!sid || this.cfg.persistenceMode === "ephemeral") return;
+        var vid = getVisitorId();
 
-        // We don't pre-load messages from server in this version.
-        // Session continuity is handled server-side — the API will
-        // find the existing session by visitor_id and resume context.
+        // Nothing to restore for ephemeral widgets or brand-new visitors
+        if (this.cfg.persistenceMode === "ephemeral") {
+            if (onDone) onDone(false);
+            return;
+        }
+        if (!sid && !vid) {
+            if (onDone) onDone(false);
+            return;
+        }
+
+        var url = API_BASE + "/api/embed/session?key=" + encodeURIComponent(WIDGET_KEY)
+            + (sid ? "&session_id=" + encodeURIComponent(sid) : "")
+            + "&visitor_id=" + encodeURIComponent(vid);
+
+        fetch(url)
+            .then(function (res) {
+                if (!res.ok) throw new Error("Session fetch failed: " + res.status);
+                return res.json();
+            })
+            .then(function (data) {
+                var msgs = data.messages;
+                if (!msgs || !msgs.length) {
+                    if (onDone) onDone(false);
+                    return;
+                }
+
+                // Remove welcome message — we have history
+                var welcome = self.shadow.querySelector(".ow-welcome");
+                if (welcome) welcome.remove();
+
+                var container = self.shadow.getElementById("ow-messages");
+                if (!container) {
+                    if (onDone) onDone(false);
+                    return;
+                }
+
+                // Render each stored message
+                for (var i = 0; i < msgs.length; i++) {
+                    var m = msgs[i];
+                    var role = m.role;
+                    var content = m.content;
+                    var ts = m.ts || null;
+
+                    // Push into local messages array
+                    self.messages.push({ role: role, content: content, ts: ts });
+
+                    // Build DOM element
+                    var msgDiv = document.createElement("div");
+                    msgDiv.className = "ow-msg " + (role === "user" ? "ow-msg-user" : "ow-msg-ai");
+                    msgDiv.innerHTML = mdToHtml(content)
+                        + '<span class="ow-msg-time">'
+                        + (ts ? formatTime(ts) : "")
+                        + '</span>';
+                    container.appendChild(msgDiv);
+                }
+
+                self.scrollToBottom();
+                if (onDone) onDone(true);
+            })
+            .catch(function (err) {
+                // Fail silently — don't break the widget
+                console.warn("[Oraya Widget] Could not load session history:", err);
+                if (onDone) onDone(false);
+            });
     };
 
     // ─── Boot ───────────────────────────────────────────────────────────────
