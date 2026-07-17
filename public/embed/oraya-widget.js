@@ -449,6 +449,55 @@
                 max-width: 280px;
             }
 
+            /* ── Quick Replies ─────────────────────────────────── */
+
+            .ow-quick-replies {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+                margin-top: 10px;
+                justify-content: center;
+            }
+            .ow-qr-btn {
+                background: rgba(255,255,255,0.06);
+                border: 1px solid var(--ow-primary);
+                border-radius: 18px;
+                padding: 6px 14px;
+                color: var(--ow-primary);
+                font-size: 0.8rem;
+                cursor: pointer;
+                font-family: var(--ow-font);
+                transition: all 0.2s;
+            }
+            .ow-qr-btn:hover {
+                background: var(--ow-primary);
+                color: #fff;
+            }
+
+            /* ── Message Rating ────────────────────────────────── */
+
+            .ow-msg-rating {
+                display: flex;
+                gap: 4px;
+                margin-top: 4px;
+            }
+            .ow-rate-btn {
+                background: none;
+                border: 1px solid transparent;
+                border-radius: 6px;
+                padding: 2px 6px;
+                cursor: pointer;
+                font-size: 0.75rem;
+                opacity: 0.4;
+                transition: all 0.2s;
+            }
+            .ow-rate-btn:hover { opacity: 1; }
+            .ow-rate-btn.ow-rated {
+                opacity: 1;
+                border-color: var(--ow-primary);
+                background: rgba(99,102,241,0.1);
+            }
+
             /* ── Typing Indicator ───────────────────────────────── */
 
             .ow-typing {
@@ -843,10 +892,21 @@
     }
 
     function buildMessagesHTML(cfg) {
+        var quickReplies = cfg.quickReplies || [];
+        var qrHtml = "";
+        if (quickReplies.length > 0) {
+            qrHtml = '<div class="ow-quick-replies">';
+            for (var i = 0; i < quickReplies.length; i++) {
+                qrHtml += '<button class="ow-qr-btn" data-qr="' + esc(quickReplies[i]) + '">' + esc(quickReplies[i]) + '</button>';
+            }
+            qrHtml += '</div>';
+        }
+
         return '<div class="ow-messages" id="ow-messages">'
             + '<div class="ow-welcome">'
             +   '<div class="ow-welcome-emoji">' + esc(cfg.agentEmoji || "🤖") + '</div>'
             +   '<div class="ow-welcome-text">' + esc(cfg.welcomeMessage || "Hi! How can I help you today?") + '</div>'
+            +   qrHtml
             + '</div>'
             + '</div>';
     }
@@ -995,6 +1055,22 @@
             input.addEventListener("input", function () {
                 this.style.height = "auto";
                 this.style.height = Math.min(this.scrollHeight, 120) + "px";
+            });
+        }
+
+        // Quick reply buttons (event delegation)
+        var messages = root.getElementById("ow-messages");
+        if (messages) {
+            messages.addEventListener("click", function(e) {
+                var btn = e.target.closest ? e.target.closest(".ow-qr-btn") : null;
+                if (!btn) return;
+                var text = btn.getAttribute("data-qr");
+                if (!text) return;
+                var inp = root.getElementById("ow-input");
+                if (inp) {
+                    inp.value = text;
+                    self.sendMessage();
+                }
             });
         }
 
@@ -1279,6 +1355,7 @@
     };
 
     OrayaWidget.prototype.addMessage = function (role, content) {
+        var self = this;
         var container = this.shadow.getElementById("ow-messages");
         if (!container) return;
 
@@ -1287,10 +1364,47 @@
 
         var msgDiv = document.createElement("div");
         msgDiv.className = "ow-msg " + (role === "user" ? "ow-msg-user" : "ow-msg-ai");
+
+        var ratingHtml = "";
+        if (role === "assistant" && content && !content.startsWith("Upload failed") && !content.startsWith("Connection error")) {
+            ratingHtml = '<div class="ow-msg-rating">'
+                + '<button class="ow-rate-btn" data-rate="up" title="Helpful">👍</button>'
+                + '<button class="ow-rate-btn" data-rate="down" title="Not helpful">👎</button>'
+                + '</div>';
+        }
+
         msgDiv.innerHTML = mdToHtml(content)
-            + '<span class="ow-msg-time">' + formatTime(now) + '</span>';
+            + '<span class="ow-msg-time">' + formatTime(now) + '</span>'
+            + ratingHtml;
+
+        // Wire rating buttons
+        if (ratingHtml) {
+            msgDiv.querySelectorAll(".ow-rate-btn").forEach(function(btn) {
+                btn.addEventListener("click", function() {
+                    var rating = btn.getAttribute("data-rate");
+                    msgDiv.querySelectorAll(".ow-rate-btn").forEach(function(b) { b.classList.remove("ow-rated"); });
+                    btn.classList.add("ow-rated");
+                    // Fire-and-forget feedback to server
+                    fetch(API_BASE + "/api/embed/chat", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", "X-Widget-Key": WIDGET_KEY },
+                        body: JSON.stringify({
+                            message: "__feedback__",
+                            visitor_id: getVisitorId(),
+                            session_id: getSessionId(),
+                            feedback: { rating: rating, message_content: content.slice(0, 200), ts: now },
+                        }),
+                    }).catch(function() {});
+                });
+            });
+        }
 
         container.appendChild(msgDiv);
+
+        // Remove quick replies after first message
+        var qr = container.querySelector(".ow-quick-replies");
+        if (qr) qr.remove();
+
         this.scrollToBottom();
     };
 
