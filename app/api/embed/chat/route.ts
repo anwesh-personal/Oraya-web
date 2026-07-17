@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,27 @@ const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
+
+// ─── Encryption (mirrors providers/route.ts) ────────────────────────────────
+
+const ENCRYPTION_KEY = process.env.AI_PROVIDER_ENCRYPTION_KEY || process.env.NEXTAUTH_SECRET || "oraya-default-key-change-in-production-32c";
+
+function getEncKey(): Buffer {
+    return crypto.createHash("sha256").update(ENCRYPTION_KEY).digest();
+}
+
+function decryptKey(encrypted: string): string {
+    try {
+        const [ivHex, data] = encrypted.split(":");
+        const iv = Buffer.from(ivHex, "hex");
+        const decipher = crypto.createDecipheriv("aes-256-cbc", getEncKey(), iv);
+        let decrypted = decipher.update(data, "hex", "utf8");
+        decrypted += decipher.final("utf8");
+        return decrypted;
+    } catch {
+        return "";
+    }
+}
 
 // ─── CORS Headers ───────────────────────────────────────────────────────────
 
@@ -252,13 +274,45 @@ export async function POST(request: NextRequest) {
         // ─── Build conversation context ─────────────────────────────────
         const agent = widget.agent_templates;
         const history: any[] = session.messages || [];
+        const widgetConfig: any = widget.config || {};
 
-        // Construct system prompt
-        let systemPrompt = widget.system_prompt_override || agent.core_prompt || "";
+        // Construct system prompt — layer: base → config override → prompt stack
+        let systemPrompt = widgetConfig.core_prompt_override
+            || widget.system_prompt_override
+            || agent.core_prompt
+            || "";
 
-        // Append prompt stack overrides
-        if (widget.prompt_stack?.length > 0) {
-            const stackText = widget.prompt_stack
+        // Inject personality override from config JSONB
+        if (widgetConfig.personality_override) {
+            const po = widgetConfig.personality_override;
+            const personalityParts: string[] = [];
+            if (po.personality) personalityParts.push(`Personality: ${po.personality}`);
+            if (po.style) personalityParts.push(`Communication style: ${po.style}`);
+            if (po.tone) personalityParts.push(`Tone: ${po.tone}`);
+            if (personalityParts.length > 0) {
+                systemPrompt += "\n\n--- Personality ---\n" + personalityParts.join("\n");
+            }
+        }
+
+        // Inject tone settings from config JSONB
+        if (widgetConfig.tone) {
+            const t = widgetConfig.tone;
+            const toneParts: string[] = [];
+            if (t.formality !== undefined) toneParts.push(`Formality level: ${t.formality}/100`);
+            if (t.verbosity !== undefined) toneParts.push(`Verbosity level: ${t.verbosity}/100`);
+            if (t.emoji_usage) toneParts.push(`Emoji usage: ${t.emoji_usage}`);
+            if (t.response_style) toneParts.push(`Response style: ${t.response_style}`);
+            if (toneParts.length > 0) {
+                systemPrompt += "\n\n--- Tone Settings ---\n" + toneParts.join("\n");
+            }
+        }
+
+        // Append prompt stack — prefer config JSONB, fallback to dedicated column
+        const promptStack = widgetConfig.prompt_stack?.length > 0
+            ? widgetConfig.prompt_stack
+            : widget.prompt_stack;
+        if (promptStack?.length > 0) {
+            const stackText = promptStack
                 .filter((p: any) => p.is_active !== false)
                 .sort((a: any, b: any) => (a.priority || 0) - (b.priority || 0))
                 .map((p: any) => p.content)
@@ -275,11 +329,23 @@ export async function POST(request: NextRequest) {
             if (kbText) systemPrompt += "\n\n--- Knowledge Base ---\n" + kbText;
         }
 
-        // Append rules
-        if (widget.rules?.length > 0) {
-            const rulesText = widget.rules
+        // Append raw context from config JSONB
+        if (widgetConfig.raw_context) {
+            systemPrompt += "\n\n--- Additional Context ---\n" + widgetConfig.raw_context;
+        }
+
+        // Append rules — prefer config JSONB, fallback to dedicated column
+        const rulesList = widgetConfig.rules?.length > 0
+            ? widgetConfig.rules
+            : widget.rules;
+        if (rulesList?.length > 0) {
+            const rulesText = rulesList
                 .filter((r: any) => r.is_active !== false)
-                .map((r: any) => `- [${r.severity || "standard"}] ${r.content}`)
+                .map((r: any) => {
+                    const content = r.content || r.rule || "";
+                    const severity = r.severity || "standard";
+                    return `- [${severity}] ${content}`;
+                })
                 .join("\n");
             if (rulesText) systemPrompt += "\n\n--- Behavioral Rules ---\n" + rulesText;
         }
@@ -289,9 +355,16 @@ export async function POST(request: NextRequest) {
             { role: "system", content: systemPrompt },
         ];
 
-        // Add training examples as few-shot
-        if (widget.training_data?.length > 0) {
-            for (const ex of widget.training_data.filter((e: any) => e.is_active !== false)) {
+        // Add training examples as few-shot — prefer config JSONB training_qa, fallback to dedicated column
+        const trainingItems = widgetConfig.training_qa?.length > 0
+            ? widgetConfig.training_qa.map((qa: any) => ({
+                user_input: qa.question,
+                expected_output: qa.answer,
+                is_active: true,
+            }))
+            : widget.training_data;
+        if (trainingItems?.length > 0) {
+            for (const ex of trainingItems.filter((e: any) => e.is_active !== false)) {
                 messages.push({ role: "user", content: ex.user_input });
                 messages.push({ role: "assistant", content: ex.expected_output });
             }
@@ -305,40 +378,82 @@ export async function POST(request: NextRequest) {
         messages.push({ role: "user", content: message.trim() });
 
         // ─── Call AI provider ───────────────────────────────────────────
-        // Resolve which AI provider to use via managed keys
-        const model = widget.model_override || "gpt-4o-mini";
-        const { data: slots, error: slotErr } = await supabase
-            .from("managed_ai_keys")
-            .select("provider, api_key, key_name, priority")
-            .eq("is_active", true)
-            .order("priority", { ascending: true });
-
-        if (slotErr || !slots || slots.length === 0) {
-            return NextResponse.json(
-                { error: "No AI providers configured" },
-                { status: 503, headers: cors }
-            );
-        }
+        // Priority: 1) User's own provider (BYOK) → 2) Managed admin keys
+        const model = widgetConfig.model
+            || widget.model_override
+            || "gpt-4o-mini";
 
         let aiResponse: string | null = null;
         let tokensUsed = 0;
 
-        for (const slot of slots) {
+        // ── 1) Try user's own provider ──
+        if (widget.user_provider_id) {
             try {
-                const result = await callProvider(
-                    slot.provider,
-                    slot.api_key,
-                    model,
-                    messages,
-                    widget.temperature,
-                    widget.max_tokens
-                );
-                aiResponse = result.content;
-                tokensUsed = result.totalTokens;
-                break;
+                const { data: userProvider } = await supabase
+                    .from("user_ai_providers")
+                    .select("provider, api_key_encrypted, base_url, is_active, is_valid")
+                    .eq("id", widget.user_provider_id)
+                    .single();
+
+                if (userProvider?.is_active && userProvider?.is_valid && userProvider?.api_key_encrypted) {
+                    const decryptedKey = decryptKey(userProvider.api_key_encrypted);
+                    if (decryptedKey) {
+                        // For custom providers, use their base_url
+                        const providerName = userProvider.provider === "custom" && userProvider.base_url
+                            ? "custom"
+                            : userProvider.provider;
+
+                        const result = await callProvider(
+                            providerName,
+                            decryptedKey,
+                            model,
+                            messages,
+                            widget.temperature,
+                            widget.max_tokens,
+                            userProvider.base_url || undefined
+                        );
+                        aiResponse = result.content;
+                        tokensUsed = result.totalTokens;
+                    }
+                }
             } catch (err: any) {
-                console.warn(`[embed/chat] Provider ${slot.provider} failed:`, err.message);
-                continue;
+                console.warn(`[embed/chat] User provider ${widget.user_provider_id} failed:`, err.message);
+                // Fall through to managed keys
+            }
+        }
+
+        // ── 2) Fallback to managed admin keys ──
+        if (!aiResponse) {
+            const { data: slots, error: slotErr } = await supabase
+                .from("managed_ai_keys")
+                .select("provider, api_key, key_name, priority")
+                .eq("is_active", true)
+                .order("priority", { ascending: true });
+
+            if (slotErr || !slots || slots.length === 0) {
+                return NextResponse.json(
+                    { error: "No AI providers configured" },
+                    { status: 503, headers: cors }
+                );
+            }
+
+            for (const slot of slots) {
+                try {
+                    const result = await callProvider(
+                        slot.provider,
+                        slot.api_key,
+                        model,
+                        messages,
+                        widget.temperature,
+                        widget.max_tokens
+                    );
+                    aiResponse = result.content;
+                    tokensUsed = result.totalTokens;
+                    break;
+                } catch (err: any) {
+                    console.warn(`[embed/chat] Provider ${slot.provider} failed:`, err.message);
+                    continue;
+                }
             }
         }
 
@@ -421,7 +536,8 @@ async function callProvider(
     model: string,
     messages: any[],
     temperature: number,
-    maxTokens: number
+    maxTokens: number,
+    baseUrl?: string
 ): Promise<{ content: string; totalTokens: number }> {
     let url: string;
     let headers: Record<string, string> = { "Content-Type": "application/json" };
@@ -466,8 +582,17 @@ async function callProvider(
             headers["Authorization"] = `Bearer ${apiKey}`;
             body = { model, messages, temperature, max_tokens: maxTokens };
             break;
+        case "custom":
+            if (!baseUrl) throw new Error("Custom provider requires a base_url");
+            url = baseUrl.replace(/\/+$/, "") + "/v1/chat/completions";
+            headers["Authorization"] = `Bearer ${apiKey}`;
+            body = { model, messages, temperature, max_tokens: maxTokens };
+            break;
         default:
-            throw new Error(`Unsupported provider: ${provider}`);
+            // Treat unknown providers as OpenAI-compatible
+            url = "https://api.openai.com/v1/chat/completions";
+            headers["Authorization"] = `Bearer ${apiKey}`;
+            body = { model, messages, temperature, max_tokens: maxTokens };
     }
 
     const res = await fetch(url, {
@@ -502,12 +627,14 @@ async function callProvider(
                           (data.usageMetadata?.candidatesTokenCount || 0);
             break;
         case "oraya":
+        case "custom":
             content = data.choices?.[0]?.message?.content || "";
             totalTokens = data.usage?.total_tokens || 0;
             break;
         default:
-            content = "";
-            totalTokens = 0;
+            // Assume OpenAI-compatible format
+            content = data.choices?.[0]?.message?.content || data.content?.[0]?.text || "";
+            totalTokens = data.usage?.total_tokens || 0;
     }
 
     return { content, totalTokens };
