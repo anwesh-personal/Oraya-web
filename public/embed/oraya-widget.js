@@ -67,6 +67,24 @@
         return (h % 12 || 12) + ":" + m + " " + ampm;
     }
 
+    // ─── Utility: Notification Chime (Web Audio) ────────────────────────────
+    var _audioCtx = null;
+    function playChime() {
+        try {
+            if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            var osc = _audioCtx.createOscillator();
+            var gain = _audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(_audioCtx.destination);
+            osc.frequency.setValueAtTime(800, _audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(600, _audioCtx.currentTime + 0.12);
+            gain.gain.setValueAtTime(0.15, _audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, _audioCtx.currentTime + 0.25);
+            osc.start(_audioCtx.currentTime);
+            osc.stop(_audioCtx.currentTime + 0.25);
+        } catch(e) { /* Audio not available */ }
+    }
+
     // ─── Utility: Escape HTML ───────────────────────────────────────────────
     function esc(str) {
         const d = document.createElement("div");
@@ -1400,6 +1418,11 @@
         }
 
         container.appendChild(msgDiv);
+
+        // Play chime for assistant messages
+        if (role === "assistant" && this.cfg.soundEnabled !== false) {
+            playChime();
+        }
 
         // Remove quick replies after first message
         var qr = container.querySelector(".ow-quick-replies");
