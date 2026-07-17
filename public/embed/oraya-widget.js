@@ -862,6 +862,8 @@
             + '<div class="ow-toolbar">'
             + '<button class="ow-tool-btn" id="ow-emoji-toggle" title="Emoji">' + ICON.emoji + '</button>'
             + (hasSpeech ? '<button class="ow-tool-btn" id="ow-mic-toggle" title="Voice input">' + ICON.mic + '</button>' : '')
+            + '<button class="ow-tool-btn" id="ow-attach-toggle" title="Attach file">' + ICON.attach + '</button>'
+            + '<input type="file" id="ow-file-input" accept="image/*,.pdf,.txt,.csv" style="display:none">'
             + '</div>'
             + '</div>';
     }
@@ -1105,6 +1107,80 @@
                     micToggle.classList.remove("ow-recording");
                 };
             }
+        }
+
+        // ── File attach ──────────────────────────────────────────────────
+        var attachToggle = root.getElementById("ow-attach-toggle");
+        var fileInput = root.getElementById("ow-file-input");
+        if (attachToggle && fileInput) {
+            attachToggle.addEventListener("click", function() {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener("change", function() {
+                var file = fileInput.files && fileInput.files[0];
+                if (!file) return;
+
+                // Size check
+                if (file.size > 5 * 1024 * 1024) {
+                    self.addMessage("assistant", "File too large. Maximum size is 5MB.");
+                    fileInput.value = "";
+                    return;
+                }
+
+                // Show uploading indicator
+                self.addMessage("user", "📎 Uploading " + file.name + "…");
+                attachToggle.classList.add("ow-active");
+
+                var formData = new FormData();
+                formData.append("file", file);
+
+                fetch(API_BASE + "/api/embed/upload", {
+                    method: "POST",
+                    headers: { "X-Widget-Key": WIDGET_KEY },
+                    body: formData,
+                })
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    attachToggle.classList.remove("ow-active");
+                    fileInput.value = "";
+
+                    if (data.error) {
+                        self.addMessage("assistant", "Upload failed: " + data.error);
+                        return;
+                    }
+
+                    // If image, show preview; otherwise show link
+                    if (data.type && data.type.startsWith("image/")) {
+                        var container = self.shadow.getElementById("ow-messages");
+                        var lastMsg = container ? container.lastElementChild : null;
+                        if (lastMsg && lastMsg.textContent.indexOf("Uploading") !== -1) {
+                            lastMsg.innerHTML = '<img src="' + data.url + '" alt="' + esc(data.name) + '" style="max-width:100%;border-radius:8px;margin-top:0.3em">'
+                                + '<span class="ow-msg-time">' + formatTime(Date.now()) + '</span>';
+                        }
+                        // Send to chat API with image context
+                        var inp = root.getElementById("ow-input");
+                        if (inp) {
+                            inp.value = "[Image: " + data.name + "] " + data.url;
+                            self.sendMessage();
+                        }
+                    } else {
+                        // Replace uploading message with file link
+                        var container2 = self.shadow.getElementById("ow-messages");
+                        var lastMsg2 = container2 ? container2.lastElementChild : null;
+                        if (lastMsg2 && lastMsg2.textContent.indexOf("Uploading") !== -1) {
+                            lastMsg2.innerHTML = '📎 <a href="' + data.url + '" target="_blank" style="color:var(--ow-primary,#6366f1)">' + esc(data.name) + '</a>'
+                                + '<span class="ow-msg-time">' + formatTime(Date.now()) + '</span>';
+                        }
+                    }
+                })
+                .catch(function(err) {
+                    attachToggle.classList.remove("ow-active");
+                    fileInput.value = "";
+                    self.addMessage("assistant", "Upload failed. Please try again.");
+                    console.error("[Oraya Widget] Upload error:", err);
+                });
+            });
         }
     };
 
