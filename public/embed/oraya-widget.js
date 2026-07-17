@@ -74,14 +74,57 @@
         return d.innerHTML;
     }
 
-    // ─── Utility: Simple markdown → HTML ────────────────────────────────────
+    // ─── Utility: Markdown → HTML (full) ──────────────────────────────────────
     function mdToHtml(text) {
-        return esc(text)
-            .replace(/```([\s\S]*?)```/g, '<pre class="ow-code-block"><code>$1</code></pre>')
-            .replace(/`([^`]+)`/g, '<code class="ow-inline-code">$1</code>')
-            .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-            .replace(/\*(.+?)\*/g, "<em>$1</em>")
-            .replace(/\n/g, "<br>");
+        var s = esc(text);
+
+        // Fenced code blocks
+        s = s.replace(/```(\w*)\n?([\s\S]*?)```/g, function(_, lang, code) {
+            return '<pre class="ow-code-block"><code>' + code.trim() + '</code></pre>';
+        });
+
+        // Inline code
+        s = s.replace(/`([^`]+)`/g, '<code class="ow-inline-code">$1</code>');
+
+        // Headings (### > ## > #)
+        s = s.replace(/^### (.+)$/gm, '<strong style="font-size:1.05em;display:block;margin:0.6em 0 0.3em">$1</strong>');
+        s = s.replace(/^## (.+)$/gm, '<strong style="font-size:1.15em;display:block;margin:0.7em 0 0.3em">$1</strong>');
+        s = s.replace(/^# (.+)$/gm, '<strong style="font-size:1.25em;display:block;margin:0.8em 0 0.3em">$1</strong>');
+
+        // Blockquotes
+        s = s.replace(/^&gt; (.+)$/gm, '<div style="border-left:3px solid var(--ow-primary,#6366f1);padding:0.3em 0.7em;margin:0.4em 0;color:#94a3b8;font-style:italic">$1</div>');
+
+        // Horizontal rule
+        s = s.replace(/^---$/gm, '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:0.8em 0">');
+
+        // Unordered lists (- or *)
+        s = s.replace(/(?:^|\n)((?:(?:- |\* ).+\n?)+)/g, function(_, block) {
+            var items = block.trim().split(/\n/).map(function(line) {
+                return '<li>' + line.replace(/^[-*] /, '') + '</li>';
+            }).join('');
+            return '<ul style="margin:0.4em 0;padding-left:1.4em">' + items + '</ul>';
+        });
+
+        // Ordered lists (1. 2. etc)
+        s = s.replace(/(?:^|\n)((?:\d+\. .+\n?)+)/g, function(_, block) {
+            var items = block.trim().split(/\n/).map(function(line) {
+                return '<li>' + line.replace(/^\d+\. /, '') + '</li>';
+            }).join('');
+            return '<ol style="margin:0.4em 0;padding-left:1.4em">' + items + '</ol>';
+        });
+
+        // Links [text](url)
+        s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener" style="color:var(--ow-primary,#6366f1);text-decoration:underline">$1</a>');
+
+        // Bold, italic, strikethrough
+        s = s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+        s = s.replace(/\*(.+?)\*/g, "<em>$1</em>");
+        s = s.replace(/~~(.+?)~~/g, "<del>$1</del>");
+
+        // Newlines (but not inside pre/ul/ol)
+        s = s.replace(/\n/g, "<br>");
+
+        return s;
     }
 
     // ─── CSS Generation ─────────────────────────────────────────────────────
