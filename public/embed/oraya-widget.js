@@ -1227,7 +1227,7 @@
         if (sendBtn) sendBtn.disabled = true;
         this.showTyping(true);
 
-        // API call
+        // Build payload
         var payload = {
             message: text,
             visitor_id: getVisitorId(),
@@ -1238,17 +1238,95 @@
                 ua: navigator.userAgent,
             },
         };
+        if (this.gateData) payload.gate_data = this.gateData;
 
-        if (this.gateData) {
-            payload.gate_data = this.gateData;
-        }
+        // Try streaming first, fallback to blocking
+        this._sendStreaming(payload, sendBtn)
+            .catch(function () {
+                return self._sendBlocking(payload, sendBtn);
+            });
+    };
 
-        fetch(API_BASE + "/api/embed/chat", {
+    // ── Streaming send (SSE) ──────────────────────────────────────────────
+
+    OrayaWidget.prototype._sendStreaming = function (payload, sendBtn) {
+        var self = this;
+
+        return fetch(API_BASE + "/api/embed/chat/stream", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-Widget-Key": WIDGET_KEY,
-            },
+            headers: { "Content-Type": "application/json", "X-Widget-Key": WIDGET_KEY },
+            body: JSON.stringify(payload),
+        }).then(function (res) {
+            if (!res.ok || !res.body) throw new Error("Stream unavailable");
+
+            self.showTyping(false);
+
+            // Create empty assistant bubble
+            var container = self.shadow.getElementById("ow-messages");
+            var msgDiv = document.createElement("div");
+            msgDiv.className = "ow-msg ow-msg-ai";
+            msgDiv.innerHTML = '<span class="ow-msg-content"></span>'
+                + '<span class="ow-msg-time">' + formatTime(Date.now()) + '</span>';
+            container.appendChild(msgDiv);
+            self.scrollToBottom();
+
+            var contentEl = msgDiv.querySelector(".ow-msg-content");
+            var fullText = "";
+            var reader = res.body.getReader();
+            var decoder = new TextDecoder();
+            var buffer = "";
+
+            function pump() {
+                return reader.read().then(function (result) {
+                    if (result.done) {
+                        // Finalize
+                        self.messages.push({ role: "assistant", content: fullText, ts: Date.now() });
+                        contentEl.innerHTML = mdToHtml(fullText);
+                        self.isLoading = false;
+                        if (sendBtn) sendBtn.disabled = false;
+                        self.scrollToBottom();
+                        return;
+                    }
+
+                    buffer += decoder.decode(result.value, { stream: true });
+                    var lines = buffer.split("\n");
+                    buffer = lines.pop() || "";
+
+                    for (var i = 0; i < lines.length; i++) {
+                        var line = lines[i].trim();
+                        if (!line.startsWith("data: ")) continue;
+                        try {
+                            var data = JSON.parse(line.slice(6));
+                            if (data.chunk) {
+                                fullText += data.chunk;
+                                contentEl.innerHTML = mdToHtml(fullText);
+                                self.scrollToBottom();
+                            }
+                            if (data.done && data.full) {
+                                fullText = data.full;
+                            }
+                            if (data.error) {
+                                contentEl.innerHTML = mdToHtml(fullText || "Stream interrupted.");
+                            }
+                        } catch (e) { /* skip */ }
+                    }
+
+                    return pump();
+                });
+            }
+
+            return pump();
+        });
+    };
+
+    // ── Blocking fallback ─────────────────────────────────────────────────
+
+    OrayaWidget.prototype._sendBlocking = function (payload, sendBtn) {
+        var self = this;
+
+        return fetch(API_BASE + "/api/embed/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-Widget-Key": WIDGET_KEY },
             body: JSON.stringify(payload),
         })
         .then(function (res) { return res.json(); })
@@ -1258,22 +1336,17 @@
             if (sendBtn) sendBtn.disabled = false;
 
             if (data.error) {
-                self.addMessage("assistant", "Sorry, something went wrong. Please try again.");
-                console.error("[Oraya Widget] API Error:", data.error);
+                self.addMessage("assistant", "Sorry, something went wrong.");
                 return;
             }
-
-            if (data.session_id) {
-                setSessionId(data.session_id);
-            }
-
-            self.addMessage("assistant", data.response || "No response received.");
+            if (data.session_id) setSessionId(data.session_id);
+            self.addMessage("assistant", data.response || "No response.");
         })
         .catch(function (err) {
             self.showTyping(false);
             self.isLoading = false;
             if (sendBtn) sendBtn.disabled = false;
-            self.addMessage("assistant", "Connection error. Please check your internet and try again.");
+            self.addMessage("assistant", "Connection error. Please try again.");
             console.error("[Oraya Widget] Fetch error:", err);
         });
     };
