@@ -109,6 +109,9 @@ export async function GET(request: NextRequest) {
                     // Extended config from JSONB
                     companyLogo: widgetConfig.company_logo_url || null,
                     windowStyle: widgetConfig.window_style || "solid",
+                    quickReplies: Array.isArray(widgetConfig.quick_replies) ? widgetConfig.quick_replies : [],
+                    agentDisplayName: widgetConfig.agent_display_name || null,
+                    agentBio: widgetConfig.agent_bio || null,
                 },
             },
             { headers: cors }

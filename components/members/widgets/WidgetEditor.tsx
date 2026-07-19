@@ -104,7 +104,7 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
     const [widgetType, setWidgetType] = useState(widget.widget_type || "bubble");
     const [position, setPosition] = useState(widget.config?.position || "bottom-right");
     const [persistenceMode, setPersistenceMode] = useState(widget.persistence_mode || "ephemeral");
-    const [domainWhitelist, setDomainWhitelist] = useState((widget.domain_whitelist || []).join(", "));
+    const [allowedDomains, setAllowedDomains] = useState((widget.allowed_domains || []).join(", "));
 
     // ── Core Prompt (from template, overridable) ──
     const [corePrompt, setCorePrompt] = useState(widget.config?.core_prompt_override || tmpl?.core_prompt || "");
@@ -291,7 +291,7 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
                     name: name.trim(),
                     widget_type: widgetType,
                     persistence_mode: persistenceMode,
-                    domain_whitelist: domainWhitelist.split(",").map((d: string) => d.trim()).filter(Boolean),
+                    allowed_domains: allowedDomains.split(",").map((d: string) => d.trim()).filter(Boolean),
                     user_provider_id: selectedProviderId || null,
                     // Dedicated DB columns
                     primary_color: primaryColor,
@@ -324,7 +324,7 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
         }
     }, [
         widget, name, agentDisplayName, agentBio, avatarUrl, welcomeMessage,
-        widgetType, position, persistenceMode, domainWhitelist, corePrompt,
+        widgetType, position, persistenceMode, allowedDomains, corePrompt,
         primaryColor, accentColor, bgColor, textColor, fontFamily,
         darkMode, borderRadius, showBranding, bubbleSize, chatWidth, chatHeight,
         companyLogoUrl, windowStyle, soundEnabled, autoOpen, autoOpenDelay,
@@ -358,7 +358,7 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
                             {name || "Untitled Widget"}
                         </h1>
                         <p className="text-xs text-[var(--surface-500)]">
-                            {widget.agent_templates?.name || "Unknown Agent"} • {widget.widget_key}
+                            {widget.agent_templates?.name || "Unknown Agent"} • {widget.api_key}
                         </p>
                     </div>
                 </div>
@@ -667,7 +667,7 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
 
                             <div>
                                 <label className="text-xs font-semibold text-[var(--surface-700)] mb-1.5 block">Allowed Domains (comma-separated, leave empty for all)</label>
-                                <input type="text" value={domainWhitelist} onChange={e => setDomainWhitelist(e.target.value)}
+                                <input type="text" value={allowedDomains} onChange={e => setAllowedDomains(e.target.value)}
                                     className="w-full px-4 py-3 rounded-xl border text-sm font-mono outline-none transition-colors focus:border-[var(--primary)]"
                                     style={inputStyle} placeholder="example.com, app.example.com" />
                             </div>

@@ -145,6 +145,28 @@
         return s;
     }
 
+    // ─── Utility: Build source-citation HTML (RAG) ──────────────────────────
+    // Accepts the `citations` array returned by the chat API
+    // ([{ source_id, title, url }]). Titles/urls are always escaped. Returns ""
+    // when there are no citations, so non-RAG answers are visually unchanged.
+    function buildCitationsHTML(citations) {
+        if (!Array.isArray(citations) || citations.length === 0) return "";
+        var html = '<div class="ow-citations"><div class="ow-citations-label">Sources</div>';
+        for (var i = 0; i < citations.length; i++) {
+            var c = citations[i] || {};
+            var title = esc(c.title || ("Source " + (i + 1)));
+            var idx = '<span class="ow-citation-idx">[' + (i + 1) + ']</span>';
+            if (c.url) {
+                html += '<a class="ow-citation" href="' + esc(c.url) + '" target="_blank" rel="noopener">'
+                    + idx + '<span class="ow-citation-title">' + title + '</span></a>';
+            } else {
+                html += '<div class="ow-citation">' + idx + '<span class="ow-citation-title">' + title + '</span></div>';
+            }
+        }
+        html += '</div>';
+        return html;
+    }
+
     // ─── CSS Generation ─────────────────────────────────────────────────────
     function buildStyles(cfg) {
         const p = cfg.primaryColor || "#6366f1";
@@ -516,6 +538,53 @@
                 background: rgba(99,102,241,0.1);
             }
 
+            /* ── Source Citations (RAG) ────────────────────────── */
+
+            .ow-citations {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                margin-top: 8px;
+                padding-top: 6px;
+                border-top: 1px dashed var(--ow-border);
+            }
+            .ow-citations-label {
+                font-size: 10px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                opacity: 0.5;
+            }
+            .ow-citation {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 11.5px;
+                line-height: 1.35;
+                padding: 4px 8px;
+                border-radius: 8px;
+                background: rgba(99,102,241,0.06);
+                border: 1px solid var(--ow-border);
+                color: var(--ow-text);
+                text-decoration: none;
+                transition: background 0.15s ease, border-color 0.15s ease;
+            }
+            a.ow-citation:hover {
+                background: rgba(99,102,241,0.12);
+                border-color: var(--ow-primary);
+            }
+            .ow-citation-idx {
+                flex-shrink: 0;
+                font-size: 10px;
+                font-weight: 700;
+                color: var(--ow-primary);
+            }
+            .ow-citation-title {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
             /* ── Typing Indicator ───────────────────────────────── */
 
             .ow-typing {
@@ -848,11 +917,14 @@
             ? '<img class="ow-header-logo" src="' + esc(cfg.companyLogo) + '" alt="Logo">'
             : '';
 
+        var headerName = cfg.agentDisplayName || cfg.name || cfg.agentName || "AI Assistant";
+        var headerStatus = cfg.agentBio || "Online";
+
         return '<div class="ow-header">'
             + '<div class="ow-header-avatar">' + avatarContent + '</div>'
             + '<div class="ow-header-info">'
-            +   '<div class="ow-header-name">' + esc(cfg.name || cfg.agentName || "AI Assistant") + '</div>'
-            +   '<div class="ow-header-status">Online</div>'
+            +   '<div class="ow-header-name">' + esc(headerName) + '</div>'
+            +   '<div class="ow-header-status">' + esc(headerStatus) + '</div>'
             + '</div>'
             + logoHtml
             + '<button class="ow-header-close" id="ow-close">' + ICON.close + '</button>'
@@ -1372,7 +1444,7 @@
         }
     };
 
-    OrayaWidget.prototype.addMessage = function (role, content) {
+    OrayaWidget.prototype.addMessage = function (role, content, citations) {
         var self = this;
         var container = this.shadow.getElementById("ow-messages");
         if (!container) return;
@@ -1391,7 +1463,10 @@
                 + '</div>';
         }
 
+        var citationsHtml = role === "assistant" ? buildCitationsHTML(citations) : "";
+
         msgDiv.innerHTML = mdToHtml(content)
+            + citationsHtml
             + '<span class="ow-msg-time">' + formatTime(now) + '</span>'
             + ratingHtml;
 
@@ -1402,17 +1477,29 @@
                     var rating = btn.getAttribute("data-rate");
                     msgDiv.querySelectorAll(".ow-rate-btn").forEach(function(b) { b.classList.remove("ow-rated"); });
                     btn.classList.add("ow-rated");
-                    // Fire-and-forget feedback to server
-                    fetch(API_BASE + "/api/embed/chat", {
+                    // Record feedback via the dedicated lightweight endpoint.
+                    // This does NOT trigger a model call or token deduction.
+                    var sid = getSessionId();
+                    if (!sid) {
+                        console.error("[Oraya Widget] Cannot submit feedback: no active session.");
+                        return;
+                    }
+                    fetch(API_BASE + "/api/embed/feedback", {
                         method: "POST",
                         headers: { "Content-Type": "application/json", "X-Widget-Key": WIDGET_KEY },
                         body: JSON.stringify({
-                            message: "__feedback__",
                             visitor_id: getVisitorId(),
-                            session_id: getSessionId(),
-                            feedback: { rating: rating, message_content: content.slice(0, 200), ts: now },
+                            session_id: sid,
+                            rating: rating,
+                            message_content: content.slice(0, 200),
                         }),
-                    }).catch(function() {});
+                    }).then(function(res) {
+                        if (!res.ok) {
+                            console.error("[Oraya Widget] Feedback failed:", res.status);
+                        }
+                    }).catch(function(err) {
+                        console.error("[Oraya Widget] Feedback error:", err);
+                    });
                 });
             });
         }
@@ -1528,6 +1615,7 @@
 
             var contentEl = msgDiv.querySelector(".ow-msg-content");
             var fullText = "";
+            var citations = null;
             var reader = res.body.getReader();
             var decoder = new TextDecoder();
             var buffer = "";
@@ -1538,6 +1626,15 @@
                         // Finalize
                         self.messages.push({ role: "assistant", content: fullText, ts: Date.now() });
                         contentEl.innerHTML = mdToHtml(fullText);
+                        // Append source citations (if the answer was RAG-grounded).
+                        var citeHtml = buildCitationsHTML(citations);
+                        if (citeHtml) {
+                            var timeEl = msgDiv.querySelector(".ow-msg-time");
+                            var wrap = document.createElement("div");
+                            wrap.innerHTML = citeHtml;
+                            if (timeEl) msgDiv.insertBefore(wrap.firstChild, timeEl);
+                            else msgDiv.appendChild(wrap.firstChild);
+                        }
                         self.isLoading = false;
                         if (sendBtn) sendBtn.disabled = false;
                         self.scrollToBottom();
@@ -1558,8 +1655,12 @@
                                 contentEl.innerHTML = mdToHtml(fullText);
                                 self.scrollToBottom();
                             }
-                            if (data.done && data.full) {
-                                fullText = data.full;
+                            if (data.done) {
+                                if (data.full) fullText = data.full;
+                                // Persist session id so streaming conversations survive reloads (mirrors the blocking path)
+                                if (data.session_id) setSessionId(data.session_id);
+                                // Capture RAG source citations to render on finalize.
+                                if (data.citations) citations = data.citations;
                             }
                             if (data.error) {
                                 contentEl.innerHTML = mdToHtml(fullText || "Stream interrupted.");
@@ -1596,7 +1697,7 @@
                 return;
             }
             if (data.session_id) setSessionId(data.session_id);
-            self.addMessage("assistant", data.response || "No response.");
+            self.addMessage("assistant", data.response || "No response.", data.citations);
         })
         .catch(function (err) {
             self.showTyping(false);

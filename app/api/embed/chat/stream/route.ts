@@ -1,11 +1,28 @@
 // ============================================================================
 // Embed Chat SSE Stream — Server-Sent Events streaming for widget chat
-// Mirrors embed/chat/route.ts but returns a ReadableStream instead of JSON
+// Mirrors embed/chat/route.ts but returns a ReadableStream instead of JSON.
+// Shares ALL prompt-composition + inference logic via lib/agent-runtime (F1):
+// compiled prompt, BYOK→managed→sovereign-gateway dispatch, web RAG v2 grounded
+// citations, memory, and AGL-001 lineage. This route owns only the SSE plumbing.
 // ============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import crypto from "crypto";
+import {
+    getCompiledCorePrompt,
+    composeAgentPrompt,
+    resolveInferencePlan,
+    openInferenceStream,
+    InferenceError,
+    parseStreamChunk,
+    retrieveContext,
+    resolveIdentity,
+    recallMemory,
+    writeMemory,
+    emitLineage,
+    type RagResult,
+    type ResolvedIdentity,
+} from "@/lib/agent-runtime";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -14,27 +31,6 @@ const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-
-// ─── Encryption ─────────────────────────────────────────────────────────────
-
-const ENC_KEY = process.env.AI_PROVIDER_ENCRYPTION_KEY || process.env.NEXTAUTH_SECRET || "oraya-default-key-change-in-production-32c";
-
-function getEncKey(): Buffer {
-    return crypto.createHash("sha256").update(ENC_KEY).digest();
-}
-
-function decryptKey(encrypted: string): string {
-    try {
-        const [ivHex, data] = encrypted.split(":");
-        const iv = Buffer.from(ivHex, "hex");
-        const d = crypto.createDecipheriv("aes-256-cbc", getEncKey(), iv);
-        let out = d.update(data, "hex", "utf8");
-        out += d.final("utf8");
-        return out;
-    } catch {
-        return "";
-    }
-}
 
 // ─── CORS ───────────────────────────────────────────────────────────────────
 
@@ -145,141 +141,77 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Session error" }, { status: 500, headers: cors });
         }
 
-        // Build system prompt (same logic as non-streaming route)
         const agent = widget.agent_templates;
         const history: any[] = session.messages || [];
-        const cfg: any = widget.config || {};
+        const userMessage = message.trim();
 
-        let sysPrompt = cfg.core_prompt_override || widget.system_prompt_override || agent.core_prompt || "";
-
-        if (cfg.personality_override) {
-            const po = cfg.personality_override;
-            const parts: string[] = [];
-            if (po.personality) parts.push(`Personality: ${po.personality}`);
-            if (po.style) parts.push(`Communication style: ${po.style}`);
-            if (po.tone) parts.push(`Tone: ${po.tone}`);
-            if (parts.length) sysPrompt += "\n\n--- Personality ---\n" + parts.join("\n");
+        // ── Identity resolution (best-effort) ──
+        let identity: ResolvedIdentity | null = null;
+        if (widget.persistence_mode !== "ephemeral") {
+            identity = await resolveIdentity({
+                supabase,
+                widget,
+                visitorId: visitor_id,
+                session: { id: session.id },
+                gateData: body.gate_data || null,
+            });
         }
 
-        if (cfg.tone) {
-            const t = cfg.tone;
-            const parts: string[] = [];
-            if (t.formality !== undefined) parts.push(`Formality: ${t.formality}/100`);
-            if (t.verbosity !== undefined) parts.push(`Verbosity: ${t.verbosity}/100`);
-            if (t.emoji_usage) parts.push(`Emoji usage: ${t.emoji_usage}`);
-            if (t.response_style) parts.push(`Response style: ${t.response_style}`);
-            if (parts.length) sysPrompt += "\n\n--- Tone ---\n" + parts.join("\n");
+        // ── Web RAG v2 retrieval + memory recall ──
+        const rag: RagResult = await retrieveContext({
+            supabase,
+            userId: widget.user_id,
+            deploymentId: widget.id,
+            query: userMessage,
+        });
+
+        let memoryContext: string | null = null;
+        if (identity) {
+            const recalled = await recallMemory({
+                supabase,
+                userId: widget.user_id,
+                endUserId: identity.endUserId,
+                deploymentId: widget.id,
+                query: userMessage,
+            });
+            memoryContext = recalled.context;
         }
 
-        const pStack = cfg.prompt_stack?.length > 0 ? cfg.prompt_stack : widget.prompt_stack;
-        if (pStack?.length > 0) {
-            const text = pStack.filter((p: any) => p.is_active !== false)
-                .sort((a: any, b: any) => (a.priority || 0) - (b.priority || 0))
-                .map((p: any) => p.content).join("\n\n");
-            if (text) sysPrompt += "\n\n" + text;
+        // ── Compiled prompt + composition ──
+        const compiledCorePrompt = await getCompiledCorePrompt({
+            supabase,
+            userId: widget.user_id,
+            templateId: widget.template_id,
+            fallbackCorePrompt: agent?.core_prompt || "",
+        });
+
+        const { messages: msgs } = composeAgentPrompt({
+            widget,
+            compiledCorePrompt,
+            history,
+            userMessage,
+            rag,
+            memoryContext,
+        });
+
+        // ── Resolve + open the streaming upstream ──
+        let plan;
+        try {
+            plan = await resolveInferencePlan({ supabase, widget });
+        } catch (err: any) {
+            return NextResponse.json({ error: err?.message || "Inference misconfigured" }, { status: 503, headers: cors });
         }
 
-        if (widget.knowledge_base?.length > 0) {
-            const text = widget.knowledge_base.filter((k: any) => k.is_active !== false)
-                .map((k: any) => `## ${k.name}\n${k.content}`).join("\n\n");
-            if (text) sysPrompt += "\n\n--- Knowledge Base ---\n" + text;
+        let opened;
+        try {
+            opened = await openInferenceStream(plan, msgs);
+        } catch (err: any) {
+            const status = err instanceof InferenceError ? err.status : 502;
+            return NextResponse.json({ error: err?.message || "Provider error" }, { status, headers: cors });
         }
 
-        if (cfg.raw_context) sysPrompt += "\n\n--- Additional Context ---\n" + cfg.raw_context;
-
-        const rList = cfg.rules?.length > 0 ? cfg.rules : widget.rules;
-        if (rList?.length > 0) {
-            const text = rList.filter((r: any) => r.is_active !== false)
-                .map((r: any) => `- [${r.severity || "standard"}] ${r.content || r.rule || ""}`).join("\n");
-            if (text) sysPrompt += "\n\n--- Rules ---\n" + text;
-        }
-
-        const msgs: any[] = [{ role: "system", content: sysPrompt }];
-
-        const training = cfg.training_qa?.length > 0
-            ? cfg.training_qa.map((q: any) => ({ user_input: q.question, expected_output: q.answer, is_active: true }))
-            : widget.training_data;
-        if (training?.length > 0) {
-            for (const ex of training.filter((e: any) => e.is_active !== false)) {
-                msgs.push({ role: "user", content: ex.user_input });
-                msgs.push({ role: "assistant", content: ex.expected_output });
-            }
-        }
-
-        msgs.push(...history.slice(-(widget.max_history * 2)));
-        msgs.push({ role: "user", content: message.trim() });
-
-        // Resolve model + provider
-        const model = cfg.model || widget.model_override || "gpt-4o-mini";
-
-        // Resolve provider credentials (user BYOK first, then managed)
-        let providerName = "openai";
-        let providerKey = "";
-        let providerBaseUrl: string | undefined;
-
-        if (widget.user_provider_id) {
-            const { data: up } = await supabase
-                .from("user_ai_providers")
-                .select("provider, api_key_encrypted, base_url, is_active, is_valid")
-                .eq("id", widget.user_provider_id).single();
-            if (up?.is_active && up?.is_valid && up?.api_key_encrypted) {
-                const dk = decryptKey(up.api_key_encrypted);
-                if (dk) { providerName = up.provider; providerKey = dk; providerBaseUrl = up.base_url || undefined; }
-            }
-        }
-
-        if (!providerKey) {
-            const { data: slots } = await supabase
-                .from("managed_ai_keys").select("provider, api_key")
-                .eq("is_active", true).order("priority", { ascending: true }).limit(1);
-            if (slots?.[0]) { providerName = slots[0].provider; providerKey = slots[0].api_key; }
-        }
-
-        if (!providerKey) {
-            return NextResponse.json({ error: "No AI provider available" }, { status: 503, headers: cors });
-        }
-
-        // Build upstream streaming request
-        let upstreamUrl: string;
-        const upHeaders: Record<string, string> = { "Content-Type": "application/json" };
-        let upBody: any;
-
-        if (providerName === "anthropic") {
-            upstreamUrl = "https://api.anthropic.com/v1/messages";
-            upHeaders["x-api-key"] = providerKey;
-            upHeaders["anthropic-version"] = "2024-10-22";
-            upBody = {
-                model, stream: true,
-                messages: msgs.filter((m: any) => m.role !== "system"),
-                system: msgs.find((m: any) => m.role === "system")?.content || "",
-                temperature: widget.temperature, max_tokens: widget.max_tokens,
-            };
-        } else if (providerName === "google") {
-            const gm = model.startsWith("gemini") ? model : "gemini-2.0-flash";
-            upstreamUrl = `https://generativelanguage.googleapis.com/v1beta/models/${gm}:streamGenerateContent?key=${providerKey}&alt=sse`;
-            const sysInst = msgs.find((m: any) => m.role === "system")?.content || "";
-            upBody = {
-                contents: msgs.filter((m: any) => m.role !== "system")
-                    .map((m: any) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] })),
-                systemInstruction: sysInst ? { parts: [{ text: sysInst }] } : undefined,
-                generationConfig: { temperature: widget.temperature, maxOutputTokens: widget.max_tokens },
-            };
-        } else {
-            // OpenAI-compatible (openai, oraya, custom, xai, mistral, etc.)
-            if (providerName === "oraya") upstreamUrl = "https://myoraya.space/api/v1/chat/completions";
-            else if (providerName === "custom" && providerBaseUrl) upstreamUrl = providerBaseUrl.replace(/\/+$/, "") + "/v1/chat/completions";
-            else upstreamUrl = "https://api.openai.com/v1/chat/completions";
-            upHeaders["Authorization"] = `Bearer ${providerKey}`;
-            upBody = { model, messages: msgs, temperature: widget.temperature, max_tokens: widget.max_tokens, stream: true };
-        }
-
-        // Fetch upstream with streaming
-        const upRes = await fetch(upstreamUrl, { method: "POST", headers: upHeaders, body: JSON.stringify(upBody) });
-
-        if (!upRes.ok || !upRes.body) {
-            const errText = await upRes.text().catch(() => "Unknown");
-            return NextResponse.json({ error: `Provider error: ${errText}` }, { status: 502, headers: cors });
-        }
+        const { response: upRes, candidate } = opened;
+        const providerName = candidate.provider;
 
         // Create SSE response stream
         const encoder = new TextEncoder();
@@ -307,16 +239,7 @@ export async function POST(request: NextRequest) {
 
                             try {
                                 const json = JSON.parse(trimmed.slice(6));
-                                let chunk = "";
-
-                                if (providerName === "anthropic") {
-                                    if (json.type === "content_block_delta") chunk = json.delta?.text || "";
-                                } else if (providerName === "google") {
-                                    chunk = json.candidates?.[0]?.content?.parts?.[0]?.text || "";
-                                } else {
-                                    chunk = json.choices?.[0]?.delta?.content || "";
-                                }
-
+                                const chunk = parseStreamChunk(providerName, json);
                                 if (chunk) {
                                     fullContent += chunk;
                                     controller.enqueue(encoder.encode(`data: ${JSON.stringify({ chunk })}\n\n`));
@@ -325,15 +248,21 @@ export async function POST(request: NextRequest) {
                         }
                     }
 
-                    // Send done event
-                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true, full: fullContent })}\n\n`));
+                    // Done event — includes session_id (client persistence) + citations + rag_status.
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                        done: true,
+                        full: fullContent,
+                        session_id: session.id,
+                        citations: rag.citations,
+                        rag_status: rag.status,
+                    })}\n\n`));
                     controller.close();
 
-                    // Post-stream: update session + counters (fire-and-forget)
-                    const tokensUsed = Math.ceil((fullContent.length + message.length) / 4); // rough estimate
+                    // Post-stream: persist session + counters + billing (fire-and-forget).
+                    const tokensUsed = Math.ceil((fullContent.length + userMessage.length) / 4);
                     const updatedMsgs = [
                         ...history,
-                        { role: "user", content: message.trim(), ts: Date.now() },
+                        { role: "user", content: userMessage, ts: Date.now() },
                         { role: "assistant", content: fullContent, ts: Date.now() },
                     ].slice(-(widget.max_history * 2));
 
@@ -355,6 +284,30 @@ export async function POST(request: NextRequest) {
                     supabase.rpc("deduct_tokens" as any, {
                         p_user_id: widget.user_id, p_amount: tokensUsed, p_reason: "widget_chat",
                     }).then(() => {});
+
+                    // AGL-001 local lineage + conservative memory write (best-effort).
+                    void emitLineage({
+                        supabase,
+                        userId: widget.user_id,
+                        deploymentId: widget.id,
+                        conversationId: identity?.conversationId ?? null,
+                        endUserId: identity?.endUserId ?? null,
+                        input: userMessage,
+                        output: fullContent,
+                        model: plan.model,
+                        source: candidate.source,
+                    });
+
+                    if (identity) {
+                        void writeMemory({
+                            supabase,
+                            userId: widget.user_id,
+                            endUserId: identity.endUserId,
+                            deploymentId: widget.id,
+                            conversationId: identity.conversationId,
+                            userMessage,
+                        });
+                    }
 
                 } catch (err) {
                     controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: "Stream interrupted" })}\n\n`));

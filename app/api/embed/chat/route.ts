@@ -2,11 +2,30 @@
 // Embed Chat API — Public-facing endpoint for widget conversations
 // NO user auth required. Authenticates via widget API key (wgt_xxxx).
 // Validates origin domain, enforces rate limits, deducts tokens from deployer.
+//
+// Prompt composition + provider dispatch now live in lib/agent-runtime (F1):
+// the compiled agent prompt, BYOK→managed→sovereign-gateway inference, web RAG
+// v2 (grounded citations), memory, and AGL-001 lineage are all shared with the
+// streaming route. This route owns only the HTTP concerns (CORS, rate limit,
+// session persistence, billing).
 // ============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import crypto from "crypto";
+import {
+    getCompiledCorePrompt,
+    composeAgentPrompt,
+    resolveInferencePlan,
+    callInferenceBlocking,
+    InferenceError,
+    retrieveContext,
+    resolveIdentity,
+    recallMemory,
+    writeMemory,
+    emitLineage,
+    type RagResult,
+    type ResolvedIdentity,
+} from "@/lib/agent-runtime";
 
 export const dynamic = "force-dynamic";
 
@@ -14,27 +33,6 @@ const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-
-// ─── Encryption (mirrors providers/route.ts) ────────────────────────────────
-
-const ENCRYPTION_KEY = process.env.AI_PROVIDER_ENCRYPTION_KEY || process.env.NEXTAUTH_SECRET || "oraya-default-key-change-in-production-32c";
-
-function getEncKey(): Buffer {
-    return crypto.createHash("sha256").update(ENCRYPTION_KEY).digest();
-}
-
-function decryptKey(encrypted: string): string {
-    try {
-        const [ivHex, data] = encrypted.split(":");
-        const iv = Buffer.from(ivHex, "hex");
-        const decipher = crypto.createDecipheriv("aes-256-cbc", getEncKey(), iv);
-        let decrypted = decipher.update(data, "hex", "utf8");
-        decrypted += decipher.final("utf8");
-        return decrypted;
-    } catch {
-        return "";
-    }
-}
 
 // ─── CORS Headers ───────────────────────────────────────────────────────────
 
@@ -211,15 +209,6 @@ export async function POST(request: NextRequest) {
         }
 
         if (!session && widget.persistence_mode !== "ephemeral") {
-            // Try to find existing session for this visitor
-            let lookupField = "visitor_id";
-            let lookupValue = visitor_id;
-
-            if (widget.persistence_mode === "ip_persistent") {
-                lookupField = "visitor_ip";
-                lookupValue = ip;
-            }
-
             const query = supabase
                 .from("widget_sessions")
                 .select("*")
@@ -271,203 +260,92 @@ export async function POST(request: NextRequest) {
             session = newSession;
         }
 
-        // ─── Build conversation context ─────────────────────────────────
+        // ─── Conversation context ───────────────────────────────────────
         const agent = widget.agent_templates;
         const history: any[] = session.messages || [];
-        const widgetConfig: any = widget.config || {};
+        const userMessage = message.trim();
 
-        // Construct system prompt — layer: base → config override → prompt stack
-        let systemPrompt = widgetConfig.core_prompt_override
-            || widget.system_prompt_override
-            || agent.core_prompt
-            || "";
-
-        // Inject personality override from config JSONB
-        if (widgetConfig.personality_override) {
-            const po = widgetConfig.personality_override;
-            const personalityParts: string[] = [];
-            if (po.personality) personalityParts.push(`Personality: ${po.personality}`);
-            if (po.style) personalityParts.push(`Communication style: ${po.style}`);
-            if (po.tone) personalityParts.push(`Tone: ${po.tone}`);
-            if (personalityParts.length > 0) {
-                systemPrompt += "\n\n--- Personality ---\n" + personalityParts.join("\n");
-            }
+        // ── Identity resolution (best-effort; skipped on ephemeral/absent tables) ──
+        let identity: ResolvedIdentity | null = null;
+        if (widget.persistence_mode !== "ephemeral") {
+            identity = await resolveIdentity({
+                supabase,
+                widget,
+                visitorId: visitor_id,
+                session: { id: session.id },
+                gateData: gate_data || null,
+            });
         }
 
-        // Inject tone settings from config JSONB
-        if (widgetConfig.tone) {
-            const t = widgetConfig.tone;
-            const toneParts: string[] = [];
-            if (t.formality !== undefined) toneParts.push(`Formality level: ${t.formality}/100`);
-            if (t.verbosity !== undefined) toneParts.push(`Verbosity level: ${t.verbosity}/100`);
-            if (t.emoji_usage) toneParts.push(`Emoji usage: ${t.emoji_usage}`);
-            if (t.response_style) toneParts.push(`Response style: ${t.response_style}`);
-            if (toneParts.length > 0) {
-                systemPrompt += "\n\n--- Tone Settings ---\n" + toneParts.join("\n");
-            }
+        // ── Web RAG v2 retrieval (honest degrade; never fake) ──
+        const rag: RagResult = await retrieveContext({
+            supabase,
+            userId: widget.user_id,
+            deploymentId: widget.id,
+            query: userMessage,
+        });
+
+        // ── Memory recall ──
+        let memoryContext: string | null = null;
+        if (identity) {
+            const recalled = await recallMemory({
+                supabase,
+                userId: widget.user_id,
+                endUserId: identity.endUserId,
+                deploymentId: widget.id,
+                query: userMessage,
+            });
+            memoryContext = recalled.context;
         }
 
-        // Append prompt stack — prefer config JSONB, fallback to dedicated column
-        const promptStack = widgetConfig.prompt_stack?.length > 0
-            ? widgetConfig.prompt_stack
-            : widget.prompt_stack;
-        if (promptStack?.length > 0) {
-            const stackText = promptStack
-                .filter((p: any) => p.is_active !== false)
-                .sort((a: any, b: any) => (a.priority || 0) - (b.priority || 0))
-                .map((p: any) => p.content)
-                .join("\n\n");
-            if (stackText) systemPrompt += "\n\n" + stackText;
-        }
+        // ── Compiled prompt (fixes the bare-core_prompt bug) + composition ──
+        const compiledCorePrompt = await getCompiledCorePrompt({
+            supabase,
+            userId: widget.user_id,
+            templateId: widget.template_id,
+            fallbackCorePrompt: agent?.core_prompt || "",
+        });
 
-        // Append knowledge base
-        if (widget.knowledge_base?.length > 0) {
-            const kbText = widget.knowledge_base
-                .filter((k: any) => k.is_active !== false)
-                .map((k: any) => `## ${k.name}\n${k.content}`)
-                .join("\n\n");
-            if (kbText) systemPrompt += "\n\n--- Knowledge Base ---\n" + kbText;
-        }
+        const { messages } = composeAgentPrompt({
+            widget,
+            compiledCorePrompt,
+            history,
+            userMessage,
+            rag,
+            memoryContext,
+        });
 
-        // Append raw context from config JSONB
-        if (widgetConfig.raw_context) {
-            systemPrompt += "\n\n--- Additional Context ---\n" + widgetConfig.raw_context;
-        }
-
-        // Append rules — prefer config JSONB, fallback to dedicated column
-        const rulesList = widgetConfig.rules?.length > 0
-            ? widgetConfig.rules
-            : widget.rules;
-        if (rulesList?.length > 0) {
-            const rulesText = rulesList
-                .filter((r: any) => r.is_active !== false)
-                .map((r: any) => {
-                    const content = r.content || r.rule || "";
-                    const severity = r.severity || "standard";
-                    return `- [${severity}] ${content}`;
-                })
-                .join("\n");
-            if (rulesText) systemPrompt += "\n\n--- Behavioral Rules ---\n" + rulesText;
-        }
-
-        // Build messages array
-        const messages: any[] = [
-            { role: "system", content: systemPrompt },
-        ];
-
-        // Add training examples as few-shot — prefer config JSONB training_qa, fallback to dedicated column
-        const trainingItems = widgetConfig.training_qa?.length > 0
-            ? widgetConfig.training_qa.map((qa: any) => ({
-                user_input: qa.question,
-                expected_output: qa.answer,
-                is_active: true,
-            }))
-            : widget.training_data;
-        if (trainingItems?.length > 0) {
-            for (const ex of trainingItems.filter((e: any) => e.is_active !== false)) {
-                messages.push({ role: "user", content: ex.user_input });
-                messages.push({ role: "assistant", content: ex.expected_output });
-            }
-        }
-
-        // Add conversation history (capped to max_history)
-        const recentHistory = history.slice(-(widget.max_history * 2));
-        messages.push(...recentHistory);
-
-        // Add current message
-        messages.push({ role: "user", content: message.trim() });
-
-        // ─── Call AI provider ───────────────────────────────────────────
-        // Priority: 1) User's own provider (BYOK) → 2) Managed admin keys
-        const model = widgetConfig.model
-            || widget.model_override
-            || "gpt-4o-mini";
-
-        let aiResponse: string | null = null;
-        let tokensUsed = 0;
-
-        // ── 1) Try user's own provider ──
-        if (widget.user_provider_id) {
-            try {
-                const { data: userProvider } = await supabase
-                    .from("user_ai_providers")
-                    .select("provider, api_key_encrypted, base_url, is_active, is_valid")
-                    .eq("id", widget.user_provider_id)
-                    .single();
-
-                if (userProvider?.is_active && userProvider?.is_valid && userProvider?.api_key_encrypted) {
-                    const decryptedKey = decryptKey(userProvider.api_key_encrypted);
-                    if (decryptedKey) {
-                        // For custom providers, use their base_url
-                        const providerName = userProvider.provider === "custom" && userProvider.base_url
-                            ? "custom"
-                            : userProvider.provider;
-
-                        const result = await callProvider(
-                            providerName,
-                            decryptedKey,
-                            model,
-                            messages,
-                            widget.temperature,
-                            widget.max_tokens,
-                            userProvider.base_url || undefined
-                        );
-                        aiResponse = result.content;
-                        tokensUsed = result.totalTokens;
-                    }
-                }
-            } catch (err: any) {
-                console.warn(`[embed/chat] User provider ${widget.user_provider_id} failed:`, err.message);
-                // Fall through to managed keys
-            }
-        }
-
-        // ── 2) Fallback to managed admin keys ──
-        if (!aiResponse) {
-            const { data: slots, error: slotErr } = await supabase
-                .from("managed_ai_keys")
-                .select("provider, api_key, key_name, priority")
-                .eq("is_active", true)
-                .order("priority", { ascending: true });
-
-            if (slotErr || !slots || slots.length === 0) {
-                return NextResponse.json(
-                    { error: "No AI providers configured" },
-                    { status: 503, headers: cors }
-                );
-            }
-
-            for (const slot of slots) {
-                try {
-                    const result = await callProvider(
-                        slot.provider,
-                        slot.api_key,
-                        model,
-                        messages,
-                        widget.temperature,
-                        widget.max_tokens
-                    );
-                    aiResponse = result.content;
-                    tokensUsed = result.totalTokens;
-                    break;
-                } catch (err: any) {
-                    console.warn(`[embed/chat] Provider ${slot.provider} failed:`, err.message);
-                    continue;
-                }
-            }
-        }
-
-        if (!aiResponse) {
+        // ─── Inference (BYOK → managed → sovereign gateway) ─────────────
+        let plan;
+        try {
+            plan = await resolveInferencePlan({ supabase, widget });
+        } catch (err: any) {
+            // Sovereign path selected but unconfigured → fail loud, not silent.
             return NextResponse.json(
-                { error: "All AI providers failed" },
-                { status: 502, headers: cors }
+                { error: err?.message || "Inference misconfigured" },
+                { status: 503, headers: cors }
             );
         }
+
+        let result;
+        try {
+            result = await callInferenceBlocking(plan, messages);
+        } catch (err: any) {
+            const status = err instanceof InferenceError ? err.status : 502;
+            const msg = err instanceof InferenceError && err.status === 503
+                ? "No AI providers configured"
+                : "All AI providers failed";
+            console.warn("[embed/chat] inference failed:", err?.message);
+            return NextResponse.json({ error: msg }, { status, headers: cors });
+        }
+
+        const aiResponse = result.content;
+        const tokensUsed = result.totalTokens;
 
         // ─── Update session ─────────────────────────────────────────────
         const updatedMessages = [
             ...history,
-            { role: "user", content: message.trim(), ts: Date.now() },
+            { role: "user", content: userMessage, ts: Date.now() },
             { role: "assistant", content: aiResponse, ts: Date.now() },
         ];
 
@@ -511,11 +389,38 @@ export async function POST(request: NextRequest) {
             console.warn("[embed/chat] Token deduction failed for user:", widget.user_id);
         }
 
+        // ─── AGL-001 local lineage (best-effort; no anchoring) ──────────
+        await emitLineage({
+            supabase,
+            userId: widget.user_id,
+            deploymentId: widget.id,
+            conversationId: identity?.conversationId ?? null,
+            endUserId: identity?.endUserId ?? null,
+            input: userMessage,
+            output: aiResponse,
+            model: result.model,
+            source: result.source,
+        });
+
+        // ─── Memory write (best-effort, after response is computed) ─────
+        if (identity) {
+            await writeMemory({
+                supabase,
+                userId: widget.user_id,
+                endUserId: identity.endUserId,
+                deploymentId: widget.id,
+                conversationId: identity.conversationId,
+                userMessage,
+            });
+        }
+
         return NextResponse.json(
             {
                 response: aiResponse,
                 session_id: session.id,
                 tokens_used: tokensUsed,
+                citations: rag.citations,
+                rag_status: rag.status,
             },
             { headers: cors }
         );
@@ -526,116 +431,4 @@ export async function POST(request: NextRequest) {
             { status: 500, headers: corsHeaders(origin, []) }
         );
     }
-}
-
-// ─── Provider Dispatcher ────────────────────────────────────────────────────
-
-async function callProvider(
-    provider: string,
-    apiKey: string,
-    model: string,
-    messages: any[],
-    temperature: number,
-    maxTokens: number,
-    baseUrl?: string
-): Promise<{ content: string; totalTokens: number }> {
-    let url: string;
-    let headers: Record<string, string> = { "Content-Type": "application/json" };
-    let body: any;
-
-    switch (provider) {
-        case "openai":
-            url = "https://api.openai.com/v1/chat/completions";
-            headers["Authorization"] = `Bearer ${apiKey}`;
-            body = { model, messages, temperature, max_tokens: maxTokens };
-            break;
-        case "anthropic":
-            url = "https://api.anthropic.com/v1/messages";
-            headers["x-api-key"] = apiKey;
-            headers["anthropic-version"] = "2024-10-22";
-            body = {
-                model,
-                messages: messages.filter(m => m.role !== "system"),
-                system: messages.find(m => m.role === "system")?.content || "",
-                temperature,
-                max_tokens: maxTokens,
-            };
-            break;
-        case "google": {
-            const geminiModel = model.startsWith("gemini") ? model : "gemini-2.0-flash";
-            url = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${apiKey}`;
-            const systemInstruction = messages.find(m => m.role === "system")?.content || "";
-            body = {
-                contents: messages
-                    .filter(m => m.role !== "system")
-                    .map(m => ({
-                        role: m.role === "assistant" ? "model" : "user",
-                        parts: [{ text: m.content }],
-                    })),
-                systemInstruction: systemInstruction ? { parts: [{ text: systemInstruction }] } : undefined,
-                generationConfig: { temperature, maxOutputTokens: maxTokens },
-            };
-            break;
-        }
-        case "oraya":
-            url = "https://myoraya.space/api/v1/chat/completions";
-            headers["Authorization"] = `Bearer ${apiKey}`;
-            body = { model, messages, temperature, max_tokens: maxTokens };
-            break;
-        case "custom":
-            if (!baseUrl) throw new Error("Custom provider requires a base_url");
-            url = baseUrl.replace(/\/+$/, "") + "/v1/chat/completions";
-            headers["Authorization"] = `Bearer ${apiKey}`;
-            body = { model, messages, temperature, max_tokens: maxTokens };
-            break;
-        default:
-            // Treat unknown providers as OpenAI-compatible
-            url = "https://api.openai.com/v1/chat/completions";
-            headers["Authorization"] = `Bearer ${apiKey}`;
-            body = { model, messages, temperature, max_tokens: maxTokens };
-    }
-
-    const res = await fetch(url, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(body),
-    });
-
-    if (!res.ok) {
-        const errText = await res.text().catch(() => "Unknown error");
-        throw new Error(`${provider} returned ${res.status}: ${errText}`);
-    }
-
-    const data = await res.json();
-
-    // Extract content based on provider
-    let content: string;
-    let totalTokens: number;
-
-    switch (provider) {
-        case "openai":
-            content = data.choices?.[0]?.message?.content || "";
-            totalTokens = data.usage?.total_tokens || 0;
-            break;
-        case "anthropic":
-            content = data.content?.[0]?.text || "";
-            totalTokens = (data.usage?.input_tokens || 0) + (data.usage?.output_tokens || 0);
-            break;
-        case "google":
-            content = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-            totalTokens = (data.usageMetadata?.promptTokenCount || 0) +
-                          (data.usageMetadata?.candidatesTokenCount || 0);
-            break;
-        case "oraya":
-        case "custom":
-            content = data.choices?.[0]?.message?.content || "";
-            totalTokens = data.usage?.total_tokens || 0;
-            break;
-        default:
-            // Assume OpenAI-compatible format
-            content = data.choices?.[0]?.message?.content || data.content?.[0]?.text || "";
-            totalTokens = data.usage?.total_tokens || 0;
-    }
-
-    return { content, totalTokens };
 }
