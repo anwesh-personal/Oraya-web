@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { verifySuperadminToken } from "@/lib/superadmin-middleware";
-import { createHash, randomBytes } from "crypto";
+import { hashSuperadminPassword } from "@/lib/superadmin-password";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     try {
         const { data: admins, error } = await (supabase
             .from("platform_admins") as any)
-            .select("id, email, name, role, created_at, last_login_at")
+            .select("id, email, full_name, role, created_at, last_login_at")
             .order("created_at", { ascending: true });
 
         if (error) throw error;
@@ -76,7 +76,8 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const validRoles = ["super_admin", "admin", "moderator"];
+        // Must match the platform_admins.role CHECK constraint (see migration 002).
+        const validRoles = ["superadmin", "admin", "support", "readonly"];
         const adminRole = validRoles.includes(role) ? role : "admin";
 
         // Check if email already exists
@@ -93,23 +94,22 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Hash password with salt
-        const salt = randomBytes(16).toString("hex");
-        const passwordHash = createHash("sha256")
-            .update(password + salt)
-            .digest("hex");
+        // Hash password with bcrypt (cost 12) — the format the login verifier
+        // expects. Never SHA256: the table has no salt column and login uses
+        // bcrypt compare, so a SHA256 hash could never authenticate.
+        const passwordHash = await hashSuperadminPassword(password);
 
         const { data: newAdmin, error } = await (supabase
             .from("platform_admins") as any)
             .insert({
                 email: email.toLowerCase().trim(),
-                name: name.trim(),
+                full_name: name.trim(),
                 password_hash: passwordHash,
-                salt,
                 role: adminRole,
+                is_active: true,
                 created_at: new Date().toISOString(),
             })
-            .select("id, email, name, role, created_at")
+            .select("id, email, full_name, role, created_at")
             .single();
 
         if (error) throw error;

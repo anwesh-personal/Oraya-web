@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { compare } from "bcryptjs";
 import { createSession, setSessionCookie } from "@/lib/auth";
 import { createServiceRoleClient } from "@/lib/supabase/server";
+import { verifySuperadminPassword } from "@/lib/superadmin-password";
 
 export async function POST(request: NextRequest) {
     try {
@@ -49,8 +49,12 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Verify password against bcrypt hash
-        const passwordValid = await compare(password, admin.password_hash);
+        // Verify password against the stored bcrypt hash. Fails closed for any
+        // non-bcrypt (legacy) stored value — those rows require a password reset.
+        const passwordValid = await verifySuperadminPassword(
+            password,
+            admin.password_hash
+        );
 
         if (!passwordValid) {
             // Increment failed attempts
