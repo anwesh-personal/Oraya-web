@@ -15,6 +15,7 @@ import {
     openInferenceStream,
     InferenceError,
     parseStreamChunk,
+    resolveWidgetGateway,
     retrieveContext,
     resolveIdentity,
     recallMemory,
@@ -157,9 +158,14 @@ export async function POST(request: NextRequest) {
             });
         }
 
+        // ── Per-widget embedder gateway (resolved from THIS widget's provider ──
+        // ── config; NO global env, NO hardcoded host/key/model). Null → OFF.   ──
+        const gateway = await resolveWidgetGateway({ supabase, widget });
+
         // ── Web RAG v2 retrieval + memory recall ──
         const rag: RagResult = await retrieveContext({
             supabase,
+            gateway,
             userId: widget.user_id,
             deploymentId: widget.id,
             query: userMessage,
@@ -169,6 +175,7 @@ export async function POST(request: NextRequest) {
         if (identity) {
             const recalled = await recallMemory({
                 supabase,
+                gateway,
                 userId: widget.user_id,
                 endUserId: identity.endUserId,
                 deploymentId: widget.id,
@@ -305,6 +312,7 @@ export async function POST(request: NextRequest) {
                     if (identity) {
                         void writeMemory({
                             supabase,
+                            gateway,
                             userId: widget.user_id,
                             endUserId: identity.endUserId,
                             deploymentId: widget.id,

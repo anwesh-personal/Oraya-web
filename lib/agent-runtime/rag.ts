@@ -8,6 +8,10 @@
 // via the `match_kb_chunks` RPC (migration 054), returning grounded chunks +
 // deduped citations.
 //
+// The embedder is resolved PER WIDGET from that widget's provider config (see
+// resolveWidgetGateway) and passed in explicitly — there is NO global env var
+// and NO hardcoded embedder host/key/model anywhere in this path.
+//
 // FAIL-LOUD, NEVER-FAKE contract:
 //   • No embedder configured        → RAG status 'off'   (behaves like no KB).
 //   • KB exists but embedder/RPC fails at query time → 'degraded' (honest; the
@@ -20,8 +24,8 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { RagResult, RetrievedChunk, Citation } from "./types";
-import { embedText, embedTexts, isEmbedderConfigured, toVectorLiteral, EMBEDDING_DIM } from "./embeddings";
-import { getGatewayConfig } from "./gateway";
+import { embedText, embedTexts, toVectorLiteral, EMBEDDING_DIM } from "./embeddings";
+import type { GatewayConfig } from "./gateway";
 import { logger } from "../logger";
 
 // ─── Chunking ────────────────────────────────────────────────────────────────
@@ -79,6 +83,8 @@ export type KbSourceType = "document" | "url" | "sitemap" | "manual" | "structur
 
 export interface IngestInput {
     supabase: SupabaseClient;
+    /** The widget's resolved embedder gateway (from resolveWidgetGateway). */
+    gateway: GatewayConfig | null;
     userId: string;
     deploymentId?: string | null;
     sourceType: KbSourceType;
@@ -103,15 +109,16 @@ export interface IngestResult {
  * (marks the source 'degraded' with the verbatim error and rethrows).
  */
 export async function ingestKbSource(input: IngestInput): Promise<IngestResult> {
-    const { supabase, userId, deploymentId, sourceType, title, content, sourceUrl, filePath, mimeType, metadata } = input;
+    const { supabase, gateway, userId, deploymentId, sourceType, title, content, sourceUrl, filePath, mimeType, metadata } = input;
 
-    if (!isEmbedderConfigured()) {
+    if (!gateway) {
         throw new Error(
-            "Cannot ingest: embedder not configured (ORAYA_GATEWAY_URL + ORAYA_GATEWAY_ORAK_KEY).",
+            "Cannot ingest: embedder not configured for this widget. Configure the widget's " +
+            "provider (base URL + key) and an explicit embedding model to enable ingestion.",
         );
     }
 
-    const gw = getGatewayConfig()!;
+    const gw = gateway;
     const chunks = chunkText(content);
     if (chunks.length === 0) {
         throw new Error("Cannot ingest: content produced zero chunks.");
@@ -148,7 +155,7 @@ export async function ingestKbSource(input: IngestInput): Promise<IngestResult> 
         const embeddings: number[][] = [];
         for (let i = 0; i < chunks.length; i += BATCH) {
             const batch = chunks.slice(i, i + BATCH);
-            const vecs = await embedTexts(batch);
+            const vecs = await embedTexts(batch, gw);
             embeddings.push(...vecs);
         }
 
@@ -194,6 +201,8 @@ export async function ingestKbSource(input: IngestInput): Promise<IngestResult> 
 
 export interface RetrieveInput {
     supabase: SupabaseClient;
+    /** The widget's resolved embedder gateway (from resolveWidgetGateway). */
+    gateway: GatewayConfig | null;
     userId: string;
     deploymentId: string;
     query: string;
@@ -208,9 +217,9 @@ const OFF: RagResult = { status: "off", chunks: [], citations: [] };
  * break the chat turn).
  */
 export async function retrieveContext(input: RetrieveInput): Promise<RagResult> {
-    const { supabase, userId, deploymentId, query, topK = 5 } = input;
+    const { supabase, gateway, userId, deploymentId, query, topK = 5 } = input;
 
-    if (!isEmbedderConfigured()) return OFF;
+    if (!gateway) return OFF;
 
     // Existence pre-check: is there any indexed KB for this deployment? Also
     // gracefully treats a missing table (RAG not migrated live) as 'off'.
@@ -230,7 +239,7 @@ export async function retrieveContext(input: RetrieveInput): Promise<RagResult> 
     // KB exists → from here, any failure is an HONEST 'degraded' (not silent).
     let queryEmbedding: number[];
     try {
-        queryEmbedding = await embedText(query);
+        queryEmbedding = await embedText(query, gateway);
     } catch (err: any) {
         logger.warn("[rag] query embed failed — degrading", { deploymentId, error: err?.message });
         return { status: "degraded", chunks: [], citations: [], error: err?.message || "embed failed" };

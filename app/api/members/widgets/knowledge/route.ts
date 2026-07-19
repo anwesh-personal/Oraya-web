@@ -15,7 +15,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { ingestKbSource, type KbSourceType } from "@/lib/agent-runtime";
+import { ingestKbSource, resolveWidgetGateway, type KbSourceType } from "@/lib/agent-runtime";
 
 export const dynamic = "force-dynamic";
 
@@ -118,9 +118,29 @@ export async function POST(request: NextRequest) {
 
         // Writes must be service-role (kb_* RLS has no owner INSERT policy).
         const svc = serviceClient();
+
+        // Resolve the embedder from the TARGET widget's OWN provider config
+        // (per-tenant; no global env, no hardcoded host/key/model). Ingestion
+        // requires a deployment so we can resolve that widget's embedder — a
+        // tenant-shared KB (no deployment) has no widget to resolve and fails
+        // loud below rather than silently using a platform embedder.
+        let gateway = null;
+        if (deployment_id) {
+            const { data: widget } = await svc
+                .from("widget_deployments")
+                .select("id, user_id, user_provider_id, config")
+                .eq("id", deployment_id)
+                .eq("user_id", user.id)
+                .maybeSingle();
+            if (widget) {
+                gateway = await resolveWidgetGateway({ supabase: svc, widget });
+            }
+        }
+
         try {
             const result = await ingestKbSource({
                 supabase: svc,
+                gateway,
                 userId: user.id,
                 deploymentId: deployment_id,
                 sourceType: source_type,

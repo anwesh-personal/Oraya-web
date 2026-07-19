@@ -12,6 +12,17 @@
 
 import type { ChatMessage } from "./types";
 
+// ─── Canonical provider protocol endpoints ───────────────────────────────────
+// These are NOT fallback hosts and NOT config defaults. Each is the fixed,
+// protocol-defining endpoint intrinsic to a named external provider and is used
+// ONLY when the resolved provider IS that provider. They can never be a silent
+// substitution for a different/misconfigured provider. (The sovereign gateway,
+// custom, and openai-compatible providers get their endpoint from per-widget
+// config instead — see the switch below.)
+const OPENAI_CHAT_COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions";
+const ANTHROPIC_MESSAGES_URL = "https://api.anthropic.com/v1/messages";
+const GOOGLE_GENERATIVE_LANGUAGE_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
+
 export interface UpstreamRequest {
     url: string;
     headers: Record<string, string>;
@@ -49,7 +60,7 @@ export function buildUpstreamRequest(opts: BuildUpstreamOpts): UpstreamRequest {
 
     switch (provider) {
         case "anthropic":
-            url = "https://api.anthropic.com/v1/messages";
+            url = ANTHROPIC_MESSAGES_URL;
             headers["x-api-key"] = apiKey;
             headers["anthropic-version"] = "2024-10-22";
             body = {
@@ -75,7 +86,7 @@ export function buildUpstreamRequest(opts: BuildUpstreamOpts): UpstreamRequest {
             const geminiModel = model;
             const method = stream ? "streamGenerateContent" : "generateContent";
             const suffix = stream ? `?key=${apiKey}&alt=sse` : `?key=${apiKey}`;
-            url = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:${method}${suffix}`;
+            url = `${GOOGLE_GENERATIVE_LANGUAGE_BASE}/${geminiModel}:${method}${suffix}`;
             const systemInstruction = messages.find((m) => m.role === "system")?.content || "";
             body = {
                 contents: messages
@@ -90,11 +101,18 @@ export function buildUpstreamRequest(opts: BuildUpstreamOpts): UpstreamRequest {
             break;
         }
         case "oraya":
-            // Legacy BYOK/managed "oraya" provider: OpenAI-compatible at myoraya.space
-            // using the caller-supplied key. (The ENV-configured orchestrated
-            // gateway supplies an explicit `endpointUrl` instead.)
-            url = endpointUrl
-                || (baseUrl ? baseUrl.replace(/\/+$/, "") + "/v1/chat/completions" : "https://myoraya.space/api/v1/chat/completions");
+            // Sovereign/"oraya" provider: OpenAI-compatible, endpoint comes ONLY
+            // from the widget's provider config (explicit endpointUrl, or the
+            // provider's configured base_url). NO hardcoded host fallback — if
+            // neither is configured we FAIL LOUD rather than silently call a
+            // literal host (that would hide a misconfiguration).
+            if (!endpointUrl && !baseUrl) {
+                throw new Error(
+                    "oraya/sovereign provider has no endpoint configured (base_url). " +
+                    "Refusing to fall back to a hardcoded host.",
+                );
+            }
+            url = endpointUrl || baseUrl!.replace(/\/+$/, "") + "/v1/chat/completions";
             headers["Authorization"] = `Bearer ${apiKey}`;
             body = { model, messages, temperature, max_tokens: maxTokens, ...(stream ? { stream: true } : {}) };
             break;
@@ -105,15 +123,24 @@ export function buildUpstreamRequest(opts: BuildUpstreamOpts): UpstreamRequest {
             body = { model, messages, temperature, max_tokens: maxTokens, ...(stream ? { stream: true } : {}) };
             break;
         case "openai":
-            url = endpointUrl || "https://api.openai.com/v1/chat/completions";
+            // Canonical OpenAI endpoint — intrinsic to the `openai` provider
+            // identity (NOT a fallback host substituted for a missing config).
+            // An explicit endpointUrl (OpenAI-compatible base) is still honoured.
+            url = endpointUrl || OPENAI_CHAT_COMPLETIONS_URL;
             headers["Authorization"] = `Bearer ${apiKey}`;
             body = { model, messages, temperature, max_tokens: maxTokens, ...(stream ? { stream: true } : {}) };
             break;
         default:
-            // Unknown providers are treated as OpenAI-compatible. An explicit
-            // endpointUrl/baseUrl (e.g. the sovereign gateway) is honoured.
-            url = endpointUrl
-                || (baseUrl ? baseUrl.replace(/\/+$/, "") + "/v1/chat/completions" : "https://api.openai.com/v1/chat/completions");
+            // Unknown/openai-compatible providers: endpoint MUST come from config
+            // (explicit endpointUrl or the provider's base_url). NO hardcoded host
+            // fallback — fail loud instead of silently calling a literal host.
+            if (!endpointUrl && !baseUrl) {
+                throw new Error(
+                    `provider '${provider}' has no endpoint configured (base_url). ` +
+                    "Refusing to fall back to a hardcoded host.",
+                );
+            }
+            url = endpointUrl || baseUrl!.replace(/\/+$/, "") + "/v1/chat/completions";
             headers["Authorization"] = `Bearer ${apiKey}`;
             body = { model, messages, temperature, max_tokens: maxTokens, ...(stream ? { stream: true } : {}) };
     }

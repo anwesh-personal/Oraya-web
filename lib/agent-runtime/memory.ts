@@ -23,7 +23,8 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ResolvedIdentity, MemoryResult } from "./types";
-import { embedText, isEmbedderConfigured, toVectorLiteral } from "./embeddings";
+import { embedText, toVectorLiteral } from "./embeddings";
+import type { GatewayConfig } from "./gateway";
 import { logger } from "../logger";
 
 // ─── Identity resolution ─────────────────────────────────────────────────────
@@ -162,6 +163,8 @@ export async function resolveIdentity(input: ResolveIdentityInput): Promise<Reso
 
 export interface RecallInput {
     supabase: SupabaseClient;
+    /** The widget's resolved embedder gateway (from resolveWidgetGateway). */
+    gateway: GatewayConfig | null;
     userId: string;
     endUserId: string;
     deploymentId: string;
@@ -177,17 +180,17 @@ export interface RecallInput {
  * long-term (importance/recency). Best-effort; returns { context, status }.
  */
 export async function recallMemory(input: RecallInput): Promise<Pick<MemoryResult, "context" | "status" | "error">> {
-    const { supabase, userId, endUserId, query, semanticK = 4, longTermK = 4 } = input;
+    const { supabase, gateway, userId, endUserId, query, semanticK = 4, longTermK = 4 } = input;
 
     try {
         const lines: string[] = [];
         const recalledIds = new Set<string>();
 
-        // Semantic recall (only when an embedder is available).
-        if (isEmbedderConfigured()) {
+        // Semantic recall (only when the widget's embedder is configured).
+        if (gateway) {
             let emb = input.queryEmbedding;
             try {
-                if (!emb) emb = await embedText(query);
+                if (!emb) emb = await embedText(query, gateway);
             } catch (err: any) {
                 logger.warn("[memory] semantic recall embed failed", { error: err?.message });
                 emb = undefined;
@@ -248,6 +251,8 @@ const WORKING_TTL_DAYS = 14;
 
 export interface WriteInput {
     supabase: SupabaseClient;
+    /** The widget's resolved embedder gateway (from resolveWidgetGateway). */
+    gateway: GatewayConfig | null;
     userId: string;
     endUserId: string;
     deploymentId: string;
@@ -263,7 +268,7 @@ export interface WriteInput {
  * Best-effort; intended to be called AFTER the response is sent (fire-and-forget).
  */
 export async function writeMemory(input: WriteInput): Promise<void> {
-    const { supabase, userId, endUserId, deploymentId, conversationId, userMessage } = input;
+    const { supabase, gateway, userId, endUserId, deploymentId, conversationId, userMessage } = input;
     const msg = userMessage.trim();
     if (!msg) return;
 
@@ -281,11 +286,12 @@ export async function writeMemory(input: WriteInput): Promise<void> {
             expires_at: expiresAt,
         });
 
-        // Episodic memory: only for salient, substantial first-person utterances.
-        if (msg.length >= 24 && SALIENCE_RE.test(msg) && isEmbedderConfigured()) {
+        // Episodic memory: only for salient, substantial first-person utterances
+        // AND only when the widget's embedder is configured (never a fake vector).
+        if (msg.length >= 24 && SALIENCE_RE.test(msg) && gateway) {
             let emb: number[] | null = null;
             try {
-                emb = await embedText(msg);
+                emb = await embedText(msg, gateway);
             } catch (err: any) {
                 logger.warn("[memory] episodic embed failed — skipping episodic write", { error: err?.message });
             }

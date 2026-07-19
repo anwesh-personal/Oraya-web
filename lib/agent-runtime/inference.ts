@@ -4,23 +4,26 @@
 // The single authoritative inference path for the web chatbot. Resolves an
 // ORDERED list of credential candidates honouring the precedence:
 //
-//   [sovereign gateway (opt-in)] → BYOK (widget.user_provider_id) → managed keys
+//   BYOK (widget.user_provider_id) → managed keys
 //
-// The sovereign orchestrated gateway is a FIRST-CLASS, config-driven path:
-//   • It is added ONLY when the widget opts in (config.use_sovereign_gateway).
-//   • When opted in but the gateway ENV is missing, resolution FAILS LOUD
-//     (requireGatewayConfig throws) — never a silent fallback that hides misconfig.
-//   • Existing widgets that do NOT opt in resolve EXACTLY as before (BYOK→managed).
+// The sovereign orchestrated gateway is NOT a separate global-env path. When a
+// widget uses the sovereign gateway it configures it as its OWN provider (a
+// BYOK `user_ai_providers` row with a base URL + ORAK key), so it resolves via
+// the ordinary BYOK candidate below using that provider's OWN configured
+// endpoint. There is NO global ORAYA_GATEWAY_* env var and NO hardcoded
+// gateway host/key/model anywhere.
 //
-// A runtime gateway error (network/5xx) may fall back to BYOK/managed — that is
-// resilience, not misconfiguration hiding.
+// Model resolution is CONFIG-DRIVEN ONLY. If no model can be resolved from the
+// widget config → FAIL LOUD (422). We NEVER substitute an implicit default
+// model (no "orchestrated", no gpt-*, no literal) — a silent model swap is
+// deceptive. Provider failover (BYOK→managed) keeps the SAME resolved model and
+// each provider uses its OWN configured endpoint.
 // ============================================================================
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ChatMessage, InferenceCandidate, InferencePlan, BlockingInferenceResult } from "./types";
 import { decryptKey } from "./crypto-keys";
 import { buildUpstreamRequest, parseBlockingResponse } from "./providers";
-import { requireGatewayConfig, GATEWAY_CHAT_PATH } from "./gateway";
 
 /**
  * Carries an HTTP status + machine-readable code so routes surface an honest,
@@ -53,39 +56,25 @@ export async function resolveInferencePlan(params: {
 }): Promise<InferencePlan> {
     const { supabase, widget } = params;
     const cfg: Record<string, any> = widget.config || {};
-    const usesGateway = cfg.use_sovereign_gateway === true;
     const candidates: InferenceCandidate[] = [];
 
-    // ── Dynamic model resolution (NO hardcoded external default, ever) ──
-    // Precedence (first non-empty wins):
+    // ── Dynamic model resolution (CONFIG-DRIVEN ONLY, no hardcoded default) ──
+    // Precedence (first non-empty wins), ALL sourced from the widget config/DB:
     //   1. widget config.model            (set via the UI's dynamic model picker)
-    //   2. widget.model_override          (legacy per-deployment DB column, mig 049)
-    //   3. sovereign gateway routing default — ONLY when the widget opted into
-    //      the sovereign path (added below); this is the gateway's own Sentra
-    //      routing sentinel, not an external provider model.
+    //   2. widget config.gateway_model    (explicit sovereign-gateway model id)
+    //   3. widget.model_override          (legacy per-deployment DB column, mig 049)
     //   4. otherwise → FAIL LOUD (see below). We NEVER substitute a literal like
-    //      gpt-4o-mini; a silent external-model fallback is deceptive.
+    //      gpt-4o-mini or "orchestrated"; a silent model fallback is deceptive.
+    //      ("orchestrated" and any model id remain VALID values a client can set
+    //      explicitly via config — just never an implicit hardcoded default.)
     // NOTE: an "agent template configured model" tier is intentionally NOT wired
     //   here because agent_templates has no model column today (migration 021);
     //   see the deferral note in the change report.
-    let model: string | null = nonEmpty(cfg.model) || nonEmpty(widget.model_override);
+    const model: string | null =
+        nonEmpty(cfg.model) || nonEmpty(cfg.gateway_model) || nonEmpty(widget.model_override);
 
-    // ── Sovereign orchestrated gateway (opt-in, first-class) ──
-    if (usesGateway) {
-        const gw = requireGatewayConfig(); // fail loud if unconfigured
-        candidates.push({
-            source: "sovereign-gateway",
-            provider: "oraya", // OpenAI-compatible dispatch/parsing
-            apiKey: gw.orakKey,
-            endpointUrl: gw.baseUrl + GATEWAY_CHAT_PATH,
-            isGateway: true,
-        });
-        // Gateway path may resolve the model itself via its routing sentinel when
-        // the widget has not pinned one. An explicit config.gateway_model wins.
-        model = nonEmpty(cfg.gateway_model) || model || gw.defaultModel;
-    }
-
-    // ── BYOK: the deployer's own provider ──
+    // ── BYOK: the deployer's own provider (this is also how a widget uses the ──
+    // ── sovereign gateway: as a custom/oraya provider with its own base_url).  ──
     if (widget.user_provider_id) {
         const { data: up } = await supabase
             .from("user_ai_providers")

@@ -1,83 +1,92 @@
 // ============================================================================
-// agent-runtime / gateway — sovereign orchestrated gateway configuration.
+// agent-runtime / gateway — PER-WIDGET sovereign gateway resolution.
 // ============================================================================
-// The sovereign gateway (myoraya.space) exposes an OpenAI-compatible
-// orchestrated `/api/v1/chat/completions` (Sentra routing) and an OpenAI-
-// compatible `/api/v1/embeddings` (Qwen3-Embedding-0.6B, 1024d). Both require
-// an ORAK key.
+// The sovereign gateway (an OpenAI-compatible orchestrated /chat/completions +
+// /embeddings service) is resolved DYNAMICALLY PER WIDGET/TENANT from that
+// widget's own provider configuration — the SAME source the chat inference path
+// uses (BYOK `user_ai_providers` via widget.user_provider_id).
 //
-// Config is ENV-driven. NO keys are ever hardcoded. When the sovereign path is
-// SELECTED but not configured we throw loud — a misconfig must never silently
-// fall through to a different provider (that would hide the fault).
+// There is NO global platform env var for the gateway. There is NO hardcoded
+// URL, key, model, or embedding model. If a widget has no sovereign/embedder
+// provider configured, RAG + embeddings are honestly OFF for that widget
+// (fail-loud / degraded, never a silent substitution).
+//
+// Config source of truth (per widget):
+//   • base URL + ORAK key  → the widget's `user_ai_providers` row (base_url +
+//                            decrypted api_key_encrypted).
+//   • embedding model      → widget `config.embedding_model` (explicit; never a
+//                            hardcoded default).
 // ============================================================================
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { decryptKey } from "./crypto-keys";
 
 export interface GatewayConfig {
-    /** Base URL, e.g. https://myoraya.space (no trailing slash). */
+    /** API root from the widget's provider config, no trailing slash. */
     baseUrl: string;
-    /** ORAK key used as the Bearer credential for the gateway. */
+    /** ORAK / provider key used as the Bearer credential for the gateway. */
     orakKey: string;
-    /** Embedding model id (fixed by the gateway; overridable via ENV). */
-    embeddingModel: string;
     /**
-     * The gateway's advertised routing directive for chat completions. This is
-     * NOT an external provider model id (e.g. gpt-4o); it is the sovereign
-     * gateway's own Sentra routing sentinel that tells the gateway to select
-     * the model itself. Used ONLY on the sovereign path and ONLY when the widget
-     * has not pinned an explicit model. ENV-overridable; never a hidden external
-     * substitution.
+     * Embedding model id — MUST be explicitly set in the widget config. It is a
+     * valid client-chosen value, never an implicit hardcoded fallback. Its
+     * output dimension must match the vector(1024) DB columns (validated at
+     * embed time, fail-loud on mismatch).
      */
-    defaultModel: string;
+    embeddingModel: string;
 }
-
-const DEFAULT_EMBEDDING_MODEL = "Qwen3-Embedding-0.6B";
-/** Sovereign gateway routing sentinel (see GatewayConfig.defaultModel). */
-const DEFAULT_GATEWAY_MODEL = "orchestrated";
 
 function normalizeBaseUrl(raw: string): string {
     return raw.trim().replace(/\/+$/, "");
 }
 
-/**
- * Returns the gateway config if BOTH the URL and ORAK key are present in ENV,
- * otherwise null. Callers that merely want to know "is the gateway available?"
- * (RAG/embeddings enablement) use this; it never throws.
- */
-export function getGatewayConfig(): GatewayConfig | null {
-    const baseUrl = process.env.ORAYA_GATEWAY_URL;
-    const orakKey = process.env.ORAYA_GATEWAY_ORAK_KEY;
-    if (!baseUrl || !orakKey) return null;
-    return {
-        baseUrl: normalizeBaseUrl(baseUrl),
-        orakKey,
-        embeddingModel: process.env.ORAYA_EMBEDDING_MODEL || DEFAULT_EMBEDDING_MODEL,
-        defaultModel: process.env.ORAYA_GATEWAY_DEFAULT_MODEL || DEFAULT_GATEWAY_MODEL,
-    };
+function nonEmpty(v: unknown): string | null {
+    return typeof v === "string" && v.trim().length > 0 ? v.trim() : null;
+}
+
+/** Builds the OpenAI-compatible embeddings endpoint from a config base URL. */
+export function buildEmbeddingsUrl(baseUrl: string): string {
+    return normalizeBaseUrl(baseUrl) + "/v1/embeddings";
 }
 
 /**
- * Returns the gateway config or throws a loud, explicit error naming the exact
- * missing ENV var. Use this ONLY when the sovereign path has been SELECTED, so a
- * misconfiguration fails visibly instead of silently degrading.
+ * Resolves the per-widget gateway/embedder config from the widget's OWN provider
+ * configuration. Returns null (embedder OFF for this widget) when the widget has
+ * not configured a provider base URL + key + explicit embedding model. NEVER
+ * reads a global env var and NEVER substitutes a literal host/key/model.
+ *
+ * The base URL + key come from the widget's `user_ai_providers` row
+ * (widget.user_provider_id). The embedding model comes from
+ * `widget.config.embedding_model`. All three are required; any missing → null.
  */
-export function requireGatewayConfig(): GatewayConfig {
-    const baseUrl = process.env.ORAYA_GATEWAY_URL;
-    const orakKey = process.env.ORAYA_GATEWAY_ORAK_KEY;
-    const missing: string[] = [];
-    if (!baseUrl) missing.push("ORAYA_GATEWAY_URL");
-    if (!orakKey) missing.push("ORAYA_GATEWAY_ORAK_KEY");
-    if (missing.length > 0) {
-        throw new Error(
-            `Sovereign gateway selected but not configured. Missing ENV: ${missing.join(", ")}. ` +
-            `Set them or disable the sovereign inference path for this widget.`,
-        );
+export async function resolveWidgetGateway(params: {
+    supabase: SupabaseClient;
+    widget: any;
+}): Promise<GatewayConfig | null> {
+    const { supabase, widget } = params;
+    const cfg: Record<string, any> = widget?.config || {};
+
+    const embeddingModel = nonEmpty(cfg.embedding_model);
+    if (!embeddingModel) return null; // no explicit embedder model → OFF (honest)
+
+    const providerId = widget?.user_provider_id;
+    if (!providerId) return null; // no provider configured → OFF
+
+    const { data: up } = await supabase
+        .from("user_ai_providers")
+        .select("api_key_encrypted, base_url, is_active, is_valid")
+        .eq("id", providerId)
+        .single();
+
+    if (!up?.is_active || !up?.is_valid || !up?.base_url || !up?.api_key_encrypted) {
+        return null; // provider not usable / no endpoint configured → OFF
     }
+
+    const key = decryptKey(up.api_key_encrypted);
+    if (!key) return null; // key undecryptable → OFF (never a literal key)
+
     return {
-        baseUrl: normalizeBaseUrl(baseUrl!),
-        orakKey: orakKey!,
-        embeddingModel: process.env.ORAYA_EMBEDDING_MODEL || DEFAULT_EMBEDDING_MODEL,
-        defaultModel: process.env.ORAYA_GATEWAY_DEFAULT_MODEL || DEFAULT_GATEWAY_MODEL,
+        baseUrl: normalizeBaseUrl(up.base_url),
+        orakKey: key,
+        embeddingModel,
     };
 }
-
-export const GATEWAY_CHAT_PATH = "/api/v1/chat/completions";
-export const GATEWAY_EMBEDDINGS_PATH = "/api/v1/embeddings";

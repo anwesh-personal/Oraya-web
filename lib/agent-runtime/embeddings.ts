@@ -1,13 +1,16 @@
 // ============================================================================
-// agent-runtime / embeddings — sovereign gateway embedding client.
+// agent-runtime / embeddings — per-widget gateway embedding client.
 // ============================================================================
-// Embeds text via the sovereign gateway's OpenAI-compatible
-// `/api/v1/embeddings` (Qwen3-Embedding-0.6B, 1024d). The dimension is FIXED by
-// the model and by the `vector(1024)` DB columns (migration 053), so a mismatch
-// FAILS LOUD here — we NEVER fabricate, hash, or truncate an embedding.
+// Embeds text via the widget's OWN configured gateway (OpenAI-compatible
+// /v1/embeddings). The embedder base URL + key + model are resolved PER WIDGET
+// (see resolveWidgetGateway) — never from a global env var and never hardcoded.
+//
+// The dimension is FIXED by the `vector(1024)` DB columns (migration 053), so a
+// mismatch FAILS LOUD here — we NEVER fabricate, hash, or truncate an embedding.
 // ============================================================================
 
-import { getGatewayConfig, GATEWAY_EMBEDDINGS_PATH } from "./gateway";
+import type { GatewayConfig } from "./gateway";
+import { buildEmbeddingsUrl } from "./gateway";
 
 export const EMBEDDING_DIM = 1024;
 
@@ -18,35 +21,32 @@ export class EmbeddingError extends Error {
     }
 }
 
-/** True when the gateway (embedder) is configured via ENV. */
-export function isEmbedderConfigured(): boolean {
-    return getGatewayConfig() !== null;
-}
-
 /**
- * Embeds a batch of texts, returning one 1024-dim vector per input in order.
- * Throws EmbeddingError if the embedder is unconfigured, unreachable, returns a
- * non-OK status, or returns a vector of the wrong dimension. NO silent fallback.
+ * Embeds a batch of texts against the supplied per-widget gateway, returning one
+ * 1024-dim vector per input in order. Throws EmbeddingError if the embedder is
+ * unreachable, returns a non-OK status, or returns a vector of the wrong
+ * dimension. NO silent fallback — the caller passes the widget's resolved
+ * gateway or handles the OFF case explicitly.
  */
-export async function embedTexts(texts: string[]): Promise<number[][]> {
+export async function embedTexts(texts: string[], gateway: GatewayConfig): Promise<number[][]> {
     if (texts.length === 0) return [];
 
-    const gw = getGatewayConfig();
-    if (!gw) {
+    if (!gateway) {
         throw new EmbeddingError(
-            "Embedder not configured. Set ORAYA_GATEWAY_URL + ORAYA_GATEWAY_ORAK_KEY to enable embeddings/RAG.",
+            "Embedder not configured for this widget. Configure the widget's provider " +
+            "(base URL + key) and an explicit embedding model to enable embeddings/RAG.",
         );
     }
 
     let res: Response;
     try {
-        res = await fetch(gw.baseUrl + GATEWAY_EMBEDDINGS_PATH, {
+        res = await fetch(buildEmbeddingsUrl(gateway.baseUrl), {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${gw.orakKey}`,
+                Authorization: `Bearer ${gateway.orakKey}`,
             },
-            body: JSON.stringify({ model: gw.embeddingModel, input: texts }),
+            body: JSON.stringify({ model: gateway.embeddingModel, input: texts }),
         });
     } catch (err: any) {
         throw new EmbeddingError(`Embedder unreachable: ${err?.message || "network error"}`);
@@ -78,9 +78,9 @@ export async function embedTexts(texts: string[]): Promise<number[][]> {
     });
 }
 
-/** Convenience single-text embed. */
-export async function embedText(text: string): Promise<number[]> {
-    const [vec] = await embedTexts([text]);
+/** Convenience single-text embed against the widget's resolved gateway. */
+export async function embedText(text: string, gateway: GatewayConfig): Promise<number[]> {
+    const [vec] = await embedTexts([text], gateway);
     return vec;
 }
 
