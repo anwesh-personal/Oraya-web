@@ -62,7 +62,17 @@ export function buildUpstreamRequest(opts: BuildUpstreamOpts): UpstreamRequest {
             };
             break;
         case "google": {
-            const geminiModel = model.startsWith("gemini") ? model : "gemini-2.0-flash";
+            // Use the RESOLVED model verbatim. Previously this silently swapped
+            // any non-"gemini" model for a hardcoded "gemini-2.0-flash" — a
+            // deceptive downgrade. If the resolved model isn't a Gemini model,
+            // fail loud rather than substitute one.
+            if (!model.startsWith("gemini")) {
+                throw new Error(
+                    `google provider cannot serve model '${model}': not a Gemini model. ` +
+                    `Refusing to silently substitute a different model.`,
+                );
+            }
+            const geminiModel = model;
             const method = stream ? "streamGenerateContent" : "generateContent";
             const suffix = stream ? `?key=${apiKey}&alt=sse` : `?key=${apiKey}`;
             url = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:${method}${suffix}`;

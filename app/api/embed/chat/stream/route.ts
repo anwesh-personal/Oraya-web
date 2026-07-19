@@ -199,7 +199,11 @@ export async function POST(request: NextRequest) {
         try {
             plan = await resolveInferencePlan({ supabase, widget });
         } catch (err: any) {
-            return NextResponse.json({ error: err?.message || "Inference misconfigured" }, { status: 503, headers: cors });
+            // Fail loud + honest: no model configured (422) or sovereign path
+            // selected but unconfigured (503). Never a silent default model.
+            const status = err instanceof InferenceError ? err.status : 503;
+            const code = err instanceof InferenceError ? err.code : "inference_misconfigured";
+            return NextResponse.json({ error: code, message: err?.message || "Inference misconfigured" }, { status, headers: cors });
         }
 
         let opened;

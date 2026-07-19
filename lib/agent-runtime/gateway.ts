@@ -18,9 +18,20 @@ export interface GatewayConfig {
     orakKey: string;
     /** Embedding model id (fixed by the gateway; overridable via ENV). */
     embeddingModel: string;
+    /**
+     * The gateway's advertised routing directive for chat completions. This is
+     * NOT an external provider model id (e.g. gpt-4o); it is the sovereign
+     * gateway's own Sentra routing sentinel that tells the gateway to select
+     * the model itself. Used ONLY on the sovereign path and ONLY when the widget
+     * has not pinned an explicit model. ENV-overridable; never a hidden external
+     * substitution.
+     */
+    defaultModel: string;
 }
 
 const DEFAULT_EMBEDDING_MODEL = "Qwen3-Embedding-0.6B";
+/** Sovereign gateway routing sentinel (see GatewayConfig.defaultModel). */
+const DEFAULT_GATEWAY_MODEL = "orchestrated";
 
 function normalizeBaseUrl(raw: string): string {
     return raw.trim().replace(/\/+$/, "");
@@ -39,6 +50,7 @@ export function getGatewayConfig(): GatewayConfig | null {
         baseUrl: normalizeBaseUrl(baseUrl),
         orakKey,
         embeddingModel: process.env.ORAYA_EMBEDDING_MODEL || DEFAULT_EMBEDDING_MODEL,
+        defaultModel: process.env.ORAYA_GATEWAY_DEFAULT_MODEL || DEFAULT_GATEWAY_MODEL,
     };
 }
 
@@ -63,6 +75,7 @@ export function requireGatewayConfig(): GatewayConfig {
         baseUrl: normalizeBaseUrl(baseUrl!),
         orakKey: orakKey!,
         embeddingModel: process.env.ORAYA_EMBEDDING_MODEL || DEFAULT_EMBEDDING_MODEL,
+        defaultModel: process.env.ORAYA_GATEWAY_DEFAULT_MODEL || DEFAULT_GATEWAY_MODEL,
     };
 }
 

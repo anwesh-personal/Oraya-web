@@ -22,14 +22,24 @@ import { decryptKey } from "./crypto-keys";
 import { buildUpstreamRequest, parseBlockingResponse } from "./providers";
 import { requireGatewayConfig, GATEWAY_CHAT_PATH } from "./gateway";
 
-/** Carries an HTTP status so routes preserve their existing error codes. */
+/**
+ * Carries an HTTP status + machine-readable code so routes surface an honest,
+ * structured error to the caller instead of silently degrading.
+ */
 export class InferenceError extends Error {
     status: number;
-    constructor(status: number, message: string) {
+    code: string;
+    constructor(status: number, message: string, code = "inference_error") {
         super(message);
         this.name = "InferenceError";
         this.status = status;
+        this.code = code;
     }
+}
+
+/** Returns a trimmed non-empty string, or null. Used for model resolution. */
+function nonEmpty(v: unknown): string | null {
+    return typeof v === "string" && v.trim().length > 0 ? v.trim() : null;
 }
 
 /**
@@ -43,11 +53,25 @@ export async function resolveInferencePlan(params: {
 }): Promise<InferencePlan> {
     const { supabase, widget } = params;
     const cfg: Record<string, any> = widget.config || {};
-    const model = cfg.model || widget.model_override || "gpt-4o-mini";
+    const usesGateway = cfg.use_sovereign_gateway === true;
     const candidates: InferenceCandidate[] = [];
 
+    // ── Dynamic model resolution (NO hardcoded external default, ever) ──
+    // Precedence (first non-empty wins):
+    //   1. widget config.model            (set via the UI's dynamic model picker)
+    //   2. widget.model_override          (legacy per-deployment DB column, mig 049)
+    //   3. sovereign gateway routing default — ONLY when the widget opted into
+    //      the sovereign path (added below); this is the gateway's own Sentra
+    //      routing sentinel, not an external provider model.
+    //   4. otherwise → FAIL LOUD (see below). We NEVER substitute a literal like
+    //      gpt-4o-mini; a silent external-model fallback is deceptive.
+    // NOTE: an "agent template configured model" tier is intentionally NOT wired
+    //   here because agent_templates has no model column today (migration 021);
+    //   see the deferral note in the change report.
+    let model: string | null = nonEmpty(cfg.model) || nonEmpty(widget.model_override);
+
     // ── Sovereign orchestrated gateway (opt-in, first-class) ──
-    if (cfg.use_sovereign_gateway === true) {
+    if (usesGateway) {
         const gw = requireGatewayConfig(); // fail loud if unconfigured
         candidates.push({
             source: "sovereign-gateway",
@@ -56,6 +80,9 @@ export async function resolveInferencePlan(params: {
             endpointUrl: gw.baseUrl + GATEWAY_CHAT_PATH,
             isGateway: true,
         });
+        // Gateway path may resolve the model itself via its routing sentinel when
+        // the widget has not pinned one. An explicit config.gateway_model wins.
+        model = nonEmpty(cfg.gateway_model) || model || gw.defaultModel;
     }
 
     // ── BYOK: the deployer's own provider ──
@@ -91,9 +118,20 @@ export async function resolveInferencePlan(params: {
         }
     }
 
+    // ── Fail loud: no model could be resolved. Never substitute a default. ──
+    if (!nonEmpty(model)) {
+        throw new InferenceError(
+            422,
+            "No AI model is configured for this widget. Set the model in the widget's " +
+                "AI Model settings (config.model), a per-deployment model_override, or enable " +
+                "the sovereign gateway. Refusing to silently substitute a default model.",
+            "no_model_configured",
+        );
+    }
+
     return {
         candidates,
-        model: cfg.use_sovereign_gateway === true ? (cfg.gateway_model || model) : model,
+        model: model as string,
         temperature: widget.temperature,
         maxTokens: widget.max_tokens,
     };
