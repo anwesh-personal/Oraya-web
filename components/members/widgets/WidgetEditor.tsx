@@ -130,6 +130,10 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
     // AI Model
     const [selectedProviderId, setSelectedProviderId] = useState(widget.user_provider_id || "");
     const [selectedModel, setSelectedModel] = useState(widget.config?.model || "");
+    // Embedding model — powers sovereign RAG/knowledge-base. Empty = RAG OFF
+    // for this widget (matches resolveWidgetGateway backend behavior). Never a
+    // hardcoded default.
+    const [selectedEmbeddingModel, setSelectedEmbeddingModel] = useState(widget.config?.embedding_model || "");
 
     // ── Training Data (template inherited + user additions) ──
     const [qaItems, setQaItems] = useState<QAPair[]>(() => {
@@ -244,6 +248,8 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
             window_style: windowStyle,
             // AI Model
             model: selectedModel,
+            // Embedding model (sovereign RAG). Empty string = RAG OFF for widget.
+            embedding_model: selectedEmbeddingModel,
             // Training Data
             training_qa: qaItems.filter(qa => qa.question.trim() || qa.answer.trim()).map(qa => ({
                 question: qa.question.trim(),
@@ -329,7 +335,7 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
         darkMode, borderRadius, showBranding, bubbleSize, chatWidth, chatHeight,
         companyLogoUrl, windowStyle, soundEnabled, autoOpen, autoOpenDelay,
         placeholder,
-        selectedProviderId, selectedModel, qaItems, rawContext, promptLayers, rules,
+        selectedProviderId, selectedModel, selectedEmbeddingModel, qaItems, rawContext, promptLayers, rules,
         formality, verbosity, emojiUsage, responseStyle,
         personalityText, styleText, toneText,
     ]);
@@ -887,6 +893,36 @@ export function WidgetEditor({ widget, providers, templateData }: WidgetEditorPr
                                                         className="w-full px-4 py-3 rounded-xl border text-sm font-mono outline-none transition-colors focus:border-[var(--primary)]"
                                                         style={inputStyle} placeholder="Enter model identifier from your provider" />
                                                 )}
+                                            </div>
+                                        );
+                                    })()}
+
+                                    {/* ── Embedding model (sovereign RAG) ── */}
+                                    {selectedProviderId && (() => {
+                                        const prov = providers.find((p: any) => p.id === selectedProviderId);
+                                        const models = prov?.available_models || [];
+                                        return (
+                                            <div className="pt-2 border-t border-[var(--surface-200)]">
+                                                <label className="text-xs font-semibold text-[var(--surface-700)] mb-1.5 block">
+                                                    Embedding Model <span className="font-normal text-[var(--surface-500)]">(optional — powers knowledge base / RAG)</span>
+                                                </label>
+                                                {models.length > 0 ? (
+                                                    <select value={selectedEmbeddingModel} onChange={e => setSelectedEmbeddingModel(e.target.value)}
+                                                        className="w-full px-4 py-3 rounded-xl border text-sm outline-none transition-colors focus:border-[var(--primary)]"
+                                                        style={inputStyle}>
+                                                        <option value="">— None (knowledge base / RAG OFF) —</option>
+                                                        {models.map((m: any) => (
+                                                            <option key={m.id} value={m.id}>{m.name || m.id}</option>
+                                                        ))}
+                                                    </select>
+                                                ) : (
+                                                    <div className="w-full px-4 py-3 rounded-xl border text-sm text-[var(--surface-500)]" style={inputStyle}>
+                                                        No models available yet — validate/select a provider first to choose an embedding model.
+                                                    </div>
+                                                )}
+                                                <p className="text-[11px] text-[var(--surface-500)] mt-1.5 leading-relaxed">
+                                                    Leave empty to keep the knowledge base / RAG <span className="font-semibold">OFF</span> for this widget — that is the real backend behavior, RAG does not run without an embedding model. The chosen model <span className="font-semibold">must output 1024-dimensional vectors</span> to match the database (embeddings are rejected fail-loud at embed time on a dimension mismatch).
+                                                </p>
                                             </div>
                                         );
                                     })()}
