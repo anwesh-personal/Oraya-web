@@ -1,0 +1,21 @@
+name: e2e037-brain-sync
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: brain_e2e
+      POSTGRES_USER: brain_e2e
+      POSTGRES_PASSWORD: ephemeral_only
+    ports:
+      - "127.0.0.1:55437:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
+      - ../../supabase/migrations/055_synced_agent_brain_foundation.sql:/docker-entrypoint-initdb.d/055-synced-agent-brain.sql:ro
+      - ../../supabase/migrations/056_synced_agent_brain_kb.sql:/docker-entrypoint-initdb.d/056-synced-agent-brain-kb.sql:ro
+      - ../../supabase/migrations/057_synced_agent_brain_kg.sql:/docker-entrypoint-initdb.d/057-synced-agent-brain-kg.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U brain_e2e -d brain_e2e"]
+      interval: 2s
+      timeout: 2s
+      retries: 20

@@ -11,8 +11,10 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { jwtVerify } from "jose";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import type { ManagedAiClaims } from "@/lib/license-signing";
+import { isBrainSyncE2e } from "@/lib/brain-sync/e2e-runtime";
 
 // =============================================================================
 // TYPES
@@ -148,6 +150,29 @@ export async function authenticateDesktopRequest(
             },
             { status: 401 }
         );
+    }
+
+    // The composed E2E server uses a local HMAC key and validates it through
+    // this same desktop-auth entry point. It never accepts a production token
+    // or reaches Supabase.
+    if (isBrainSyncE2e()) {
+        try {
+            const secret = new TextEncoder().encode(process.env.BRAIN_SYNC_E2E_JWT_SECRET!);
+            const { payload } = await jwtVerify(accessToken, secret, {
+                algorithms: ["HS256"],
+                issuer: "brain-sync-e2e",
+                audience: "oraya-desktop",
+            });
+            if (typeof payload.sub !== "string") throw new Error("missing subject");
+            return {
+                userId: payload.sub, email: typeof payload.email === "string" ? payload.email : "",
+                accessToken, license: null, team: null,
+                ipAddress: request.headers.get("x-forwarded-for") || "127.0.0.1",
+                userAgent: request.headers.get("user-agent") || "brain-sync-e2e",
+            };
+        } catch {
+            return NextResponse.json({ error: "Invalid local E2E access token", code: "AUTH_EXPIRED" }, { status: 401 });
+        }
     }
 
     // ── Verify with Supabase ──

@@ -18,6 +18,35 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ChatMessage, RagResult } from "./types";
 
+export type SyncedBrainRuntimeConfig = {
+    promptStack: Array<{ content: string; priority: number; is_active: boolean }>;
+    // The widget's existing few-shot semantics are full-list injection. This is
+    // intentionally distinct from desktop's relevance-selected training path.
+    training: Array<{ role: "user" | "assistant"; content: string; sequence: number }>;
+};
+
+/** Fetch canonical opt-in agent configuration without copying it into widgets. */
+export async function getSyncedBrainRuntimeConfig(params: {
+    supabase: SupabaseClient; userId: string; agentId: string | null | undefined;
+}): Promise<SyncedBrainRuntimeConfig | null> {
+    const { supabase, userId, agentId } = params;
+    if (!agentId) return null;
+    const { data: brain } = await (supabase as any).from("agent_brains")
+        .select("agent_id").eq("agent_id", agentId).eq("user_id", userId).eq("synced_brain", true).maybeSingle();
+    if (!brain) return null;
+    const [{ data: stack }, { data: exchanges }] = await Promise.all([
+        (supabase as any).from("agent_prompt_stack").select("content,position,is_active")
+            .eq("agent_id", agentId).eq("user_id", userId).eq("tombstone", false).order("position"),
+        (supabase as any).from("agent_training_exchanges").select("role,content,turn_index")
+            .eq("agent_id", agentId).eq("user_id", userId).eq("tombstone", false).order("conversation_id").order("turn_index"),
+    ]);
+    return {
+        promptStack: (stack || []).map((row: any) => ({ content: row.content, priority: row.position, is_active: row.is_active })),
+        training: (exchanges || []).filter((row: any) => row.role === "user" || row.role === "assistant")
+            .map((row: any) => ({ role: row.role, content: row.content, sequence: row.turn_index })),
+    };
+}
+
 /**
  * Resolves the COMPILED core prompt for a widget's template using the same RPC
  * (`get_user_accessible_agents`) + compilation (migration 046) as desktop.
@@ -58,6 +87,7 @@ export interface ComposeInput {
     rag?: RagResult | null;
     /** Recalled memory rendered as a prompt block (optional). */
     memoryContext?: string | null;
+    syncedBrain?: SyncedBrainRuntimeConfig | null;
 }
 
 export interface ComposeResult {
@@ -70,7 +100,7 @@ export interface ComposeResult {
  * one inference. Pure: no I/O. Mirrors the legacy layering exactly.
  */
 export function composeAgentPrompt(input: ComposeInput): ComposeResult {
-    const { widget, compiledCorePrompt, history, userMessage, rag, memoryContext } = input;
+    const { widget, compiledCorePrompt, history, userMessage, rag, memoryContext, syncedBrain } = input;
     const cfg: Record<string, any> = widget.config || {};
 
     // Base: config override → widget override → COMPILED template → empty.
@@ -102,7 +132,8 @@ export function composeAgentPrompt(input: ComposeInput): ComposeResult {
     }
 
     // Prompt stack — config JSONB preferred, dedicated column fallback
-    const promptStack = cfg.prompt_stack?.length > 0 ? cfg.prompt_stack : widget.prompt_stack;
+    const promptStack = syncedBrain?.promptStack?.length ? syncedBrain.promptStack
+        : (cfg.prompt_stack?.length > 0 ? cfg.prompt_stack : widget.prompt_stack);
     if (promptStack?.length > 0) {
         const stackText = promptStack
             .filter((p: any) => p.is_active !== false)
@@ -162,14 +193,20 @@ export function composeAgentPrompt(input: ComposeInput): ComposeResult {
 
     // Few-shot training examples — config training_qa preferred, column fallback
     const trainingItems =
-        cfg.training_qa?.length > 0
+        syncedBrain?.training?.length
+            ? null
+            : cfg.training_qa?.length > 0
             ? cfg.training_qa.map((qa: any) => ({
                   user_input: qa.question,
                   expected_output: qa.answer,
                   is_active: true,
               }))
             : widget.training_data;
-    if (trainingItems?.length > 0) {
+    if (syncedBrain?.training?.length) {
+        for (const exchange of [...syncedBrain.training].sort((a, b) => a.sequence - b.sequence)) {
+            messages.push({ role: exchange.role, content: exchange.content });
+        }
+    } else if (trainingItems?.length > 0) {
         for (const ex of trainingItems.filter((e: any) => e.is_active !== false)) {
             messages.push({ role: "user", content: ex.user_input });
             messages.push({ role: "assistant", content: ex.expected_output });

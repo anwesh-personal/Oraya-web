@@ -207,6 +207,12 @@ export interface RetrieveInput {
     deploymentId: string;
     query: string;
     topK?: number;
+    /**
+     * Portable synced-agent id. When the widget is bound to a synced agent brain,
+     * this makes the SAME hybrid retrieval also see the agent's synced KB chunks
+     * (kb_chunks.agent_id) — no second, divergent retrieval path.
+     */
+    agentId?: string | null;
 }
 
 const OFF: RagResult = { status: "off", chunks: [], citations: [] };
@@ -217,20 +223,24 @@ const OFF: RagResult = { status: "off", chunks: [], citations: [] };
  * break the chat turn).
  */
 export async function retrieveContext(input: RetrieveInput): Promise<RagResult> {
-    const { supabase, gateway, userId, deploymentId, query, topK = 5 } = input;
+    const { supabase, gateway, userId, deploymentId, query, topK = 5, agentId = null } = input;
 
     if (!gateway) return OFF;
 
-    // Existence pre-check: is there any indexed KB for this deployment? Also
-    // gracefully treats a missing table (RAG not migrated live) as 'off'.
+    // Existence pre-check: is there any indexed KB for this deployment (or, for a
+    // synced widget, the bound agent brain)? Also gracefully treats a missing
+    // table (RAG not migrated live) as 'off'.
     try {
-        const { count, error } = await supabase
+        let q = supabase
             .from("kb_sources")
             .select("id", { count: "exact", head: true })
             .eq("user_id", userId)
-            .eq("deployment_id", deploymentId)
             .eq("is_active", true)
             .eq("indexing_status", "indexed");
+        q = agentId
+            ? q.or(`deployment_id.eq.${deploymentId},agent_id.eq.${agentId}`)
+            : q.eq("deployment_id", deploymentId);
+        const { count, error } = await q;
         if (error || !count || count === 0) return OFF;
     } catch {
         return OFF;
@@ -252,6 +262,7 @@ export async function retrieveContext(input: RetrieveInput): Promise<RagResult> 
             p_query_embedding: toVectorLiteral(queryEmbedding),
             p_query_text: query,
             p_match_count: topK,
+            p_agent_id: agentId,
         });
         if (error) {
             logger.warn("[rag] match_kb_chunks failed — degrading", { deploymentId, error: error.message });

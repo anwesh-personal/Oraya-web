@@ -15,6 +15,7 @@ import { createClient } from "@supabase/supabase-js";
 import {
     getCompiledCorePrompt,
     composeAgentPrompt,
+    getSyncedBrainRuntimeConfig,
     resolveInferencePlan,
     callInferenceBlocking,
     InferenceError,
@@ -312,6 +313,9 @@ export async function POST(request: NextRequest) {
             templateId: widget.template_id,
             fallbackCorePrompt: agent?.core_prompt || "",
         });
+        const syncedBrain = await getSyncedBrainRuntimeConfig({
+            supabase, userId: widget.user_id, agentId: widget.config?.synced_agent_id,
+        });
 
         const { messages } = composeAgentPrompt({
             widget,
@@ -320,6 +324,7 @@ export async function POST(request: NextRequest) {
             userMessage,
             rag,
             memoryContext,
+            syncedBrain,
         });
 
         // ─── Inference (BYOK → managed → sovereign gateway) ─────────────
