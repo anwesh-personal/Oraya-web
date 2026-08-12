@@ -64,6 +64,35 @@ ALTER TABLE agent_entity_relationships
     ADD COLUMN IF NOT EXISTS observation_provenance TEXT NOT NULL DEFAULT 'live'
     CHECK (observation_provenance IN ('live','backfill','mixed'));
 
+-- ── 1b. WHEN a row was observed, so the never-move-backwards rule can exist here ──
+-- These columns did not exist, and their absence was not a gap in bookkeeping — it meant
+-- the rule the desktop enforces had NO COUNTERPART on this surface at all. The desktop
+-- keys retrieval decay off `last_mentioned` / `last_confirmed` and merges them by
+-- `MAX`/`MIN`, so a replay of February history cannot make an old fact look fresh. This
+-- receiver had nowhere to put those numbers, so a mutation carrying them was simply
+-- dropped, and any surface reading back from here would see a graph with no notion of
+-- when anything was observed. One surface enforcing an invariant is not an invariant.
+--
+-- BIGINT UNIX SECONDS, matching the desktop's storage exactly rather than converting to
+-- TIMESTAMPTZ. The wire carries integers; a second representation here would mean the two
+-- surfaces compare different things, and `GREATEST`/`LEAST` over integers is trivially the
+-- same rule as SQLite's `MAX`/`MIN` over the same integers. The audit columns
+-- (`created_at`, `updated_at`) stay TIMESTAMPTZ — they record when THIS DATABASE acted,
+-- which is a different question from when the fact was observed.
+--
+-- NULLABLE, because a row that arrived before these columns existed genuinely has no
+-- observed time and inventing one would be a fabrication. Postgres `GREATEST`/`LEAST`
+-- ignore NULL operands (unlike almost every other function), so an unknown bound is
+-- absorbed by the first known one with no `COALESCE` and no special case.
+ALTER TABLE agent_context_entities
+    ADD COLUMN IF NOT EXISTS first_observed_at BIGINT;
+ALTER TABLE agent_context_entities
+    ADD COLUMN IF NOT EXISTS last_observed_at BIGINT;
+ALTER TABLE agent_entity_relationships
+    ADD COLUMN IF NOT EXISTS first_observed_at BIGINT;
+ALTER TABLE agent_entity_relationships
+    ADD COLUMN IF NOT EXISTS last_observed_at BIGINT;
+
 -- ── 2. Preflight, and the gate on merging customer rows ───────────────────────────
 -- The desktop expects this receiver to hold nothing yet, because both sync commits are
 -- labelled "test-proven, not live". That expectation is CHECKED rather than assumed, and
@@ -149,6 +178,11 @@ SELECT r.id AS loser_id,
 UPDATE agent_context_entities s SET
     confidence_score = GREATEST(s.confidence_score, m.confidence_score),
     mention_count    = GREATEST(s.mention_count, m.mention_count),
+    -- The observation window widens to cover every merged row, by the same MIN/MAX the
+    -- write path uses. `LEAST`/`GREATEST` ignore NULLs, so a merged row that predates
+    -- these columns contributes nothing rather than erasing what the survivor knew.
+    first_observed_at = LEAST(s.first_observed_at, m.first_observed_at),
+    last_observed_at  = GREATEST(s.last_observed_at, m.last_observed_at),
     description      = COALESCE(s.description, m.description),
     aliases          = m.aliases,
     observation_provenance = CASE
@@ -159,6 +193,8 @@ UPDATE agent_context_entities s SET
     SELECT k.survivor_id,
            max(l.confidence_score) AS confidence_score,
            max(l.mention_count) AS mention_count,
+           min(l.first_observed_at) AS first_observed_at,
+           max(l.last_observed_at) AS last_observed_at,
            (array_remove(array_agg(l.description ORDER BY l.revision DESC), NULL))[1] AS description,
            -- Every distinct surface form any merged row was written under, unioned onto
            -- the survivor's own aliases. This is what makes the merge reversible from
@@ -220,6 +256,7 @@ CREATE TEMP TABLE _kg058_edge_merge AS
 WITH ranked AS (
     SELECT r.id, r.agent_id, r.source_canonical, r.relationship_type, r.target_canonical,
            r.confidence_score, r.confirmation_count, r.observation_provenance,
+           r.first_observed_at, r.last_observed_at,
            row_number() OVER (
                PARTITION BY r.agent_id, r.source_canonical, r.relationship_type, r.target_canonical
                ORDER BY r.confidence_score DESC, r.confirmation_count DESC,
@@ -229,7 +266,7 @@ WITH ranked AS (
      WHERE NOT r.tombstone
 )
 SELECT l.id AS loser_id, s.id AS survivor_id, l.confirmation_count, l.confidence_score,
-       l.observation_provenance
+       l.observation_provenance, l.first_observed_at, l.last_observed_at
   FROM ranked l
   JOIN ranked s
     ON s.agent_id = l.agent_id AND s.source_canonical = l.source_canonical
@@ -240,6 +277,8 @@ SELECT l.id AS loser_id, s.id AS survivor_id, l.confirmation_count, l.confidence
 UPDATE agent_entity_relationships s SET
     confirmation_count = s.confirmation_count + rolled.extra_confirmations,
     confidence_score = GREATEST(s.confidence_score, rolled.confidence_score),
+    first_observed_at = LEAST(s.first_observed_at, rolled.first_observed_at),
+    last_observed_at  = GREATEST(s.last_observed_at, rolled.last_observed_at),
     observation_provenance = CASE
         WHEN rolled.provenances = ARRAY[s.observation_provenance] THEN s.observation_provenance
         ELSE 'mixed' END,
@@ -248,6 +287,8 @@ UPDATE agent_entity_relationships s SET
     SELECT survivor_id,
            sum(confirmation_count) AS extra_confirmations,
            max(confidence_score) AS confidence_score,
+           min(first_observed_at) AS first_observed_at,
+           max(last_observed_at) AS last_observed_at,
            array_agg(DISTINCT observation_provenance) AS provenances
       FROM _kg058_edge_merge GROUP BY survivor_id
   ) rolled
@@ -302,6 +343,14 @@ COMMENT ON COLUMN agent_context_entities.observation_provenance IS
     'live | backfill | mixed — whether this row rests on observations made as they happened, reconstructed from stored history by a replay, or both.';
 COMMENT ON COLUMN agent_entity_relationships.observation_provenance IS
     'live | backfill | mixed — see agent_context_entities.observation_provenance.';
+COMMENT ON COLUMN agent_context_entities.first_observed_at IS
+    'Unix seconds of the earliest sighting behind this row. Merges by LEAST, unconditionally — a mutation that lost the last-writer-wins comparison is still evidence. NULL means the row predates the column, not that it was never observed.';
+COMMENT ON COLUMN agent_context_entities.last_observed_at IS
+    'Unix seconds of the latest sighting behind this row. Merges by GREATEST, unconditionally: this is the never-move-backwards rule, so a replay of old history cannot make an older fact look newer. Matches the desktop''s context_entities.last_mentioned.';
+COMMENT ON COLUMN agent_entity_relationships.first_observed_at IS
+    'Unix seconds of the earliest sighting behind this edge. Merges by LEAST. Matches the desktop''s entity_relationships.first_identified.';
+COMMENT ON COLUMN agent_entity_relationships.last_observed_at IS
+    'Unix seconds of the latest sighting behind this edge — the value a retrieval decay term reads. Merges by GREATEST. Matches the desktop''s entity_relationships.last_confirmed.';
 
 -- ── 6. The receiver, re-emitted against the new identity ──────────────────────────
 -- Three places in the KG half of this function computed identity from the type and are
@@ -335,6 +384,8 @@ DECLARE
     -- Absent on the wire means the sender predates the field, and everything written
     -- before the field existed was observed live. That is what its absence records.
     v_provenance TEXT;
+    v_observed_first BIGINT;
+    v_observed_last BIGINT;
 BEGIN
     SELECT e.event_id INTO v_existing FROM agent_brain_events e
       WHERE e.mutation_id = p_mutation_id;
@@ -353,6 +404,27 @@ BEGIN
     v_provenance := COALESCE(p_payload->>'observation_provenance', 'live');
     IF v_provenance NOT IN ('live','backfill','mixed') THEN
         RAISE EXCEPTION 'INVALID_OBSERVATION_PROVENANCE' USING ERRCODE = 'P0001';
+    END IF;
+
+    -- WHEN the sender observed this, resolved ONCE for both KG faculties.
+    --
+    -- The fallback is the MUTATION's timestamp, not `now()`, and that choice is the whole
+    -- point: `now()` would make the stored window depend on when this RPC happened to run,
+    -- so replaying the same event — a cursor reset, a restore, a second region — would
+    -- store a different number and the two surfaces would diverge on a value neither could
+    -- reconcile. The mutation timestamp is carried by the envelope, is nearer the
+    -- observation, and is identical on every replay. The desktop applies exactly this
+    -- fallback (`sync/brain.rs :: observation_window`), so a payload missing the field
+    -- reaches the same value on both surfaces.
+    v_observed_last := COALESCE((p_payload->>'last_observed_at')::BIGINT,
+                                extract(epoch FROM p_mutation_timestamp)::BIGINT);
+    -- A sender that gave only the latest sighting described one moment, so that moment is
+    -- both ends of its window.
+    v_observed_first := COALESCE((p_payload->>'first_observed_at')::BIGINT, v_observed_last);
+    IF v_observed_first > v_observed_last THEN
+        RAISE EXCEPTION 'INVERTED_OBSERVATION_WINDOW' USING ERRCODE = 'P0001',
+            DETAIL = format('first_observed_at %s is after last_observed_at %s',
+                            v_observed_first, v_observed_last);
     END IF;
 
     IF p_faculty = 'core_prompt' THEN
@@ -569,32 +641,64 @@ BEGIN
               WHERE agent_id=p_agent_id AND canonical_name=p_payload->>'canonical_name'
                 AND NOT tombstone;
         ELSE
+            -- TWO STATEMENTS, AND THE SPLIT BETWEEN THEM IS THE INVARIANT.
+            --
+            -- Every field of this row is one of two kinds. A MUTABLE ATTRIBUTE (`name`,
+            -- `entity_type`, the content hashes, the LWW watermark itself) has exactly one
+            -- right value, and last-writer-wins decides it — so a mutation that lost the
+            -- comparison must not touch it. An ACCUMULATOR (both temporal bounds,
+            -- confidence, mention count, provenance) has no single right value to decide;
+            -- it has evidence to absorb, and a mutation that arrived late is still
+            -- evidence. `LEAST`/`GREATEST`/the provenance join are commutative, associative
+            -- and idempotent, so absorbing a loser's contribution is always safe.
+            --
+            -- Previously ONE guarded statement did both, so a losing mutation contributed
+            -- NOTHING: a backfill that lost the race left the row reading 'live' while it
+            -- rested on a reconstructed observation. Splitting them is what makes the
+            -- provenance column true rather than usually-true.
+
+            -- 1. Insert, or absorb into the accumulators. UNCONDITIONAL.
             INSERT INTO agent_context_entities (
               id,agent_id,user_id,canonical_name,entity_type,name,description,aliases,confidence_score,mention_count,
               metadata,embedding,embedding_model,content_hash,governance_hash,origin,mutation_timestamp,revision,
-              tombstone,sync_entity_id,immutable_metadata,observation_provenance
+              tombstone,sync_entity_id,immutable_metadata,observation_provenance,first_observed_at,last_observed_at
             ) VALUES (
               gen_random_uuid(),p_agent_id,p_user_id,p_payload->>'canonical_name',p_payload->>'entity_type',
               p_payload->>'name',p_payload->>'description',COALESCE(p_payload->'aliases','[]'::jsonb),
               COALESCE((p_payload->>'confidence_score')::REAL,0.5),COALESCE((p_payload->>'mention_count')::INT,1),
               '{}'::jsonb,NULL,'Qwen3-Embedding-0.6B',p_content_hash,p_governance_hash,p_origin,
-              p_mutation_timestamp::TEXT,p_revision,false,p_payload->>'sync_entity_id','{}'::jsonb,v_provenance
+              p_mutation_timestamp::TEXT,p_revision,false,p_payload->>'sync_entity_id','{}'::jsonb,v_provenance,
+              v_observed_first,v_observed_last
             ) ON CONFLICT (agent_id,canonical_name) WHERE NOT tombstone DO UPDATE SET
-              entity_type=EXCLUDED.entity_type,
-              name=EXCLUDED.name,description=EXCLUDED.description,aliases=EXCLUDED.aliases,
               confidence_score=GREATEST(agent_context_entities.confidence_score, EXCLUDED.confidence_score),
               mention_count=GREATEST(agent_context_entities.mention_count, EXCLUDED.mention_count),
-              -- Provenance is COMBINED, not overwritten: last-write-wins settles what an
-              -- attribute is, but a row resting on both a live and a reconstructed
-              -- observation rests on both of them whichever arrived last.
+              -- `last_observed_at` takes the MAXIMUM, which is the never-move-backwards
+              -- rule itself: a replay of February history cannot make an August fact look
+              -- fresh, whichever of the two arrived later. `first_observed_at` takes the
+              -- MINIMUM by the same argument read the other way — a replay reaching further
+              -- back is evidence the entity is older than this surface believed.
+              first_observed_at=LEAST(agent_context_entities.first_observed_at, EXCLUDED.first_observed_at),
+              last_observed_at=GREATEST(agent_context_entities.last_observed_at, EXCLUDED.last_observed_at),
               observation_provenance=CASE
                 WHEN agent_context_entities.observation_provenance = EXCLUDED.observation_provenance
                   THEN agent_context_entities.observation_provenance ELSE 'mixed' END,
-              content_hash=EXCLUDED.content_hash,governance_hash=EXCLUDED.governance_hash,origin=EXCLUDED.origin,
-              mutation_timestamp=EXCLUDED.mutation_timestamp,revision=EXCLUDED.revision,
-              sync_entity_id=COALESCE(EXCLUDED.sync_entity_id, agent_context_entities.sync_entity_id),updated_at=now()
-              WHERE (EXCLUDED.revision, EXCLUDED.mutation_timestamp, EXCLUDED.origin)
-                    > (agent_context_entities.revision, agent_context_entities.mutation_timestamp, agent_context_entities.origin);
+              updated_at=now();
+
+            -- 2. The mutable attributes and the watermark, only for a WINNER. On the plain
+            -- insert path the row's watermark is already this mutation's, so the predicate
+            -- is false and this is a no-op rather than a second write.
+            UPDATE agent_context_entities SET
+              entity_type=p_payload->>'entity_type',
+              name=p_payload->>'name',
+              description=p_payload->>'description',
+              aliases=COALESCE(p_payload->'aliases','[]'::jsonb),
+              content_hash=p_content_hash,governance_hash=p_governance_hash,origin=p_origin,
+              mutation_timestamp=p_mutation_timestamp::TEXT,revision=p_revision,
+              sync_entity_id=COALESCE(p_payload->>'sync_entity_id', sync_entity_id),
+              updated_at=now()
+              WHERE agent_id=p_agent_id AND canonical_name=p_payload->>'canonical_name' AND NOT tombstone
+                AND (p_revision, p_mutation_timestamp::TEXT, p_origin)
+                    > (revision, mutation_timestamp, origin);
         END IF;
         -- REWRITE 2 OF 3, the endpoint resolver. It matched buffered edges to entities on
         -- canonical name AND type. Since the type an edge recorded for its endpoint is
@@ -631,34 +735,58 @@ BEGIN
                 AND relationship_type=p_payload->>'relationship_type'
                 AND target_canonical=p_payload->>'target_canonical';
         ELSE
+            -- Split exactly as the entity branch is split, and for the same reason.
+            --
+            -- `confirmation_count` stays in the conflict clause rather than moving to the
+            -- winner statement: it is an accumulator, so it must not wait for a win, but it
+            -- is the one accumulator that is not idempotent in itself, so it must fire
+            -- exactly once per delivery — which is what `ON CONFLICT` gives it, since the
+            -- event-id ledger above already refuses a mutation that has been applied
+            -- before. Endpoint resolution is an accumulator too, in a quieter way: a
+            -- resolved edge never becomes unresolved, so `COALESCE` keeps whichever
+            -- delivery managed to find the endpoints first.
             INSERT INTO agent_entity_relationships (
               id,agent_id,user_id,source_entity_id,target_entity_id,source_canonical,source_entity_type,
               target_canonical,target_entity_type,relationship_type,confidence_score,confirmation_count,resolved,
               sync_edge_id,content_hash,governance_hash,origin,mutation_timestamp,revision,tombstone,immutable_metadata,
-              observation_provenance
+              observation_provenance,first_observed_at,last_observed_at
             ) VALUES (
               gen_random_uuid(),p_agent_id,p_user_id,v_src,v_tgt,p_payload->>'source_canonical',p_payload->>'source_entity_type',
               p_payload->>'target_canonical',p_payload->>'target_entity_type',p_payload->>'relationship_type',
               COALESCE((p_payload->>'confidence_score')::REAL,0.5),COALESCE((p_payload->>'confirmation_count')::INT,1),
               (v_src IS NOT NULL AND v_tgt IS NOT NULL),p_payload->>'sync_edge_id',p_content_hash,p_governance_hash,
-              p_origin,p_mutation_timestamp::TEXT,p_revision,false,'{}'::jsonb,v_provenance
+              p_origin,p_mutation_timestamp::TEXT,p_revision,false,'{}'::jsonb,v_provenance,
+              v_observed_first,v_observed_last
             ) ON CONFLICT (agent_id,source_canonical,relationship_type,target_canonical)
               WHERE NOT tombstone DO UPDATE SET
               source_entity_id=COALESCE(EXCLUDED.source_entity_id, agent_entity_relationships.source_entity_id),
               target_entity_id=COALESCE(EXCLUDED.target_entity_id, agent_entity_relationships.target_entity_id),
               resolved=(COALESCE(EXCLUDED.source_entity_id, agent_entity_relationships.source_entity_id) IS NOT NULL
                     AND COALESCE(EXCLUDED.target_entity_id, agent_entity_relationships.target_entity_id) IS NOT NULL),
-              source_entity_type=EXCLUDED.source_entity_type,
-              target_entity_type=EXCLUDED.target_entity_type,
               confidence_score=GREATEST(agent_entity_relationships.confidence_score, EXCLUDED.confidence_score),
               confirmation_count=agent_entity_relationships.confirmation_count + 1,
+              -- `last_observed_at` is what the retrieval decay term reads. Taking the
+              -- MAXIMUM is what stops a February re-confirmation presenting an edge as
+              -- confirmed today.
+              first_observed_at=LEAST(agent_entity_relationships.first_observed_at, EXCLUDED.first_observed_at),
+              last_observed_at=GREATEST(agent_entity_relationships.last_observed_at, EXCLUDED.last_observed_at),
               observation_provenance=CASE
                 WHEN agent_entity_relationships.observation_provenance = EXCLUDED.observation_provenance
                   THEN agent_entity_relationships.observation_provenance ELSE 'mixed' END,
-              content_hash=EXCLUDED.content_hash,governance_hash=EXCLUDED.governance_hash,origin=EXCLUDED.origin,
-              mutation_timestamp=EXCLUDED.mutation_timestamp,revision=EXCLUDED.revision,updated_at=now()
-              WHERE (EXCLUDED.revision, EXCLUDED.mutation_timestamp, EXCLUDED.origin)
-                    > (agent_entity_relationships.revision, agent_entity_relationships.mutation_timestamp, agent_entity_relationships.origin);
+              updated_at=now();
+
+            UPDATE agent_entity_relationships SET
+              source_entity_type=p_payload->>'source_entity_type',
+              target_entity_type=p_payload->>'target_entity_type',
+              sync_edge_id=COALESCE(p_payload->>'sync_edge_id', sync_edge_id),
+              content_hash=p_content_hash,governance_hash=p_governance_hash,origin=p_origin,
+              mutation_timestamp=p_mutation_timestamp::TEXT,revision=p_revision,updated_at=now()
+              WHERE agent_id=p_agent_id AND NOT tombstone
+                AND source_canonical=p_payload->>'source_canonical'
+                AND relationship_type=p_payload->>'relationship_type'
+                AND target_canonical=p_payload->>'target_canonical'
+                AND (p_revision, p_mutation_timestamp::TEXT, p_origin)
+                    > (revision, mutation_timestamp, origin);
         END IF;
     ELSE
         RAISE EXCEPTION 'FACULTY_NOT_WIRED' USING ERRCODE = 'P0001';

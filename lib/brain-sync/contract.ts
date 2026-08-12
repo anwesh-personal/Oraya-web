@@ -125,9 +125,64 @@ export function contentForFaculty(envelope: BrainMutationEnvelope): string | nul
     // full payload: attributes (type, description, confidence, mention_count) are
     // LWW-merged and ride in the payload, but the dedup/reconciliation key is the
     // canonical name alone, so both surfaces converge on the same content_hash.
+    //
+    // The observation window (`observation_provenance`, `first_observed_at`,
+    // `last_observed_at`) rides in the payload too and is therefore NOT hashed. That is
+    // what makes it addable without a protocol version: a desktop that sends it and one
+    // that does not produce the SAME content_hash for the same entity, so neither is
+    // rejected by the other. It is also why the window must be merged rather than
+    // asserted — two mutations with the same hash can carry different windows, and the
+    // receiver's job is to absorb both.
     if (envelope.faculty === "kg_entity") return kgEntityIdentity(envelope.content);
     if (envelope.faculty === "kg_edge") return kgEdgeIdentity(envelope.content);
     return null;
+}
+
+/** The provenance values the receiver's `CHECK` and RPC accept, in one place so a test can
+ *  hold this side and the migration to the same list.
+ *
+ *  The DESKTOP's SQLite column deliberately also admits `'imported'`, which has no Rust
+ *  variant and no server support yet: a database wider than its writers costs nothing and
+ *  saves a migration later. This list is the SERVER's, and the server is narrower on
+ *  purpose — a value it cannot interpret must be refused at the door, not stored. */
+export const OBSERVATION_PROVENANCE_VALUES = ["live", "backfill", "mixed"] as const;
+export type ObservationProvenance = (typeof OBSERVATION_PROVENANCE_VALUES)[number];
+
+/**
+ * The observation window carried by a KG payload, resolved the way the receiver resolves
+ * it — so a caller can predict what `apply_agent_brain_mutation` will store without
+ * re-implementing the rule.
+ *
+ * The fallback for an absent timestamp is the MUTATION's own timestamp, never the wall
+ * clock. That is the same fallback Orakhos applies in `sync/brain.rs::observation_window`,
+ * and the reason for it is that the wall clock would make the stored value depend on when
+ * the receiver happened to run — so replaying an event after a cursor reset would store a
+ * different number on each surface, with no way to reconcile them.
+ *
+ * Returns an error string when the window is inverted, which is a malformed payload rather
+ * than something to straighten out: the sender's own bounds disagree, so neither is sound.
+ */
+export function observationWindow(
+    content: Record<string, unknown>,
+    mutationTimestamp: string,
+): { provenance: ObservationProvenance; first: number; last: number } | { error: string } {
+    const raw = content.observation_provenance;
+    const provenance = raw === undefined ? "live" : raw;
+    if (!OBSERVATION_PROVENANCE_VALUES.includes(provenance as ObservationProvenance)) {
+        return { error: `Unknown observation provenance: ${String(provenance)}` };
+    }
+    const asSeconds = (value: unknown): number | null =>
+        typeof value === "number" && Number.isSafeInteger(value) ? value : null;
+    const fallback = Math.floor(Date.parse(mutationTimestamp) / 1000);
+    if (!Number.isFinite(fallback)) return { error: `Unparseable mutation timestamp: ${mutationTimestamp}` };
+    const last = asSeconds(content.last_observed_at) ?? fallback;
+    // A sender that gave only the latest sighting described one moment, so that moment is
+    // both ends of its window.
+    const first = asSeconds(content.first_observed_at) ?? last;
+    if (first > last) {
+        return { error: `Inverted observation window: first_observed_at ${first} is after last_observed_at ${last}` };
+    }
+    return { provenance: provenance as ObservationProvenance, first, last };
 }
 
 /**

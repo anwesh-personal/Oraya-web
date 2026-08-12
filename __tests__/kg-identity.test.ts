@@ -20,6 +20,7 @@ import assert from "node:assert/strict";
 import {
     kgEntityIdentity, kgEdgeIdentity, contentForFaculty, sha256Utf8,
     computeGovernanceHash, contractModelId, validateBrainMutation,
+    observationWindow, OBSERVATION_PROVENANCE_VALUES,
     SYNCED_BRAIN_EMBEDDING_MODEL,
 } from "../lib/brain-sync/contract";
 import type { BrainMutationEnvelope } from "../lib/brain-sync/contract";
@@ -195,5 +196,92 @@ describe("what happens if only one surface is upgraded", () => {
             ).ok,
             true,
         );
+    });
+});
+
+describe("the observation window", () => {
+    // The window says WHEN a fact was observed and what kind of evidence it is. It rides
+    // in the payload and is NOT hashed, which is what lets it be added without a protocol
+    // version — and is also why the receiver must MERGE it rather than assert it.
+    const FEBRUARY = 1770000000;
+    const AUGUST = 1785000000;
+    const MUTATION_TS = "2026-03-01T00:00:00Z";
+    const MUTATION_TS_SECONDS = 1772323200;
+
+    it("does not change the content hash, so an upgraded and a lagging desktop still agree", () => {
+        // The whole compatibility argument in one assertion. If the window were hashed,
+        // adding it would be a coupled deployment of exactly the kind migration 058's
+        // header warns about — a 400 per mutation until both surfaces matched.
+        const withoutWindow = { canonical_name: "oraya", entity_type: "project", name: "Oraya" };
+        const withWindow = {
+            ...withoutWindow,
+            observation_provenance: "backfill",
+            first_observed_at: FEBRUARY, last_observed_at: AUGUST,
+        };
+        assert.equal(contentForFaculty(envelopeHashing("kg_entity", withoutWindow, "oraya")),
+                     contentForFaculty(envelopeHashing("kg_entity", withWindow, "oraya")));
+        assert.equal(validateBrainMutation(envelopeHashing("kg_entity", withWindow, "oraya")).ok, true);
+        assert.equal(validateBrainMutation(envelopeHashing("kg_entity", withoutWindow, "oraya")).ok, true);
+    });
+
+    it("is read straight off the payload when the sender supplied it", () => {
+        assert.deepEqual(
+            observationWindow(
+                { observation_provenance: "backfill", first_observed_at: FEBRUARY, last_observed_at: AUGUST },
+                MUTATION_TS,
+            ),
+            { provenance: "backfill", first: FEBRUARY, last: AUGUST },
+        );
+    });
+
+    it("treats a sender that gave only the latest sighting as describing one moment", () => {
+        assert.deepEqual(
+            observationWindow({ last_observed_at: AUGUST }, MUTATION_TS),
+            { provenance: "live", first: AUGUST, last: AUGUST },
+        );
+    });
+
+    it("falls back to the MUTATION timestamp, never the wall clock", () => {
+        // The fallback has to be deterministic. A wall clock would store a different
+        // number every time the same event were replayed — after a cursor reset, on a
+        // second region, during a restore — and the two surfaces would then disagree on a
+        // value neither could reconcile. Orakhos applies this identical fallback in
+        // `sync/brain.rs :: observation_window`.
+        const window = observationWindow({ canonical_name: "zara" }, MUTATION_TS);
+        assert.deepEqual(window, { provenance: "live", first: MUTATION_TS_SECONDS, last: MUTATION_TS_SECONDS });
+        const now = Math.floor(Date.now() / 1000);
+        assert.ok(now - MUTATION_TS_SECONDS > 86400, "the fixture is months from today, so this cannot pass by coincidence");
+    });
+
+    it("reads an absent provenance as live, because that is what it records", () => {
+        const window = observationWindow({ last_observed_at: AUGUST }, MUTATION_TS);
+        assert.equal("provenance" in window && window.provenance, "live");
+    });
+
+    it("refuses an inverted window rather than straightening it out", () => {
+        const window = observationWindow(
+            { first_observed_at: AUGUST, last_observed_at: FEBRUARY }, MUTATION_TS);
+        assert.ok("error" in window);
+        assert.match((window as { error: string }).error, /Inverted observation window/);
+    });
+
+    it("refuses a provenance this receiver cannot interpret", () => {
+        const window = observationWindow({ observation_provenance: "observed" }, MUTATION_TS);
+        assert.ok("error" in window);
+        assert.match((window as { error: string }).error, /Unknown observation provenance/);
+    });
+
+    it("refuses 'imported', which the DESKTOP column admits and this receiver does not", () => {
+        // Deliberate asymmetry, pinned so it cannot be read as an oversight. Orakhos's
+        // SQLite CHECK enumerates 'imported' so the importer phase costs no migration
+        // there; this server has no support for it yet, and a receiver must refuse a value
+        // it cannot interpret rather than store it. Widening here is migration 059's job.
+        assert.ok(!OBSERVATION_PROVENANCE_VALUES.includes("imported" as never));
+        const window = observationWindow({ observation_provenance: "imported" }, MUTATION_TS);
+        assert.ok("error" in window);
+    });
+
+    it("enumerates exactly what migration 058's CHECK enumerates", () => {
+        assert.deepEqual([...OBSERVATION_PROVENANCE_VALUES], ["live", "backfill", "mixed"]);
     });
 });
