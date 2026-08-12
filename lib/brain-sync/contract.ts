@@ -15,29 +15,45 @@ export const SYNCED_FACULTIES = [
 const KG_SEP = "\u001f";
 
 /**
- * Canonical identity of a KG entity: `canonical_name␟entity_type`. This is the
- * cross-surface reconciliation key — the same entity extracted on any surface
- * hashes to the same content_hash, so entities upsert-by-canonical-name and an
- * edge can always resolve its endpoints by identity, never by a surface-local id.
+ * Canonical identity of a KG entity: `canonical_name`. This is the cross-surface
+ * reconciliation key — the same entity extracted on any surface hashes to the same
+ * content_hash, so entities upsert-by-canonical-name and an edge can always resolve its
+ * endpoints by identity, never by a surface-local id.
+ *
+ * `entity_type` LEFT this identity in migration 058 (Plan 045). It is chosen fresh every
+ * turn by a language model that is never shown what it chose last time, so including it
+ * meant the same real entity arriving as `project` on one turn and `tool` on the next
+ * hashed differently, missed the upsert, and became a second row — taking half of its
+ * edges with it. The type still travels in the payload and is still stored; it is an
+ * attribute, settled by last-write-wins like every other attribute.
+ *
+ * The payload shape is unchanged: `canonical_name` and `entity_type` have always been
+ * separate fields here and both are still read. What changed is which of them the hash
+ * is computed from — and because the hash IS the identity, this function and the
+ * desktop's `enqueue_kg_entity` must agree. They are one protocol, versioned together.
  */
 export function kgEntityIdentity(content: Record<string, unknown>): string | null {
     const canonical = content.canonical_name;
-    const entityType = content.entity_type;
-    if (typeof canonical !== "string" || !canonical || typeof entityType !== "string" || !entityType) return null;
-    return `${canonical}${KG_SEP}${entityType}`;
+    if (typeof canonical !== "string" || !canonical) return null;
+    return canonical;
 }
 
 /**
- * Canonical identity of a KG edge: the ordered tuple of both endpoint identities
- * plus the relationship type. Edges dedup by (src, dst, type) across surfaces and
- * carry NO surface-local entity ids — they reference their endpoints by identity.
+ * Canonical identity of a KG edge: the ordered tuple of both endpoint identities plus the
+ * relationship type. Edges dedup by (source, type, target) across surfaces and carry NO
+ * surface-local entity ids — they reference their endpoints by identity.
+ *
+ * The endpoint TYPES left this identity with the entity's, for the same reason and in the
+ * same change: an edge whose endpoint the extractor happened to type differently on the
+ * edge's turn than on the entity's turn would otherwise be a different edge, and its
+ * retraction would miss it.
  */
 export function kgEdgeIdentity(content: Record<string, unknown>): string | null {
-    const sc = content.source_canonical, st = content.source_entity_type;
-    const tc = content.target_canonical, tt = content.target_entity_type;
+    const sc = content.source_canonical;
+    const tc = content.target_canonical;
     const rt = content.relationship_type;
-    if ([sc, st, tc, tt, rt].some((v) => typeof v !== "string" || !v)) return null;
-    return [sc, st, rt, tc, tt].join(KG_SEP);
+    if ([sc, rt, tc].some((v) => typeof v !== "string" || !v)) return null;
+    return [sc, rt, tc].join(KG_SEP);
 }
 export type SyncedFaculty = (typeof SYNCED_FACULTIES)[number];
 export type BrainOrigin = "desktop" | "web" | "whatsapp" | "telegram" | "onprem" | "cloud";
@@ -106,9 +122,9 @@ export function contentForFaculty(envelope: BrainMutationEnvelope): string | nul
         return JSON.stringify(envelope.content);
     }
     // KG faculties are content-addressed by their CANONICAL IDENTITY, not their
-    // full payload: attributes (description, confidence, mention_count) are
+    // full payload: attributes (type, description, confidence, mention_count) are
     // LWW-merged and ride in the payload, but the dedup/reconciliation key is the
-    // canonical name (+ type) so both surfaces converge on the same content_hash.
+    // canonical name alone, so both surfaces converge on the same content_hash.
     if (envelope.faculty === "kg_entity") return kgEntityIdentity(envelope.content);
     if (envelope.faculty === "kg_edge") return kgEdgeIdentity(envelope.content);
     return null;
