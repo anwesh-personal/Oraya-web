@@ -20,6 +20,7 @@ import {
     Download,
     ChevronLeft,
     ChevronRight,
+    ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
@@ -67,6 +68,7 @@ const navigation = [
             { name: "24/7 Research", href: "/dashboard/research", icon: Microscope },
             { name: "AI Providers", href: "/dashboard/providers", icon: Cpu },
             { name: "Widget Deployments", href: "/dashboard/widgets", icon: CodeXml },
+            { name: "ZKP & Cryptographic Audit", href: "/dashboard/audit", icon: ShieldCheck },
         ],
     },
     {
