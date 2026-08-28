@@ -6,7 +6,10 @@
 //
 // Honesty invariant (061 §B.2): zkp_valid is boolean | null (null = not proven).
 // verification_status includes 'unattested'. verified_at is string | null.
+// Display status is derived via lib/asis-honesty.ts — never from DB status alone.
 // ============================================================================
+
+export type { HonestyState, ProverMode, ProofStatus } from "@/lib/asis-honesty";
 
 /** Row shape from asis_attestations table (Supabase snake_case) */
 export interface AttestationRecord {

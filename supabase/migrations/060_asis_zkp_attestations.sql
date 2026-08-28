@@ -1,5 +1,9 @@
 -- ============================================================================
--- Migration 055: ASIS Sovereign ZKP & ML-DSA-65 Attestations Ledger
+-- Migration 060: ASIS Sovereign ZKP & ML-DSA-65 Attestations Ledger
+-- ============================================================================
+-- Renamed from 055_asis_zkp_attestations.sql — 055 was already taken by
+-- 055_synced_agent_brain_foundation.sql (apply-order collision).
+-- Files only this pass; do not apply against live Supabase without Boss.
 -- ============================================================================
 -- Extends the local lineage architecture with mathematical zero-knowledge
 -- proofs (SP1 STARK) and quantum-resistant signatures (ML-DSA-65 / FIPS 204).

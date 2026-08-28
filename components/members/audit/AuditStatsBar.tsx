@@ -9,14 +9,16 @@
 
 import { useState, useEffect } from "react";
 import { ShieldCheck, CheckCircle2, AlertTriangle, Clock, TrendingUp } from "lucide-react";
-import type { AttestationStats } from "./types";
+import type { AttestationStats, HonestyState } from "./types";
+import { DEFAULT_HONESTY, isMockOrOffline } from "@/lib/asis-honesty";
 
 interface AuditStatsBarProps {
     /** Pre-fetched stats (if available from server component) */
     initialStats?: AttestationStats | null;
+    honesty?: HonestyState;
 }
 
-export function AuditStatsBar({ initialStats }: AuditStatsBarProps) {
+export function AuditStatsBar({ initialStats, honesty = DEFAULT_HONESTY }: AuditStatsBarProps) {
     const [stats, setStats] = useState<AttestationStats | null>(initialStats ?? null);
 
     useEffect(() => {
@@ -50,32 +52,41 @@ export function AuditStatsBar({ initialStats }: AuditStatsBarProps) {
     };
 
     const modelEntries = Object.entries(stats.models);
+    const mockish = isMockOrOffline(honesty.proverMode) || !honesty.engineReachable;
 
     return (
         <div className="flex flex-wrap items-center gap-4 px-4 py-3 rounded-xl bg-[var(--surface-50)] border border-[var(--surface-300)] text-xs">
-            {/* Total Proofs */}
             <div className="flex items-center gap-1.5 text-[var(--surface-700)]">
                 <ShieldCheck className="w-3.5 h-3.5 text-[var(--primary)]" />
                 <span className="font-medium">{stats.total.toLocaleString()}</span>
-                <span className="text-[var(--surface-500)]">Total Proofs</span>
+                <span className="text-[var(--surface-500)]">Governance leaves</span>
             </div>
 
             <span className="text-[var(--surface-300)]">|</span>
 
-            {/* Pass Rate */}
             <div className="flex items-center gap-1.5">
-                <TrendingUp className="w-3.5 h-3.5 text-[var(--success)]" />
-                <span className="font-medium text-[var(--success)]">{stats.pass_rate}%</span>
-                <span className="text-[var(--surface-500)]">Pass Rate</span>
+                <TrendingUp className={`w-3.5 h-3.5 ${mockish ? "text-[var(--surface-400)]" : "text-[var(--success)]"}`} />
+                {mockish ? (
+                    <>
+                        <span className="font-medium text-[var(--surface-500)]">n/a</span>
+                        <span className="text-[var(--surface-500)]">Pass rate (prover not real)</span>
+                    </>
+                ) : (
+                    <>
+                        <span className="font-medium text-[var(--success)]">{stats.pass_rate}%</span>
+                        <span className="text-[var(--surface-500)]">Pass Rate</span>
+                    </>
+                )}
             </div>
 
             <span className="text-[var(--surface-300)]">|</span>
 
-            {/* Valid / Invalid / Pending */}
+            {/* DB-marked counts — never green while unproven */}
             <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1 text-[var(--success)]">
+                <span className={`flex items-center gap-1 ${mockish ? "text-[var(--warning)]" : "text-[var(--success)]"}`}>
                     <CheckCircle2 className="w-3 h-3" />
                     {stats.verified_valid}
+                    {mockish && <span className="text-[10px]">DB-marked (unproven)</span>}
                 </span>
                 {stats.verified_invalid > 0 && (
                     <span className="flex items-center gap-1 text-[var(--error)]">

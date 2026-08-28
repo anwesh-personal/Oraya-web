@@ -8,15 +8,15 @@
 // Used in both audit dashboard summary and verification certificate detail.
 // ============================================================================
 
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, XCircle } from "lucide-react";
 import type { NoetherianGateDefinition } from "./types";
 
 interface NoetherianGateCardProps {
     gate: NoetherianGateDefinition;
     /** Actual computed value from attestation (if available) */
     actualValue?: string | null;
-    /** Whether this gate passed */
-    passed?: boolean;
+    /** Whether this gate passed. null/undefined = unproven (never default to passed). */
+    passed?: boolean | null;
     /** Compact mode for grid layouts */
     compact?: boolean;
 }
@@ -24,11 +24,14 @@ interface NoetherianGateCardProps {
 export function NoetherianGateCard({
     gate,
     actualValue,
-    passed = true,
+    passed = null,
     compact = false,
 }: NoetherianGateCardProps) {
-    const statusColor = passed ? "var(--success)" : "var(--error)";
-    const StatusIcon = passed ? CheckCircle2 : XCircle;
+    const unproven = passed == null;
+    const statusColor = unproven ? "var(--warning)" : passed ? "var(--success)" : "var(--error)";
+    const StatusIcon = unproven ? Clock : passed ? CheckCircle2 : XCircle;
+    const statusWord = unproven ? "Unproven" : passed ? "Passed" : "Failed";
+    const statusBadge = unproven ? "UNPROVEN" : passed ? "PASSED" : "FAILED";
 
     if (compact) {
         return (
@@ -42,7 +45,7 @@ export function NoetherianGateCard({
                 >
                     <StatusIcon className="w-3.5 h-3.5" />
                     <span className="font-mono">
-                        {gate.formula} ({passed ? "Passed" : "Failed"})
+                        {gate.formula} ({statusWord})
                     </span>
                 </div>
             </div>
@@ -69,7 +72,7 @@ export function NoetherianGateCard({
                         color: statusColor,
                     }}
                 >
-                    {passed ? "PASSED" : "FAILED"}
+                    {statusBadge}
                 </span>
             </div>
 

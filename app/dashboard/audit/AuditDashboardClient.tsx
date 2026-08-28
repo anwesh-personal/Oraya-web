@@ -7,7 +7,6 @@
 // Fetches live prover mode from ASIS health to render honest mock/real states.
 // ============================================================================
 
-import { useState, useEffect } from "react";
 import { ShieldCheck } from "lucide-react";
 import type { EngineConfigMap, AttestationStats } from "@/components/members/audit/types";
 import {
@@ -16,7 +15,9 @@ import {
     AuditStatsBar,
     AuditLedgerTable,
     AuditExportButton,
+    useAsisHonesty,
 } from "@/components/members/audit";
+import { isMockOrOffline, proverModeLabel } from "@/lib/asis-honesty";
 
 interface AuditDashboardClientProps {
     config: EngineConfigMap;
@@ -29,26 +30,10 @@ export function AuditDashboardClient({
     stats,
     availableModels,
 }: AuditDashboardClientProps) {
-    const [proverMode, setProverMode] = useState<string | undefined>(undefined);
+    const { honesty } = useAsisHonesty();
+    const mockish = isMockOrOffline(honesty.proverMode) || !honesty.engineReachable;
 
-    // Fetch live prover mode to render honest mock/real states
-    useEffect(() => {
-        async function fetchProverMode() {
-            try {
-                const res = await fetch("/api/asis/health");
-                if (res.ok) {
-                    const body = await res.json();
-                    setProverMode(body.data?.prover_mode ?? "mock");
-                }
-            } catch {
-                // Default to mock — err on the side of honesty
-                setProverMode("mock");
-            }
-        }
-        fetchProverMode();
-    }, []);
-
-    // Pull display config
+    // Pull display config — titles are declared config, not proof of a live engine
     const displayTitle = config["display.dashboard_title"]?.value ?? {};
     const policyConfig = config["policy.attestation_protocol"]?.value ?? {};
 
@@ -60,26 +45,32 @@ export function AuditDashboardClient({
                     <div className="flex items-center gap-2 mb-2">
                         <span
                             className="px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 border"
-                            style={{
-                                backgroundColor: "color-mix(in srgb, var(--success) 10%, transparent)",
-                                borderColor: "color-mix(in srgb, var(--success) 25%, transparent)",
-                                color: "var(--success)",
+                            style={mockish ? {
+                                backgroundColor: "color-mix(in srgb, var(--warning) 10%, transparent)",
+                                borderColor: "color-mix(in srgb, var(--warning) 25%, transparent)",
+                                color: "var(--warning)",
+                            } : {
+                                backgroundColor: "color-mix(in srgb, var(--info) 10%, transparent)",
+                                borderColor: "color-mix(in srgb, var(--info) 25%, transparent)",
+                                color: "var(--info)",
                             }}
                         >
                             <ShieldCheck className="w-3.5 h-3.5" />
-                            Enterprise Sovereign Engine
+                            {mockish ? proverModeLabel(honesty.proverMode) : "ASIS engine reachable"}
                         </span>
                     </div>
                     <h1 className="text-3xl font-bold tracking-tight text-[var(--surface-900)] font-display">
-                        {displayTitle.title ?? "Sovereign Cryptographic Audit Hub"}
+                        {displayTitle.title ?? "Governance leaf audit"}
                     </h1>
                     <p className="text-sm text-[var(--surface-500)] mt-1">
-                        {displayTitle.subtitle ?? "ASIS Zero-Knowledge Proof & Post-Quantum Attestation Engine"}
+                        {mockish
+                            ? "Declared engine config and governance leaves. Not cryptographic proofs."
+                            : (displayTitle.subtitle ?? "ASIS attestation ledger")}
                     </p>
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <AuditExportButton />
+                    <AuditExportButton honesty={honesty} />
                 </div>
             </div>
 
@@ -87,10 +78,10 @@ export function AuditDashboardClient({
             <AuditEngineStatus />
 
             {/* Telemetry Grid — all values from config, mock-aware */}
-            <AuditTelemetryGrid config={config} stats={stats} proverMode={proverMode} />
+            <AuditTelemetryGrid config={config} stats={stats} honesty={honesty} />
 
             {/* Aggregate Stats Bar */}
-            <AuditStatsBar initialStats={stats} />
+            <AuditStatsBar initialStats={stats} honesty={honesty} />
 
             {/* Attestation Ledger — paginated, filterable */}
             <div className="space-y-4">
@@ -102,7 +93,7 @@ export function AuditDashboardClient({
                         Protocol: {policyConfig.protocol_id ?? "P-ASIS-002"} v{policyConfig.version ?? "1.0"}
                     </span>
                 </div>
-                <AuditLedgerTable availableModels={availableModels} />
+                <AuditLedgerTable availableModels={availableModels} honesty={honesty} />
             </div>
         </div>
     );

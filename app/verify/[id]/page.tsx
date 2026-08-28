@@ -10,7 +10,7 @@ import type { AttestationRecord, EngineConfigMap } from "@/components/members/au
 
 export const metadata: Metadata = {
     title: "Attestation Verification",
-    description: "Sovereign cryptographic attestation certificate — independently verifiable.",
+    description: "ASIS attestation certificate — proof status is derived from live prover honesty, never from a seed row.",
 };
 
 export const dynamic = "force-dynamic";

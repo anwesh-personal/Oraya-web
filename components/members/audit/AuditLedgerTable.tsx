@@ -21,14 +21,22 @@ import {
     Loader2,
     Filter,
 } from "lucide-react";
-import type { AttestationRecord, PaginationMeta } from "./types";
+import type { AttestationRecord, HonestyState, PaginationMeta } from "./types";
+import {
+    DEFAULT_HONESTY,
+    deriveProofStatus,
+    isMockOrOffline,
+    proofStatusLabel,
+    proofStatusVariant,
+} from "@/lib/asis-honesty";
 
 interface AuditLedgerTableProps {
     /** Available model IDs for filter dropdown (fetched from managed_ai_keys) */
     availableModels: string[];
+    honesty?: HonestyState;
 }
 
-export function AuditLedgerTable({ availableModels }: AuditLedgerTableProps) {
+export function AuditLedgerTable({ availableModels, honesty = DEFAULT_HONESTY }: AuditLedgerTableProps) {
     const [records, setRecords] = useState<AttestationRecord[]>([]);
     const [pagination, setPagination] = useState<PaginationMeta | null>(null);
     const [loading, setLoading] = useState(true);
@@ -116,27 +124,39 @@ export function AuditLedgerTable({ availableModels }: AuditLedgerTableProps) {
         });
     };
 
-    const StatusBadge = ({ status }: { status: AttestationRecord["verification_status"] }) => {
-        const map = {
-            verified_valid: { icon: CheckCircle2, color: "var(--success)", label: "Verified" },
-            verified_invalid: { icon: XCircle, color: "var(--error)", label: "Invalid" },
-            pending: { icon: Clock, color: "var(--warning)", label: "Pending" },
-        };
-        const conf = map[status] ?? map.pending;
+    const variantColor: Record<ReturnType<typeof proofStatusVariant>, string> = {
+        ok: "var(--success)",
+        accent: "var(--info)",
+        err: "var(--error)",
+        muted: "var(--surface-500)",
+        warn: "var(--warning)",
+    };
+
+    const StatusBadge = ({ record }: { record: AttestationRecord }) => {
+        const derived = deriveProofStatus(record, honesty);
+        const label = proofStatusLabel(derived);
+        const color = variantColor[proofStatusVariant(derived)];
+        const Icon = derived === "verified"
+            ? CheckCircle2
+            : derived === "invalid"
+                ? XCircle
+                : Clock;
         return (
             <span
                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border"
                 style={{
-                    backgroundColor: `color-mix(in srgb, ${conf.color} 10%, transparent)`,
-                    borderColor: `color-mix(in srgb, ${conf.color} 20%, transparent)`,
-                    color: conf.color,
+                    backgroundColor: `color-mix(in srgb, ${color} 10%, transparent)`,
+                    borderColor: `color-mix(in srgb, ${color} 20%, transparent)`,
+                    color,
                 }}
             >
-                <conf.icon className="w-3 h-3" />
-                {conf.label}
+                <Icon className="w-3 h-3" />
+                {label}
             </span>
         );
     };
+
+    const mockish = isMockOrOffline(honesty.proverMode) || !honesty.engineReachable;
 
     return (
         <div className="space-y-4">
@@ -173,9 +193,10 @@ export function AuditLedgerTable({ availableModels }: AuditLedgerTableProps) {
                     className="px-3 py-2 text-sm bg-[var(--surface-50)] border border-[var(--surface-300)] rounded-xl text-[var(--surface-700)] focus:outline-none focus:border-[var(--primary)]/50 transition-all"
                 >
                     <option value="">All Statuses</option>
-                    <option value="verified_valid">Verified</option>
-                    <option value="verified_invalid">Invalid</option>
+                    <option value="verified_valid">DB: marked valid</option>
+                    <option value="verified_invalid">DB: marked invalid</option>
                     <option value="pending">Pending</option>
+                    <option value="unattested">Unattested</option>
                 </select>
 
                 {/* Record count */}
@@ -206,7 +227,7 @@ export function AuditLedgerTable({ availableModels }: AuditLedgerTableProps) {
                                 <th className="p-4">Attestation ID</th>
                                 <th className="p-4">Model &amp; Time</th>
                                 <th className="p-4">Governance Hash</th>
-                                <th className="p-4">Proof &amp; Signature</th>
+                                <th className="p-4">{mockish ? "Leaf & Signature" : "Proof & Signature"}</th>
                                 <th className="p-4">Status</th>
                                 <th className="p-4 text-right">Verification</th>
                             </tr>
@@ -233,20 +254,26 @@ export function AuditLedgerTable({ availableModels }: AuditLedgerTableProps) {
                                         <div className="text-[var(--surface-700)] flex items-center gap-1.5">
                                             <span
                                                 className="w-1.5 h-1.5 rounded-full"
-                                                style={{ backgroundColor: r.zkp_valid ? "var(--success)" : "var(--error)" }}
+                                                style={{
+                                                    backgroundColor: mockish || r.zkp_valid !== true
+                                                        ? "var(--surface-400)"
+                                                        : "var(--success)",
+                                                }}
                                             />
-                                            SP1 STARK Proof
+                                            {mockish ? "Governance leaf" : "STARK envelope"}
                                         </div>
                                         <div className="text-[var(--surface-500)] flex items-center gap-1.5 text-[10px]">
                                             <span
                                                 className="w-1.5 h-1.5 rounded-full"
-                                                style={{ backgroundColor: r.pqc_valid ? "var(--info)" : "var(--error)" }}
+                                                style={{
+                                                    backgroundColor: r.pqc_valid ? "var(--info)" : "var(--surface-400)",
+                                                }}
                                             />
-                                            {r.pqc_algorithm} Signed
+                                            {r.pqc_algorithm}{r.pqc_valid ? " signed" : " recorded"}
                                         </div>
                                     </td>
                                     <td className="p-4">
-                                        <StatusBadge status={r.verification_status} />
+                                        <StatusBadge record={r} />
                                     </td>
                                     <td className="p-4 text-right">
                                         <Link

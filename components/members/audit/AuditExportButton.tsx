@@ -9,13 +9,21 @@
 
 import { useState } from "react";
 import { Download, Loader2 } from "lucide-react";
+import type { HonestyState } from "./types";
+import {
+    DEFAULT_HONESTY,
+    LEAVES_DISCLAIMER,
+    PROOFS_PENDING,
+    honestyFromApiBody,
+    sanitizeEngineConfigForExport,
+} from "@/lib/asis-honesty";
 
 interface AuditExportButtonProps {
-    /** Optional: pre-fetched data to include in export */
     className?: string;
+    honesty?: HonestyState;
 }
 
-export function AuditExportButton({ className }: AuditExportButtonProps) {
+export function AuditExportButton({ className, honesty = DEFAULT_HONESTY }: AuditExportButtonProps) {
     const [exporting, setExporting] = useState(false);
 
     const handleExport = async () => {
@@ -29,16 +37,23 @@ export function AuditExportButton({ className }: AuditExportButtonProps) {
                 fetch("/api/asis/health").then(r => r.json()),
             ]);
 
+            const healthBody = healthRes.status === "fulfilled" ? healthRes.value : null;
+            const exportHonesty = healthBody ? honestyFromApiBody(healthBody) : honesty;
+            const rawConfig = configRes.status === "fulfilled" ? configRes.value.data?.config : null;
+
             const pack = {
                 _meta: {
-                    type: "ASIS Sovereign Attestation Pack",
+                    type: "ASIS governance-leaf export",
                     version: "1.0",
                     generated_at: new Date().toISOString(),
-                    format: "ASIS Attestation Pack v1",
-                    generator: "Oraya ASIS Sovereign Intelligence Protocol",
+                    kind: "governance_leaves",
+                    disclaimer: LEAVES_DISCLAIMER,
+                    proofs_pending: PROOFS_PENDING,
+                    not_a_certification: true,
+                    honesty: exportHonesty,
                 },
-                engine_health: healthRes.status === "fulfilled" ? healthRes.value.data : null,
-                engine_config: configRes.status === "fulfilled" ? configRes.value.data?.config : null,
+                engine_health: healthBody?.data ?? null,
+                engine_config: sanitizeEngineConfigForExport(rawConfig),
                 statistics: statsRes.status === "fulfilled" ? statsRes.value.data : null,
                 attestations: attestRes.status === "fulfilled"
                     ? attestRes.value.data?.attestations

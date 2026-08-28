@@ -8,7 +8,8 @@
 // ============================================================================
 
 import { Cpu, Lock, CheckCircle2, XCircle, Clock } from "lucide-react";
-import type { EngineConfigMap } from "./types";
+import type { EngineConfigMap, HonestyState } from "./types";
+import { DEFAULT_HONESTY, configClaimKind, isMockOrOffline } from "@/lib/asis-honesty";
 
 interface CryptoLayerCardProps {
     layer: 1 | 2;
@@ -17,47 +18,61 @@ interface CryptoLayerCardProps {
     isValid?: boolean | null;
     /** Additional metadata rows to display */
     metadata?: Array<{ label: string; value: string }>;
+    honesty?: HonestyState;
 }
 
-export function CryptoLayerCard({ layer, config, isValid, metadata }: CryptoLayerCardProps) {
+export function CryptoLayerCard({
+    layer,
+    config,
+    isValid,
+    metadata,
+    honesty = DEFAULT_HONESTY,
+}: CryptoLayerCardProps) {
     const isLayer1 = layer === 1;
 
     // Pull metadata from config
     const zkpProver = config["engine.zkp_prover"]?.value ?? {};
-    const proverMode = config["engine.prover_mode"]?.value ?? {};
     const pqcAlgo = config["crypto.pqc_algorithm"]?.value ?? {};
     const hwSovereignty = config["hardware.sovereignty"]?.value ?? {};
 
+    const mockish = isMockOrOffline(honesty.proverMode) || !honesty.engineReachable;
+    const claim = configClaimKind(honesty);
+    const honestValid = mockish ? null : isValid;
+
     const Icon = isLayer1 ? Cpu : Lock;
     const accentVar = isLayer1 ? "var(--success)" : "var(--info)";
-    const title = isLayer1 ? "Layer 1: SP1 STARK Proof" : "Layer 2: Post-Quantum Signature";
-    const subtitle = isLayer1 ? "Computational Honesty Guarantee" : "Quantum-Resistant Attestation";
+    const title = isLayer1
+        ? (mockish ? "Layer 1: ZKP envelope (unproven)" : "Layer 1: STARK proof")
+        : "Layer 2: Post-Quantum Signature";
+    const subtitle = isLayer1
+        ? (mockish ? "Structural envelope only" : "Computational honesty (real prover)")
+        : "Declared PQC scheme from engine config";
 
-    const statusLabel = isValid === null || isValid === undefined
-        ? "PENDING"
-        : isValid
+    const statusLabel = honestValid === null || honestValid === undefined
+        ? "NOT PROVEN"
+        : honestValid
             ? "VALIDATED"
             : "INVALID";
 
-    const StatusIcon = isValid === null || isValid === undefined
+    const StatusIcon = honestValid === null || honestValid === undefined
         ? Clock
-        : isValid
+        : honestValid
             ? CheckCircle2
             : XCircle;
 
-    const statusColor = isValid === null || isValid === undefined
+    const statusColor = honestValid === null || honestValid === undefined
         ? "var(--warning)"
-        : isValid
+        : honestValid
             ? accentVar
             : "var(--error)";
 
     // Build detail rows from config
     const detailRows: Array<{ label: string; value: string }> = isLayer1
         ? [
-            { label: "Engine", value: `${zkpProver.name ?? "—"} ${zkpProver.version ?? ""}` },
+            { label: claim === "target" ? "Engine (target)" : "Engine", value: `${zkpProver.name ?? "—"} ${zkpProver.version ?? ""}` },
             { label: "Backend", value: zkpProver.backend ?? "—" },
-            { label: "Prover Mode", value: proverMode.current ?? "—" },
-            { label: "Hardware", value: `${hwSovereignty.node_name ?? "—"} (${hwSovereignty.isolation_mode ?? "—"})` },
+            { label: "Prover Mode", value: honesty.proverMode },
+            { label: claim === "target" ? "Hardware (target)" : "Hardware", value: `${hwSovereignty.node_name ?? "—"} (${hwSovereignty.isolation_mode ?? "—"})` },
         ]
         : [
             { label: "Algorithm", value: pqcAlgo.name ?? "—" },
@@ -72,8 +87,12 @@ export function CryptoLayerCard({ layer, config, isValid, metadata }: CryptoLaye
     }
 
     const description = isLayer1
-        ? "Proves mathematically that the governance hash was derived from authentic input/output states without exposing private prompt data."
-        : `Signed directly on the sovereign hardware enclave with ${pqcAlgo.standard ?? "FIPS 204"} lattice cryptography, ensuring immunity against quantum attacks.`;
+        ? (mockish
+            ? "Declared ZKP circuit config. No cryptographic proof is claimed while the prover is mock, offline, or unknown."
+            : "Proves the governance hash was derived from the bound input/output states without exposing private prompt data.")
+        : (mockish
+            ? `Declared PQC scheme (${pqcAlgo.name ?? "—"} / ${pqcAlgo.standard ?? "—"}). Signature validity is not a ZKP.`
+            : `Signed with ${pqcAlgo.standard ?? "FIPS 204"} lattice cryptography.`);
 
     return (
         <div

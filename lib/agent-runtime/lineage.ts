@@ -86,7 +86,7 @@ export async function emitLineage(input: EmitLineageInput): Promise<GovernanceLe
                         pqc_signature: Buffer.from(attestation.signature).toString("hex"),
                         pqc_public_key: attestation.metadata.signer_public_key,
                         jurisdiction: attestation.metadata.jurisdiction || "US",
-                        // Defaults from 055 migration: pqc_valid=false, zkp_valid=null,
+                        // Defaults from 060 migration: pqc_valid=false, zkp_valid=null,
                         // verification_status='pending', verified_at=null.
                         // A real /api/v1/verify call updates these after actual verification.
                     });

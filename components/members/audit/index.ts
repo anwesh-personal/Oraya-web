@@ -11,4 +11,5 @@ export { NoetherianGateCard } from "./NoetherianGateCard";
 export { CryptoLayerCard } from "./CryptoLayerCard";
 export { GovernanceLeafBreakdown } from "./GovernanceLeafBreakdown";
 export { AttestationCertificate } from "./AttestationCertificate";
+export { useAsisHonesty } from "./useAsisHonesty";
 export type * from "./types";

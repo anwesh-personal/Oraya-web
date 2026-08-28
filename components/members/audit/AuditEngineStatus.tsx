@@ -3,35 +3,39 @@
 // ============================================================================
 // AuditEngineStatus — Live ASIS Sovereign Engine Health Monitor
 // ============================================================================
-// Polls /api/asis/health on mount and displays real-time engine status.
-// All values from live API — zero hardcoded metadata.
+// Polls /api/asis/health. Fail-open: offline is an honest state, not an error page.
 // ============================================================================
 
 import { useState, useEffect, useCallback } from "react";
-import { Activity, AlertCircle, CheckCircle2, RefreshCw } from "lucide-react";
-import type { EngineHealth } from "./types";
+import { AlertCircle, RefreshCw } from "lucide-react";
+import type { EngineHealth, HonestyState } from "./types";
+import {
+    DEFAULT_HONESTY,
+    honestyFromApiBody,
+    isMockOrOffline,
+    proverModeLabel,
+} from "@/lib/asis-honesty";
 
 export function AuditEngineStatus() {
     const [health, setHealth] = useState<EngineHealth | null>(null);
+    const [honesty, setHonesty] = useState<HonestyState>(DEFAULT_HONESTY);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [lastChecked, setLastChecked] = useState<Date | null>(null);
 
     const fetchHealth = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
             const res = await fetch("/api/asis/health");
-            if (!res.ok) {
-                const body = await res.json().catch(() => ({}));
-                throw new Error(body.error || `HTTP ${res.status}`);
-            }
-            const body = await res.json();
-            setHealth(body.data);
-            setLastChecked(new Date());
-        } catch (err: any) {
-            setError(err?.message || "Connection failed");
+            const body = await res.json().catch(() => null);
+            const next = honestyFromApiBody(body);
+            setHonesty(next);
+            const data = body?.data;
+            setHealth(data && typeof data === "object" ? data : null);
+        } catch {
+            setHonesty({ ...DEFAULT_HONESTY });
             setHealth(null);
+            setError(null);
         } finally {
             setLoading(false);
         }
@@ -39,15 +43,15 @@ export function AuditEngineStatus() {
 
     useEffect(() => {
         fetchHealth();
-        // Auto-refresh every 30 seconds
         const interval = setInterval(fetchHealth, 30_000);
         return () => clearInterval(interval);
     }, [fetchHealth]);
 
-    const isOnline = health?.status === "operational";
-    const isMockProver = health?.prover_mode === "mock";
+    const reachable = honesty.engineReachable;
+    const mockish = isMockOrOffline(honesty.proverMode) || !reachable;
 
     const formatUptime = (seconds: number): string => {
+        if (!seconds) return "—";
         if (seconds < 60) return `${seconds}s`;
         if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
         const h = Math.floor(seconds / 3600);
@@ -57,34 +61,29 @@ export function AuditEngineStatus() {
 
     return (
         <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[var(--surface-50)] border border-[var(--surface-300)]">
-            {/* Status Indicator */}
             <div className="flex items-center gap-2">
                 {loading ? (
                     <RefreshCw className="w-4 h-4 text-[var(--surface-500)] animate-spin" />
-                ) : isOnline ? (
+                ) : reachable ? (
                     <span className="relative flex h-2.5 w-2.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--success)] opacity-75" />
-                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[var(--success)]" />
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[var(--info)]" />
                     </span>
                 ) : (
                     <span className="relative flex h-2.5 w-2.5">
-                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[var(--error)]" />
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[var(--surface-400)]" />
                     </span>
                 )}
 
                 <span className="text-xs font-medium text-[var(--surface-800)]">
                     {loading
-                        ? "Connecting..."
-                        : isOnline && isMockProver
-                            ? "ASIS Engine Online (Mock Prover)"
-                            : isOnline
-                                ? "ASIS Engine Online"
-                                : "Engine Offline"}
+                        ? "Checking engine…"
+                        : reachable
+                            ? `ASIS engine reachable (${proverModeLabel(honesty.proverMode)})`
+                            : "ASIS engine offline"}
                 </span>
             </div>
 
-            {/* Mock prover warning */}
-            {health && isMockProver && (
+            {mockish && (
                 <span
                     className="text-[10px] font-semibold px-2 py-0.5 rounded-md border"
                     style={{
@@ -93,22 +92,25 @@ export function AuditEngineStatus() {
                         color: "var(--warning)",
                     }}
                 >
-                    ⚠ MOCK — Proofs not cryptographically binding
+                    Not proven — {honesty.proverMode}
                 </span>
             )}
 
-            {/* Metadata chips */}
-            {health && (
+            {reachable && health && (
                 <div className="hidden md:flex items-center gap-2">
+                    {health.algorithm && (
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-[var(--surface-100)] text-[var(--surface-600)] border border-[var(--surface-200)]">
+                            {health.algorithm}
+                        </span>
+                    )}
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-[var(--surface-100)] text-[var(--surface-600)] border border-[var(--surface-200)]">
-                        {health.algorithm}
+                        Prover: {honesty.proverMode}
                     </span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-[var(--surface-100)] text-[var(--surface-600)] border border-[var(--surface-200)]">
-                        Prover: {health.prover_mode}
-                    </span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-[var(--surface-100)] text-[var(--surface-600)] border border-[var(--surface-200)]">
-                        Uptime: {formatUptime(health.uptime_seconds)}
-                    </span>
+                    {typeof health.uptime_seconds === "number" && health.uptime_seconds > 0 && (
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-[var(--surface-100)] text-[var(--surface-600)] border border-[var(--surface-200)]">
+                            Uptime: {formatUptime(health.uptime_seconds)}
+                        </span>
+                    )}
                 </div>
             )}
 
@@ -119,7 +121,6 @@ export function AuditEngineStatus() {
                 </span>
             )}
 
-            {/* Manual refresh */}
             <button
                 onClick={fetchHealth}
                 disabled={loading}

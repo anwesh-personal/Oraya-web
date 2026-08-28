@@ -21,13 +21,10 @@ export async function GET() {
             );
         }
 
-        // Cast to any — asis_attestations is not in generated database.types.ts yet
-        // (migration 055 hasn't been applied to supabase gen types). Same pattern as
-        // providers/page.tsx and lineage.ts.
         const db = supabase as any;
 
         // Run aggregate queries in parallel
-        const [totalRes, validRes, invalidRes, pendingRes, latestRes, modelsRes] = await Promise.all([
+        const [totalRes, validRes, invalidRes, pendingRes, unattestedRes, latestRes, modelsRes] = await Promise.all([
             // Total count
             db
                 .from("asis_attestations")
@@ -54,6 +51,12 @@ export async function GET() {
                 .select("id", { count: "exact", head: true })
                 .eq("user_id", user.id)
                 .eq("verification_status", "pending"),
+
+            db
+                .from("asis_attestations")
+                .select("id", { count: "exact", head: true })
+                .eq("user_id", user.id)
+                .eq("verification_status", "unattested"),
 
             // Latest attestation timestamp
             db
@@ -85,15 +88,18 @@ export async function GET() {
         const validCount = validRes.count ?? 0;
         const invalidCount = invalidRes.count ?? 0;
         const pendingCount = pendingRes.count ?? 0;
+        const unattestedCount = unattestedRes.count ?? 0;
         const passRate = totalCount > 0 ? ((validCount / totalCount) * 100) : 0;
 
         return NextResponse.json({
             success: true,
+            kind: "governance_leaves",
             data: {
                 total: totalCount,
                 verified_valid: validCount,
                 verified_invalid: invalidCount,
                 pending: pendingCount,
+                unattested: unattestedCount,
                 pass_rate: Math.round(passRate * 100) / 100,
                 last_attestation_at: latestRes.data?.created_at ?? null,
                 models: modelCounts,

@@ -1272,6 +1272,131 @@ export type Database = {
           },
         ]
       }
+      // Authored from supabase/migrations/060_asis_zkp_attestations.sql +
+      // 059_asis_engine_config.sql (no live `supabase gen types` this pass).
+      asis_attestations: {
+        Row: {
+          circuit_id: string
+          created_at: string
+          deployment_id: string | null
+          governance_hash: string
+          id: string
+          input_hash: string
+          jurisdiction: string
+          leaf_timestamp: string
+          lineage_id: string | null
+          model_id: string
+          pqc_algorithm: string
+          pqc_public_key: string
+          pqc_signature: string
+          pqc_valid: boolean
+          response_hash: string
+          stark_proof_bytes: string | null
+          user_id: string
+          verification_status: string
+          verified_at: string | null
+          zkp_valid: boolean | null
+        }
+        Insert: {
+          circuit_id?: string
+          created_at?: string
+          deployment_id?: string | null
+          governance_hash: string
+          id?: string
+          input_hash: string
+          jurisdiction?: string
+          leaf_timestamp: string
+          lineage_id?: string | null
+          model_id: string
+          pqc_algorithm?: string
+          pqc_public_key: string
+          pqc_signature: string
+          pqc_valid?: boolean
+          response_hash: string
+          stark_proof_bytes?: string | null
+          user_id: string
+          verification_status?: string
+          verified_at?: string | null
+          zkp_valid?: boolean | null
+        }
+        Update: {
+          circuit_id?: string
+          created_at?: string
+          deployment_id?: string | null
+          governance_hash?: string
+          id?: string
+          input_hash?: string
+          jurisdiction?: string
+          leaf_timestamp?: string
+          lineage_id?: string | null
+          model_id?: string
+          pqc_algorithm?: string
+          pqc_public_key?: string
+          pqc_signature?: string
+          pqc_valid?: boolean
+          response_hash?: string
+          stark_proof_bytes?: string | null
+          user_id?: string
+          verification_status?: string
+          verified_at?: string | null
+          zkp_valid?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asis_attestations_deployment_id_fkey"
+            columns: ["deployment_id"]
+            isOneToOne: false
+            referencedRelation: "widget_deployments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asis_attestations_lineage_id_fkey"
+            columns: ["lineage_id"]
+            isOneToOne: false
+            referencedRelation: "chatbot_lineage"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asis_engine_config: {
+        Row: {
+          category: string
+          config_key: string
+          config_value: Json
+          created_at: string
+          description: string | null
+          id: string
+          is_editable: boolean
+          label: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          category: string
+          config_key: string
+          config_value: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_editable?: boolean
+          label: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          category?: string
+          config_key?: string
+          config_value?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_editable?: boolean
+          label?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       billing_events: {
         Row: {
           created_at: string | null
@@ -6322,6 +6447,8 @@ export const Constants = {
 
 // ─── Convenience type aliases (manually maintained) ──────────────────────────
 export type AuditLog = Tables<"admin_audit_logs">;
+export type AsisAttestation = Tables<"asis_attestations">;
+export type AsisEngineConfig = Tables<"asis_engine_config">;
 export type Updatable<T extends keyof Database["public"]["Tables"]> =
   Database["public"]["Tables"][T]["Update"];
 export type Insertable<T extends keyof Database["public"]["Tables"]> =

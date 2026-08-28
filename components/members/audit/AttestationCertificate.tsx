@@ -9,21 +9,34 @@
 // ============================================================================
 
 import { useState } from "react";
-import { ShieldCheck, Download, Loader2 } from "lucide-react";
-import type { AttestationRecord, EngineConfigMap, NoetherianGateDefinition } from "./types";
+import { ShieldCheck, Download } from "lucide-react";
+import type { AttestationRecord, EngineConfigMap, HonestyState, NoetherianGateDefinition } from "./types";
 import { CryptoLayerCard } from "./CryptoLayerCard";
 import { GovernanceLeafBreakdown } from "./GovernanceLeafBreakdown";
 import { NoetherianGateCard } from "./NoetherianGateCard";
+import {
+    DEFAULT_HONESTY,
+    coerceVerifyForHonesty,
+    deriveProofStatus,
+    isMockOrOffline,
+    isRealProver,
+    proofStatusLabel,
+} from "@/lib/asis-honesty";
 
 interface AttestationCertificateProps {
     attestation: AttestationRecord;
     config: EngineConfigMap;
-    /** Current prover mode from live health check ("mock" | "cpu" | "cuda") */
-    proverMode?: string;
+    honesty?: HonestyState;
 }
 
-export function AttestationCertificate({ attestation, config, proverMode }: AttestationCertificateProps) {
-    const isMockProver = proverMode === "mock" || proverMode === undefined;
+export function AttestationCertificate({
+    attestation,
+    config,
+    honesty = DEFAULT_HONESTY,
+}: AttestationCertificateProps) {
+    const mockish = isMockOrOffline(honesty.proverMode) || !honesty.engineReachable;
+    const derived = deriveProofStatus(attestation, honesty);
+    const derivedLabel = proofStatusLabel(derived);
     const [verifying, setVerifying] = useState(false);
     const [verifyResult, setVerifyResult] = useState<{
         pqc_valid: boolean;
@@ -60,13 +73,22 @@ export function AttestationCertificate({ attestation, config, proverMode }: Atte
                     circuit_id: attestation.circuit_id,
                 }),
             });
-            if (res.ok) {
-                const body = await res.json();
-                setVerifyResult({
-                    pqc_valid: body.data?.pqc_valid ?? false,
-                    zkp_valid: body.data?.zkp_valid ?? false,
-                });
-            }
+            const body = await res.json().catch(() => null);
+            const raw = {
+                pqc_valid: body?.data?.pqc_valid === true,
+                zkp_valid: body?.data?.zkp_valid === true
+                    ? true
+                    : body?.data?.zkp_valid === false
+                        ? false
+                        : null,
+            };
+            const apiHonesty = body?.honesty && typeof body.honesty === "object"
+                ? {
+                    engineReachable: body.honesty.engineReachable === true,
+                    proverMode: body.honesty.proverMode ?? honesty.proverMode,
+                }
+                : honesty;
+            setVerifyResult(coerceVerifyForHonesty(raw, apiHonesty));
         } catch {
             // Verification failure is shown as null result
         } finally {
@@ -92,29 +114,20 @@ export function AttestationCertificate({ attestation, config, proverMode }: Atte
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--surface-200)] pb-6">
                 <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                        {isMockProver ? (
-                            <span
-                                className="px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 border"
-                                style={{
-                                    backgroundColor: "color-mix(in srgb, var(--warning) 10%, transparent)",
-                                    borderColor: "color-mix(in srgb, var(--warning) 25%, transparent)",
-                                    color: "var(--warning)",
-                                }}
-                            >
-                                Mock Prover — Structural Only
-                            </span>
-                        ) : (
-                            <span
-                                className="px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 border"
-                                style={{
-                                    backgroundColor: "color-mix(in srgb, var(--success) 10%, transparent)",
-                                    borderColor: "color-mix(in srgb, var(--success) 25%, transparent)",
-                                    color: "var(--success)",
-                                }}
-                            >
-                                Cryptographically Verified
-                            </span>
-                        )}
+                        <span
+                            className="px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 border"
+                            style={derived === "verified" ? {
+                                backgroundColor: "color-mix(in srgb, var(--success) 10%, transparent)",
+                                borderColor: "color-mix(in srgb, var(--success) 25%, transparent)",
+                                color: "var(--success)",
+                            } : {
+                                backgroundColor: "color-mix(in srgb, var(--warning) 10%, transparent)",
+                                borderColor: "color-mix(in srgb, var(--warning) 25%, transparent)",
+                                color: "var(--warning)",
+                            }}
+                        >
+                            {derivedLabel}
+                        </span>
                         <span className="px-2.5 py-0.5 rounded-full text-xs font-mono bg-[var(--surface-100)] text-[var(--surface-500)] border border-[var(--surface-200)]">
                             {attestation.jurisdiction}
                         </span>
@@ -123,9 +136,11 @@ export function AttestationCertificate({ attestation, config, proverMode }: Atte
                         Sovereign Attestation Certificate
                     </h1>
                     <p className="text-sm text-[var(--surface-500)]">
-                        {isMockProver
-                            ? `Attestation envelope generated with mock prover. Proofs are structural only — not cryptographically binding.`
-                            : `Cryptographically verified via ${config["engine.zkp_prover"]?.value?.name ?? "SP1"} Zero-Knowledge STARK Proofs & ${config["crypto.pqc_algorithm"]?.value?.name ?? "ML-DSA-65"} (${config["crypto.pqc_algorithm"]?.value?.standard ?? "FIPS 204"}).`
+                        {mockish
+                            ? `Attestation envelope. Prover is ${honesty.proverMode} — not a cryptographic proof.`
+                            : derived === "verified"
+                                ? `Verified against a live ${honesty.proverMode} prover.`
+                                : derivedLabel
                         }
                     </p>
                 </div>
@@ -152,8 +167,8 @@ export function AttestationCertificate({ attestation, config, proverMode }: Atte
                 </div>
             </div>
 
-            {/* Mock Prover Honesty Banner */}
-            {isMockProver && (
+            {/* Mock / offline honesty banner */}
+            {mockish && (
                 <div
                     className="p-4 rounded-xl border flex items-center gap-3"
                     style={{
@@ -164,64 +179,67 @@ export function AttestationCertificate({ attestation, config, proverMode }: Atte
                     <ShieldCheck className="w-5 h-5" style={{ color: "var(--warning)" }} />
                     <div>
                         <p className="text-sm font-semibold" style={{ color: "var(--warning)" }}>
-                            Mock Prover Active — Proofs Are Not Cryptographically Binding
+                            {honesty.engineReachable
+                                ? "Mock / unknown prover — not cryptographically proven"
+                                : "Engine offline — not cryptographically proven"}
                         </p>
                         <p className="text-xs text-[var(--surface-500)]">
-                            The ASIS engine is running with SP1_PROVER=mock. STARK proofs are structurally valid envelopes but do NOT provide computational honesty guarantees.
-                            Gate verdicts below reflect structural validation only. Production CUDA proving on GB10 is required for real cryptographic attestation.
+                            zkp_valid is treated as unproven. This page will not show Verified, Cryptographically Verified, STARK, or CISO-ready while prover_mode is mock, offline, or unknown.
                         </p>
                     </div>
                 </div>
             )}
 
-            {/* Re-verification result banner */}
-            {verifyResult && (
-                <div
-                    className="p-4 rounded-xl border flex items-center gap-3"
-                    style={{
-                        backgroundColor: verifyResult.pqc_valid && verifyResult.zkp_valid
-                            ? "color-mix(in srgb, var(--success) 8%, transparent)"
-                            : "color-mix(in srgb, var(--error) 8%, transparent)",
-                        borderColor: verifyResult.pqc_valid && verifyResult.zkp_valid
-                            ? "color-mix(in srgb, var(--success) 20%, transparent)"
-                            : "color-mix(in srgb, var(--error) 20%, transparent)",
-                    }}
-                >
-                    <ShieldCheck
-                        className="w-5 h-5"
+            {/* Re-verification result banner — three-state; null ≠ failed */}
+            {verifyResult && (() => {
+                const proven = isRealProver(honesty.proverMode)
+                    && honesty.engineReachable
+                    && verifyResult.pqc_valid
+                    && verifyResult.zkp_valid === true;
+                const unproven = verifyResult.zkp_valid === null || mockish;
+                const tone = proven ? "var(--success)" : unproven ? "var(--warning)" : "var(--error)";
+                return (
+                    <div
+                        className="p-4 rounded-xl border flex items-center gap-3"
                         style={{
-                            color: verifyResult.pqc_valid && verifyResult.zkp_valid
-                                ? "var(--success)"
-                                : "var(--error)",
+                            backgroundColor: `color-mix(in srgb, ${tone} 8%, transparent)`,
+                            borderColor: `color-mix(in srgb, ${tone} 20%, transparent)`,
                         }}
-                    />
-                    <div>
-                        <p className="text-sm font-medium" style={{
-                            color: verifyResult.pqc_valid && verifyResult.zkp_valid
-                                ? "var(--success)"
-                                : "var(--error)",
-                        }}>
-                            {verifyResult.pqc_valid && verifyResult.zkp_valid
-                                ? "Live re-verification PASSED — attestation is cryptographically valid."
-                                : "Live re-verification FAILED — attestation may be tampered."}
-                        </p>
-                        <p className="text-xs text-[var(--surface-500)]">
-                            PQC: {verifyResult.pqc_valid ? "✓ Valid" : "✗ Invalid"} | ZKP: {verifyResult.zkp_valid ? "✓ Valid" : "✗ Invalid"}
-                        </p>
+                    >
+                        <ShieldCheck className="w-5 h-5" style={{ color: tone }} />
+                        <div>
+                            <p className="text-sm font-medium" style={{ color: tone }}>
+                                {proven
+                                    ? "Live re-verification passed against a real prover."
+                                    : unproven
+                                        ? "Re-verify returned no cryptographic proof (mock, offline, or unknown prover)."
+                                        : "Live re-verification failed."}
+                            </p>
+                            <p className="text-xs text-[var(--surface-500)]">
+                                PQC: {verifyResult.pqc_valid ? "valid" : "invalid"} · ZKP:{" "}
+                                {verifyResult.zkp_valid === null
+                                    ? "not proven"
+                                    : verifyResult.zkp_valid
+                                        ? "valid"
+                                        : "invalid"}
+                            </p>
+                        </div>
                     </div>
-                </div>
-            )}
+                );
+            })()}
 
             {/* Dual-Layer Verification Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <CryptoLayerCard
                     layer={1}
                     config={config}
+                    honesty={honesty}
                     isValid={verifyResult?.zkp_valid ?? attestation.zkp_valid}
                 />
                 <CryptoLayerCard
                     layer={2}
                     config={config}
+                    honesty={honesty}
                     isValid={verifyResult?.pqc_valid ?? attestation.pqc_valid}
                 />
             </div>
@@ -238,7 +256,7 @@ export function AttestationCertificate({ attestation, config, proverMode }: Atte
                     </h3>
                     <span
                         className="text-xs font-mono px-2 py-0.5 rounded border"
-                        style={isMockProver ? {
+                        style={mockish || derived !== "verified" ? {
                             backgroundColor: "color-mix(in srgb, var(--warning) 10%, transparent)",
                             borderColor: "color-mix(in srgb, var(--warning) 20%, transparent)",
                             color: "var(--warning)",
@@ -248,9 +266,11 @@ export function AttestationCertificate({ attestation, config, proverMode }: Atte
                             color: "var(--success)",
                         }}
                     >
-                        {isMockProver
-                            ? `MOCK PROVER — ${gateDefinitions.length} GATES STRUCTURALLY CHECKED`
-                            : `ALL ${gateDefinitions.length} GATES PASSED`}
+                        {mockish
+                            ? `${gateDefinitions.length} GATES — UNPROVEN (${honesty.proverMode})`
+                            : derived === "verified"
+                                ? `${gateDefinitions.length} GATES PASSED`
+                                : `${gateDefinitions.length} GATES — ${derivedLabel.toUpperCase()}`}
                     </span>
                 </div>
 
@@ -259,7 +279,7 @@ export function AttestationCertificate({ attestation, config, proverMode }: Atte
                         <NoetherianGateCard
                             key={gate.gate_number}
                             gate={gate}
-                            passed={attestation.verification_status === "verified_valid"}
+                            passed={derived === "verified" ? true : derived === "invalid" ? false : null}
                             compact
                         />
                     ))}
@@ -269,9 +289,11 @@ export function AttestationCertificate({ attestation, config, proverMode }: Atte
             {/* Footer */}
             <div className="text-center text-xs text-[var(--surface-500)] space-y-1">
                 <p>
-                    {isMockProver
+                    {mockish
                         ? "This attestation envelope is structural only. Independent verification requires a real prover (CPU/CUDA)."
-                        : "This cryptographic certificate is independently verifiable by any third-party auditor."}
+                        : derived === "verified"
+                            ? "Verified against a live non-mock prover."
+                            : "Not independently proven on this plane."}
                 </p>
                 <p className="font-mono text-[11px] text-[var(--surface-400)]">
                     AJF Tech Holdings LLC — ASIS Sovereign Intelligence Protocol ({policyConfig.protocol_id ?? "P-ASIS-002"})

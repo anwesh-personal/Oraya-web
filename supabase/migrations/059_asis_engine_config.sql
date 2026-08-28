@@ -201,11 +201,13 @@ INSERT INTO asis_engine_config (config_key, config_value, category, label, descr
         "version": "1.0",
         "governance_standard": "AGL-001",
         "compliance_frameworks": ["SOC2 Type II", "ISO 27001", "NIST 800-53"],
+        "compliance_certified": false,
+        "claim_kind": "target",
         "jurisdiction": "US"
     }'::jsonb,
     'policy',
     'Attestation Protocol',
-    'The sovereign attestation protocol identifier and compliance framework mappings.'
+    'The sovereign attestation protocol identifier and TARGET compliance framework mappings. compliance_frameworks are declared targets — not achieved SOC2 / ISO 27001 / NIST certification.'
 ),
 (
     'policy.export_formats',

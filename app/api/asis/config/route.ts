@@ -66,6 +66,9 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json({
             success: true,
+            claim_kind: "declared_target",
+            disclaimer:
+                "asis_engine_config values are declared configuration / targets, not achieved certifications. SOC2 / ISO 27001 / NIST mappings are not live attestations.",
             data: {
                 config: configMap,
                 rows: data ?? [],

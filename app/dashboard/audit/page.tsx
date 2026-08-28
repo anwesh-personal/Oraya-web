@@ -9,8 +9,8 @@ import type { EngineConfigMap, AttestationStats } from "@/components/members/aud
 // ─────────────────────────────────────────────────────────────
 
 export const metadata: Metadata = {
-    title: "ZKP & Cryptographic Audit",
-    description: "Sovereign ASIS zero-knowledge proof and post-quantum attestation audit dashboard.",
+    title: "Governance leaf audit",
+    description: "ASIS governance-leaf ledger. Proof labels follow live prover honesty — mock/offline never reads as verified.",
 };
 
 export const dynamic = "force-dynamic";
@@ -44,11 +44,12 @@ async function getEngineConfig(supabase: any): Promise<EngineConfigMap> {
 
 async function getStats(supabase: any, userId: string): Promise<AttestationStats> {
     const db = supabase as any;
-    const [totalRes, validRes, invalidRes, pendingRes, latestRes, modelsRes] = await Promise.all([
+    const [totalRes, validRes, invalidRes, pendingRes, unattestedRes, latestRes, modelsRes] = await Promise.all([
         db.from("asis_attestations").select("id", { count: "exact", head: true }).eq("user_id", userId),
         db.from("asis_attestations").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("verification_status", "verified_valid"),
         db.from("asis_attestations").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("verification_status", "verified_invalid"),
         db.from("asis_attestations").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("verification_status", "pending"),
+        db.from("asis_attestations").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("verification_status", "unattested"),
         db.from("asis_attestations").select("created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(1).single(),
         db.from("asis_attestations").select("model_id").eq("user_id", userId),
     ]);
@@ -70,6 +71,7 @@ async function getStats(supabase: any, userId: string): Promise<AttestationStats
         verified_valid: valid,
         verified_invalid: invalidRes.count ?? 0,
         pending: pendingRes.count ?? 0,
+        unattested: unattestedRes.count ?? 0,
         pass_rate: Math.round(passRate * 100) / 100,
         last_attestation_at: latestRes.data?.created_at ?? null,
         models: modelCounts,
