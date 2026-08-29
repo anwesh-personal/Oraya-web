@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { verifySuperadminToken } from "@/lib/superadmin-middleware";
 import { hashSuperadminPassword } from "@/lib/superadmin-password";
+import {
+    createAdminInsertPayload,
+    parsePlatformAdminRole,
+} from "@/lib/platform-admin-roles";
 
 export const dynamic = "force-dynamic";
 
@@ -77,8 +81,14 @@ export async function POST(request: NextRequest) {
         }
 
         // Must match the platform_admins.role CHECK constraint (see migration 002).
-        const validRoles = ["superadmin", "admin", "support", "readonly"];
-        const adminRole = validRoles.includes(role) ? role : "admin";
+        // Reject unknown values — never coerce to admin (that over-granted).
+        const parsedRole = parsePlatformAdminRole(role);
+        if (!parsedRole.ok) {
+            return NextResponse.json(
+                { error: parsedRole.error },
+                { status: parsedRole.status }
+            );
+        }
 
         // Check if email already exists
         const { data: existing } = await (supabase
@@ -102,11 +112,12 @@ export async function POST(request: NextRequest) {
         const { data: newAdmin, error } = await (supabase
             .from("platform_admins") as any)
             .insert({
-                email: email.toLowerCase().trim(),
-                full_name: name.trim(),
-                password_hash: passwordHash,
-                role: adminRole,
-                is_active: true,
+                ...createAdminInsertPayload({
+                    email: email.toLowerCase().trim(),
+                    name: name.trim(),
+                    passwordHash,
+                    role: parsedRole.role,
+                }),
                 created_at: new Date().toISOString(),
             })
             .select("id, email, full_name, role, created_at")

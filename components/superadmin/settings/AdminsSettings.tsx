@@ -3,12 +3,19 @@
 import { useState, useEffect, useCallback } from "react";
 import { Plus, Trash2, Shield, User, Mail, Calendar, Loader2, AlertCircle, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+    PLATFORM_ADMIN_ROLE_OPTIONS,
+    platformAdminDisplayName,
+    platformAdminRoleLabel,
+    type PlatformAdminRole,
+} from "@/lib/platform-admin-roles";
 
 interface Admin {
     id: string;
     email: string;
-    name: string;
-    role: "super_admin" | "admin" | "moderator";
+    full_name?: string | null;
+    name?: string | null;
+    role: PlatformAdminRole;
     created_at: string;
     last_login_at: string | null;
 }
@@ -24,7 +31,7 @@ export function AdminsSettings() {
     const [newAdmin, setNewAdmin] = useState({
         email: "",
         name: "",
-        role: "admin" as Admin["role"],
+        role: "admin" as PlatformAdminRole,
         password: "",
     });
 
@@ -118,11 +125,15 @@ export function AdminsSettings() {
 
     const getRoleBadge = (role: Admin["role"]) => {
         switch (role) {
-            case "super_admin":
+            case "superadmin":
                 return "bg-violet-500/20 text-violet-300 border-violet-500/30";
             case "admin":
                 return "bg-cyan-500/20 text-cyan-300 border-cyan-500/30";
-            case "moderator":
+            case "support":
+                return "bg-amber-500/20 text-amber-300 border-amber-500/30";
+            case "readonly":
+                return "bg-[var(--surface-400)]/20 text-[var(--surface-600)] border-[var(--surface-400)]/30";
+            default:
                 return "bg-[var(--surface-400)]/20 text-[var(--surface-600)] border-[var(--surface-400)]/30";
         }
     };
@@ -214,12 +225,14 @@ export function AdminsSettings() {
                             <label className="block text-sm font-medium text-[var(--surface-600)] mb-2">Role</label>
                             <select
                                 value={newAdmin.role}
-                                onChange={(e) => setNewAdmin({ ...newAdmin, role: e.target.value as Admin["role"] })}
+                                onChange={(e) => setNewAdmin({ ...newAdmin, role: e.target.value as PlatformAdminRole })}
                                 className="w-full px-4 py-3 bg-[var(--surface-100)] border border-[var(--surface-300)] rounded-xl text-[var(--surface-900)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50"
                             >
-                                <option value="admin">Admin</option>
-                                <option value="moderator">Moderator</option>
-                                <option value="super_admin">Super Admin</option>
+                                {PLATFORM_ADMIN_ROLE_OPTIONS.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
                             </select>
                         </div>
                     </div>
@@ -284,7 +297,7 @@ export function AdminsSettings() {
                                             <User className="w-5 h-5 text-white" />
                                         </div>
                                         <div>
-                                            <p className="font-medium text-[var(--surface-900)]">{admin.name}</p>
+                                            <p className="font-medium text-[var(--surface-900)]">{platformAdminDisplayName(admin)}</p>
                                             <p className="text-sm text-[var(--surface-500)]">{admin.email}</p>
                                         </div>
                                     </div>
@@ -294,7 +307,7 @@ export function AdminsSettings() {
                                         "px-3 py-1 rounded-full text-xs font-medium border capitalize",
                                         getRoleBadge(admin.role)
                                     )}>
-                                        {admin.role.replace("_", " ")}
+                                        {platformAdminRoleLabel(admin.role)}
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 text-sm text-[var(--surface-500)]">
