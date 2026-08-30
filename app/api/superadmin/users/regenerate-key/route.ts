@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
-import { getSession } from "@/lib/auth";
 import { randomBytes } from "crypto";
+import { requireSaaSSession } from "@/lib/saas-route-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -39,10 +39,9 @@ function generateOraKey(): string {
  * Body: { user_id: string }
  */
 export async function POST(request: NextRequest) {
-    const session = await getSession();
-    if (!session) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const auth = await requireSaaSSession("write", request);
+    if ("response" in auth) return auth.response;
+    const { session } = auth;
 
     const body = await request.json();
     const { user_id } = body;

@@ -1,5 +1,13 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import {
+    decideSaaSLoginRole,
+    SAAS_ROLE_HIERARCHY,
+} from "./saas-rbac";
+import {
+    isPlatformAdminRole,
+    type PlatformAdminRole,
+} from "./platform-admin-roles";
 
 const JWT_SECRET = new TextEncoder().encode(
     process.env.JWT_SECRET || "fallback-secret-change-in-production"
@@ -10,15 +18,26 @@ const COOKIE_NAME = "superadmin_session";
 export interface SessionPayload {
     adminId: string;
     email: string;
-    role: "superadmin" | "admin" | "support" | "readonly";
+    role: PlatformAdminRole;
     permissions: Record<string, boolean>;
     iat?: number;
     exp?: number;
 }
 
-// Create a signed JWT token
+export class SaaSSessionRoleError extends Error {
+    constructor(message = "createSession refused a non-SaaS role") {
+        super(message);
+        this.name = "SaaSSessionRoleError";
+    }
+}
+
+// Create a signed JWT token. MOS `scoped` / unknown roles are refused.
 export async function createSession(payload: Omit<SessionPayload, "iat" | "exp">) {
-    const token = await new SignJWT(payload)
+    const allowed = decideSaaSLoginRole(payload.role);
+    if (!allowed.ok) {
+        throw new SaaSSessionRoleError();
+    }
+    const token = await new SignJWT({ ...payload, role: allowed.role })
         .setProtectedHeader({ alg: "HS256" })
         .setIssuedAt()
         .setExpirationTime("24h")
@@ -27,10 +46,14 @@ export async function createSession(payload: Omit<SessionPayload, "iat" | "exp">
     return token;
 }
 
-// Verify and decode a JWT token
+// Verify and decode a JWT token. Unknown / MOS-only roles are not sessions.
 export async function verifySession(token: string): Promise<SessionPayload | null> {
     try {
         const { payload } = await jwtVerify(token, JWT_SECRET);
+        const role = (payload as { role?: unknown }).role;
+        if (!isPlatformAdminRole(role)) {
+            return null;
+        }
         return payload as unknown as SessionPayload;
     } catch (error) {
         return null;
@@ -67,30 +90,24 @@ export async function clearSession() {
     cookieStore.delete(COOKIE_NAME);
 }
 
-// Check if user has required role
+// Check if user has required role. Unknown / MOS-only roles fail closed.
 export function hasRole(
     session: SessionPayload | null,
-    requiredRole: "superadmin" | "admin" | "support" | "readonly"
+    requiredRole: PlatformAdminRole
 ): boolean {
-    if (!session) return false;
-
-    const roleHierarchy = {
-        superadmin: 4,
-        admin: 3,
-        support: 2,
-        readonly: 1,
-    };
-
-    return roleHierarchy[session.role] >= roleHierarchy[requiredRole];
+    if (!session || !isPlatformAdminRole(session.role)) return false;
+    if (!isPlatformAdminRole(requiredRole)) return false;
+    return SAAS_ROLE_HIERARCHY[session.role] >= SAAS_ROLE_HIERARCHY[requiredRole];
 }
 
-// Check if user has specific permission
+// Granular JSONB cannot elevate support / readonly / unknown roles.
 export function hasPermission(
     session: SessionPayload | null,
     permission: string
 ): boolean {
-    if (!session) return false;
-    if (session.role === "superadmin") return true; // Superadmin has all permissions
+    if (!session || !isPlatformAdminRole(session.role)) return false;
+    if (session.role === "superadmin") return true;
+    if (session.role === "support" || session.role === "readonly") return false;
     return session.permissions?.[permission] === true;
 }
 

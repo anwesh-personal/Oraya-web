@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
-import { verifySuperadminToken } from "@/lib/superadmin-middleware";
 import { hashSuperadminPassword } from "@/lib/superadmin-password";
 import {
     createAdminInsertPayload,
     parsePlatformAdminRole,
 } from "@/lib/platform-admin-roles";
+import { requireSaaSSession } from "@/lib/saas-route-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -15,10 +15,8 @@ export const dynamic = "force-dynamic";
 // ─────────────────────────────────────────────────────────────
 
 export async function GET(request: NextRequest) {
-    const authResult = await verifySuperadminToken(request);
-    if (authResult.error) {
-        return NextResponse.json({ error: authResult.error }, { status: 401 });
-    }
+    const auth = await requireSaaSSession("read", request);
+    if ("response" in auth) return auth.response;
 
     const supabase = createServiceRoleClient();
 
@@ -47,18 +45,8 @@ export async function GET(request: NextRequest) {
 // ─────────────────────────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
-    const authResult = await verifySuperadminToken(request);
-    if (authResult.error) {
-        return NextResponse.json({ error: authResult.error }, { status: 401 });
-    }
-
-    // Only superadmin role can create other admins
-    if (authResult.session?.role !== "superadmin") {
-        return NextResponse.json(
-            { error: "Only superadmins can create new admins" },
-            { status: 403 }
-        );
-    }
+    const auth = await requireSaaSSession("superadmin", request);
+    if ("response" in auth) return auth.response;
 
     const supabase = createServiceRoleClient();
 
@@ -141,17 +129,9 @@ export async function POST(request: NextRequest) {
 // ─────────────────────────────────────────────────────────────
 
 export async function DELETE(request: NextRequest) {
-    const authResult = await verifySuperadminToken(request);
-    if (authResult.error) {
-        return NextResponse.json({ error: authResult.error }, { status: 401 });
-    }
-
-    if (authResult.session?.role !== "superadmin") {
-        return NextResponse.json(
-            { error: "Only superadmins can delete admins" },
-            { status: 403 }
-        );
-    }
+    const auth = await requireSaaSSession("superadmin", request);
+    if ("response" in auth) return auth.response;
+    const { session } = auth;
 
     const supabase = createServiceRoleClient();
     const { searchParams } = new URL(request.url);
@@ -163,7 +143,7 @@ export async function DELETE(request: NextRequest) {
 
     try {
         // Prevent deleting yourself
-        if (id === authResult.session?.adminId) {
+        if (id === session.adminId) {
             return NextResponse.json(
                 { error: "Cannot delete your own account" },
                 { status: 400 }

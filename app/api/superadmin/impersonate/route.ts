@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
-import { getSession } from "@/lib/auth";
+import { requireSaaSSession } from "@/lib/saas-route-guard";
 
 /**
  * POST /api/superadmin/impersonate
@@ -14,13 +14,9 @@ import { getSession } from "@/lib/auth";
 export async function POST(request: NextRequest) {
     try {
         // Verify superadmin session
-        const session = await getSession();
-        if (!session || session.role !== "superadmin") {
-            return NextResponse.json(
-                { error: "Unauthorized — superadmin access required" },
-                { status: 403 }
-            );
-        }
+        const auth = await requireSaaSSession("superadmin", request);
+        if ("response" in auth) return auth.response;
+        const { session } = auth;
 
         const { userId } = await request.json();
 

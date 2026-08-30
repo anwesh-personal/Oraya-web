@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
-import { verifySuperadminToken } from "@/lib/superadmin-middleware";
+import { requireSaaSSession } from "@/lib/saas-route-guard";
 
 export const dynamic = "force-dynamic";
 
 // GET - Fetch all managed AI keys with stats
 export async function GET(request: NextRequest) {
-    const authResult = await verifySuperadminToken(request);
-    if (authResult.error) {
-        return NextResponse.json({ error: authResult.error }, { status: 401 });
-    }
+    const auth = await requireSaaSSession("read", request);
+    if ("response" in auth) return auth.response;
+    const { session } = auth;
 
     const supabase = createServiceRoleClient();
     const { searchParams } = new URL(request.url);
@@ -61,10 +60,9 @@ export async function GET(request: NextRequest) {
 
 // POST - Add a new managed AI key
 export async function POST(request: NextRequest) {
-    const authResult = await verifySuperadminToken(request);
-    if (authResult.error) {
-        return NextResponse.json({ error: authResult.error }, { status: 401 });
-    }
+    const auth = await requireSaaSSession("write", request);
+    if ("response" in auth) return auth.response;
+    const { session } = auth;
 
     const supabase = createServiceRoleClient();
 
@@ -144,10 +142,9 @@ export async function POST(request: NextRequest) {
 
 // PATCH - Update an existing key
 export async function PATCH(request: NextRequest) {
-    const authResult = await verifySuperadminToken(request);
-    if (authResult.error) {
-        return NextResponse.json({ error: authResult.error }, { status: 401 });
-    }
+    const auth = await requireSaaSSession("write", request);
+    if ("response" in auth) return auth.response;
+    const { session } = auth;
 
     const supabase = createServiceRoleClient();
 
@@ -186,10 +183,9 @@ export async function PATCH(request: NextRequest) {
 
 // DELETE - Remove a key
 export async function DELETE(request: NextRequest) {
-    const authResult = await verifySuperadminToken(request);
-    if (authResult.error) {
-        return NextResponse.json({ error: authResult.error }, { status: 401 });
-    }
+    const auth = await requireSaaSSession("write", request);
+    if ("response" in auth) return auth.response;
+    const { session } = auth;
 
     const supabase = createServiceRoleClient();
     const { searchParams } = new URL(request.url);

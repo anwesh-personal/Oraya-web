@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
-import { getSession } from "@/lib/auth";
+import { requireSaaSSession } from "@/lib/saas-route-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -10,10 +10,9 @@ export const dynamic = "force-dynamic";
  * Body: { to: "test@example.com" }
  */
 export async function POST(request: NextRequest) {
-    const session = await getSession();
-    if (!session) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const auth = await requireSaaSSession("write", request);
+    if ("response" in auth) return auth.response;
+    const { session } = auth;
 
     const { to } = await request.json();
     if (!to) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSession, setSessionCookie } from "@/lib/auth";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { verifySuperadminPassword } from "@/lib/superadmin-password";
+import { decideSaaSLoginRole } from "@/lib/saas-rbac";
 
 export async function POST(request: NextRequest) {
     try {
@@ -75,11 +76,31 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Password matched. SaaS still accepts only its own roles —
+        // MOS `scoped` / unknown never receive a cookie.
+        const allowedRole = decideSaaSLoginRole(admin.role);
+        if (!allowedRole.ok) {
+            await (supabase.from("admin_audit_logs") as any).insert({
+                admin_id: admin.id,
+                admin_email: admin.email,
+                action: "auth.login_refused_surface",
+                metadata: {
+                    reason: "non_saas_role",
+                    user_agent: request.headers.get("user-agent"),
+                },
+                ip_address: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip"),
+            });
+            return NextResponse.json(
+                { error: allowedRole.error },
+                { status: allowedRole.status }
+            );
+        }
+
         // Create session token
         const token = await createSession({
             adminId: admin.id,
             email: admin.email,
-            role: admin.role as "superadmin" | "admin" | "support" | "readonly",
+            role: allowedRole.role,
             permissions: (admin.permissions as Record<string, boolean>) || {},
         });
 
@@ -113,7 +134,7 @@ export async function POST(request: NextRequest) {
                 id: admin.id,
                 email: admin.email,
                 fullName: admin.full_name,
-                role: admin.role,
+                role: allowedRole.role,
             },
         });
     } catch (error) {

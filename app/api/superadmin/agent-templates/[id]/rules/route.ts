@@ -1,18 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
-import { getSession } from "@/lib/auth";
+import { requireSaaSSession } from "@/lib/saas-route-guard";
 
 export const dynamic = "force-dynamic";
 
 // ─── GET: Fetch behavioral rules for a template ─────────────────────────────
 export async function GET(
-    _request: NextRequest,
+    request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    const session = await getSession();
-    if (!session) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const auth = await requireSaaSSession("read", request);
+    if ("response" in auth) return auth.response;
+    const { session } = auth;
 
     const { id: templateId } = await params;
     const supabase = createServiceRoleClient();
@@ -43,10 +42,9 @@ export async function POST(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    const session = await getSession();
-    if (!session) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const auth = await requireSaaSSession("write", request);
+    if ("response" in auth) return auth.response;
+    const { session } = auth;
 
     const { id: templateId } = await params;
     const body = await request.json();
@@ -119,10 +117,9 @@ export async function PATCH(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    const session = await getSession();
-    if (!session) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const auth = await requireSaaSSession("write", request);
+    if ("response" in auth) return auth.response;
+    const { session } = auth;
 
     const { id: templateId } = await params;
     const body = await request.json();
@@ -185,10 +182,9 @@ export async function DELETE(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    const session = await getSession();
-    if (!session) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const auth = await requireSaaSSession("write", request);
+    if ("response" in auth) return auth.response;
+    const { session } = auth;
 
     const { id: templateId } = await params;
     const url = new URL(request.url);

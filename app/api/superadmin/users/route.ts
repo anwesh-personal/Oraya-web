@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
-import { getSession } from "@/lib/auth";
 import { PlanEnforcer } from "@/lib/plan-enforcer";
+import { requireSaaSSession } from "@/lib/saas-route-guard";
 
 export const dynamic = "force-dynamic";
 
 // ─── GET: List users with profile & license info ─────────────────────────────
 export async function GET(request: NextRequest) {
-    const session = await getSession();
-    if (!session) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const auth = await requireSaaSSession("read", request);
+    if ("response" in auth) return auth.response;
+    const { session } = auth;
 
     const supabase = createServiceRoleClient();
 
@@ -89,10 +88,9 @@ export async function GET(request: NextRequest) {
 
 // ─── POST: Create a new user ──────────────────────────────────────────────────
 export async function POST(request: NextRequest) {
-    const session = await getSession();
-    if (!session) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const auth = await requireSaaSSession("write", request);
+    if ("response" in auth) return auth.response;
+    const { session } = auth;
 
     const body = await request.json();
     const { email, password, full_name, plan_id, billing_cycle, organization_id } = body;
@@ -224,10 +222,9 @@ export async function POST(request: NextRequest) {
 
 // ─── PATCH: Update user ───────────────────────────────────────────────────────
 export async function PATCH(request: NextRequest) {
-    const session = await getSession();
-    if (!session) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const auth = await requireSaaSSession("write", request);
+    if ("response" in auth) return auth.response;
+    const { session } = auth;
 
     const body = await request.json();
     const { user_id, updates } = body;
@@ -352,10 +349,9 @@ export async function PATCH(request: NextRequest) {
 
 // ─── DELETE: Delete user ──────────────────────────────────────────────────────
 export async function DELETE(request: NextRequest) {
-    const session = await getSession();
-    if (!session) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const auth = await requireSaaSSession("write", request);
+    if ("response" in auth) return auth.response;
+    const { session } = auth;
 
     const url = new URL(request.url);
     const userId = url.searchParams.get("user_id");

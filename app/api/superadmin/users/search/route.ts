@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
-import { getSession } from "@/lib/auth";
+import { requireSaaSSession } from "@/lib/saas-route-guard";
 
 export const dynamic = "force-dynamic";
 
 // GET /api/superadmin/users/search?q=anwesh&limit=30&offset=0
 export async function GET(request: NextRequest) {
-    const session = await getSession();
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSaaSSession("read", request);
+    if ("response" in auth) return auth.response;
 
     const { searchParams } = new URL(request.url);
     const q = (searchParams.get("q") || "").trim();
