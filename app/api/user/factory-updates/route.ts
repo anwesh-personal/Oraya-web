@@ -4,21 +4,25 @@ import {
     authenticateDesktopRequest,
     isAuthError,
 } from "@/lib/desktop-auth";
+import {
+    runFactoryUpdates,
+    type FactoryMemoryRow,
+    type FactoryTemplateMeta,
+} from "@/lib/factory-updates";
 
 export const dynamic = "force-dynamic";
 
 // ─── POST: Check for factory memory updates ─────────────────────────────────
-// Called by Oraya Desktop on launch (and periodically) to check if any
-// installed agents have factory memory updates available.
+// Called by Oraya / Orakhos Desktop on launch (and periodically).
 //
 // Request body (JSON):
 //   { agents: [{ template_id, current_version }] }
 //
-// Response:
-//   { updates: [{ template_id, latest_version, memories: [...] }] }
-//
-// The desktop receives the FULL current factory memory set and performs
-// the merge locally (add new, update changed, remove missing).
+// Auth: desktop Bearer (`authenticateDesktopRequest`).
+// Entitlement: `get_user_accessible_agents` (plan_tier_rank + explicit
+// assignment — same predicate as 047_structured_agent_data.sql:145).
+// Over-tier template_id → 403 (no memories). Entitled → 200 { updates }.
+// Service-role is used only AFTER auth, to assemble entitled rows.
 // ─────────────────────────────────────────────────────────────────────────────
 export async function POST(request: NextRequest) {
     // Desktop sends JWT as Authorization: Bearer — use desktop auth (not cookies)
@@ -56,31 +60,37 @@ export async function POST(request: NextRequest) {
     const serviceClient = createServiceRoleClient();
 
     try {
-        const updates = [];
-
-        for (const { template_id, current_version } of agentVersions) {
-            if (!template_id) continue;
-
-            // Check if template has a newer factory version
-            const { data: template } = await (serviceClient
-                .from("agent_templates") as any)
-                .select("id, name, factory_version, factory_published_at")
-                .eq("id", template_id)
-                .eq("is_active", true)
-                .single();
-
-            if (!template) continue;
-
-            const latestVersion = template.factory_version ?? 0;
-            const clientVersion = current_version ?? 0;
-
-            // No update needed
-            if (latestVersion <= clientVersion) continue;
-
-            // Fetch all currently active factory memories for this template
-            const { data: memories, error: memError } = await (serviceClient
-                .from("agent_template_memories") as any)
-                .select(`
+        const result = await runFactoryUpdates({
+            userId: authResult.userId,
+            agents: agentVersions,
+            loadAccessibleTemplateIds: async (userId) => {
+                const { data, error } = await serviceClient.rpc(
+                    "get_user_accessible_agents",
+                    { p_user_id: userId }
+                );
+                if (error) {
+                    throw error;
+                }
+                return (data ?? [])
+                    .map((row: { template_id?: string }) =>
+                        row.template_id ? String(row.template_id) : ""
+                    )
+                    .filter(Boolean);
+            },
+            loadTemplate: async (id) => {
+                const { data: template } = await (serviceClient
+                    .from("agent_templates") as any)
+                    .select("id, name, factory_version, factory_published_at")
+                    .eq("id", id)
+                    .eq("is_active", true)
+                    .single();
+                if (!template) return null;
+                return template as FactoryTemplateMeta;
+            },
+            loadMemories: async (templateId) => {
+                const { data: memories, error: memError } = await (serviceClient
+                    .from("agent_template_memories") as any)
+                    .select(`
                     factory_id,
                     category,
                     content,
@@ -88,28 +98,21 @@ export async function POST(request: NextRequest) {
                     tags,
                     version_added
                 `)
-                .eq("template_id", template_id)
-                .eq("is_active", true)
-                .is("version_removed", null)
-                .order("category", { ascending: true })
-                .order("sort_order", { ascending: true });
+                    .eq("template_id", templateId)
+                    .eq("is_active", true)
+                    .is("version_removed", null)
+                    .order("category", { ascending: true })
+                    .order("sort_order", { ascending: true });
 
-            if (memError) {
-                console.error(`Factory memories fetch error for ${template_id}:`, memError);
-                continue;
-            }
+                if (memError) {
+                    console.error(`Factory memories fetch error for ${templateId}:`, memError);
+                    return null;
+                }
+                return (memories || []) as FactoryMemoryRow[];
+            },
+        });
 
-            updates.push({
-                template_id,
-                template_name: template.name,
-                from_version: clientVersion,
-                latest_version: latestVersion,
-                published_at: template.factory_published_at,
-                memories: memories || [],
-            });
-        }
-
-        return NextResponse.json({ updates });
+        return NextResponse.json(result.body, { status: result.status });
     } catch (err: any) {
         console.error("Factory updates API error:", err);
         return NextResponse.json({ error: err.message }, { status: 500 });
