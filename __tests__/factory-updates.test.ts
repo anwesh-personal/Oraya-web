@@ -52,22 +52,28 @@ describe("runFactoryUpdates POST semantics", () => {
         }
     });
 
-    it("over-tier template_id → 403 and never loads factory memories", async () => {
+    it("over-tier-only batch → 200 empty updates, never loads factory memories", async () => {
         let memoryLoads = 0;
+        let templateLoads = 0;
         const result = await runFactoryUpdates({
             userId: "user-free",
             agents: [{ template_id: PRO_UUID, current_version: 0 }],
             loadAccessibleTemplateIds: async () => [FREE_UUID],
-            loadTemplate: async () => proTemplate,
+            loadTemplate: async () => {
+                templateLoads += 1;
+                return proTemplate;
+            },
             loadMemories: async () => {
                 memoryLoads += 1;
                 return [secretMemory];
             },
         });
-        assert.equal(result.status, 403);
+        assert.equal(result.status, 200);
         assert.equal(memoryLoads, 0);
-        assert.ok(!("updates" in result.body));
-        assert.equal((result.body as { error: string }).error, "Forbidden");
+        assert.equal(templateLoads, 0);
+        if (result.status === 200) {
+            assert.deepEqual(result.body.updates, []);
+        }
     });
 
     it("explicit assignment entitles a free user (RPC SSOT, not UUID hiding)", async () => {
@@ -84,8 +90,16 @@ describe("runFactoryUpdates POST semantics", () => {
         }
     });
 
-    it("mixed batch with one over-tier id is 403 and leaks no memories", async () => {
-        let memoryLoads = 0;
+    it("mixed batch returns only entitled updates and never loads over-tier memories", async () => {
+        const freeMemory: FactoryMemoryRow = {
+            factory_id: "fm-free",
+            category: "instruction",
+            content: "FREE_FACTORY_MEMORY",
+            importance: 1,
+            tags: null,
+            version_added: 2,
+        };
+        const loadedIds: string[] = [];
         const result = await runFactoryUpdates({
             userId: "user-free",
             agents: [
@@ -102,13 +116,21 @@ describe("runFactoryUpdates POST semantics", () => {
                           factory_version: 2,
                           factory_published_at: null,
                       },
-            loadMemories: async () => {
-                memoryLoads += 1;
-                return [secretMemory];
+            loadMemories: async (templateId) => {
+                loadedIds.push(templateId);
+                return templateId === FREE_UUID ? [freeMemory] : [secretMemory];
             },
         });
-        assert.equal(result.status, 403);
-        assert.equal(memoryLoads, 0);
+        assert.equal(result.status, 200);
+        assert.deepEqual(loadedIds, [FREE_UUID]);
+        if (result.status === 200) {
+            assert.equal(result.body.updates.length, 1);
+            assert.equal(result.body.updates[0].template_id, FREE_UUID);
+            assert.equal(result.body.updates[0].memories[0].content, "FREE_FACTORY_MEMORY");
+            const serialized = JSON.stringify(result.body);
+            assert.equal(serialized.includes("SECRET_FACTORY_MEMORY"), false);
+            assert.equal(serialized.includes(PRO_UUID), false);
+        }
     });
 
     it("missing template is skipped (200 empty), not 403", async () => {

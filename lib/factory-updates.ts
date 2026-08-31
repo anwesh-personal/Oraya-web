@@ -11,8 +11,10 @@
  *
  * Desktop caller (FactoryPatchDaemon): POST `{ agents: [{ template_id,
  * current_version }] }` with Bearer. 200 body stays `{ updates: [...] }`.
- * An existing over-tier `template_id` fails the whole request (403, no
- * memories) — same fail-closed class as template download.
+ * Entitlement is applied **per item**: over-tier ids are silently
+ * excluded (never load/return their memories). A mixed batch still
+ * returns 200 with only entitled updates. All-over-tier is 200 `{ updates: [] }`,
+ * not a whole-batch 403. Unauthenticated stays 401.
  */
 
 import { decideTemplateDownloadAccess } from "@/lib/template-download";
@@ -49,7 +51,6 @@ export type FactoryUpdate = {
 
 export type FactoryUpdatesResult =
     | { status: 401; body: { error: string } }
-    | { status: 403; body: { error: string } }
     | { status: 200; body: { updates: FactoryUpdate[] } };
 
 export async function runFactoryUpdates(opts: {
@@ -79,21 +80,23 @@ export async function runFactoryUpdates(opts: {
     for (const agent of opts.agents) {
         if (!agent.template_id) continue;
 
-        const template = await opts.loadTemplate(agent.template_id);
-        if (!template) continue;
-
+        // Gate on the requested id *before* loading template/memories so
+        // over-tier IP is never fetched. 403 is per-item exclude, not batch.
         const decision = decideTemplateDownloadAccess({
             userId: opts.userId,
-            template: { id: template.id },
+            template: { id: agent.template_id },
             accessibleTemplateIds,
         });
 
         if (decision.status === 403) {
-            return { status: 403, body: { error: "Forbidden" } };
+            continue;
         }
         if (decision.status !== 200) {
             return { status: 401, body: { error: "Unauthorized" } };
         }
+
+        const template = await opts.loadTemplate(agent.template_id);
+        if (!template) continue;
 
         entitled.push({ agent, template });
     }

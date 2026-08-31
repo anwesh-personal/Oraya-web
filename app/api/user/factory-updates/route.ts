@@ -20,9 +20,10 @@ export const dynamic = "force-dynamic";
 //
 // Auth: desktop Bearer (`authenticateDesktopRequest`).
 // Entitlement: `get_user_accessible_agents` (plan_tier_rank + explicit
-// assignment — same predicate as 047_structured_agent_data.sql:145).
-// Over-tier template_id → 403 (no memories). Entitled → 200 { updates }.
-// Service-role is used only AFTER auth, to assemble entitled rows.
+// assignment — same predicate as 047_structured_agent_data.sql:145),
+// applied per item. Over-tier ids are omitted (never their memories).
+// Mixed / all-over-tier → 200 { updates } (empty if none entitled).
+// Unauthenticated → 401. Service-role is used only AFTER auth.
 // ─────────────────────────────────────────────────────────────────────────────
 export async function POST(request: NextRequest) {
     // Desktop sends JWT as Authorization: Bearer — use desktop auth (not cookies)
